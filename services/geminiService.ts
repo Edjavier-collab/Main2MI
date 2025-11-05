@@ -4,6 +4,11 @@ import { PatientProfile, ChatMessage, Feedback, UserTier, Session, CoachingSumma
 // Get API key from environment variables
 const getApiKey = (): string => {
     const apiKey = import.meta.env.GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
+    console.log('[geminiService] Checking API key...', {
+        hasGeminiKey: !!import.meta.env.GEMINI_API_KEY,
+        hasViteKey: !!import.meta.env.VITE_GEMINI_API_KEY,
+        finalKey: apiKey ? `${apiKey.substring(0, 10)}...` : 'NOT FOUND'
+    });
     if (!apiKey) {
         console.error('GEMINI_API_KEY is not set. Please set it in your .env.local file.');
         throw new Error('GEMINI_API_KEY is required. Please set it in your .env.local file.');
@@ -21,6 +26,8 @@ const getAI = (): GoogleGenAI => {
 };
 
 export const createChatSession = (patient: PatientProfile): Chat => {
+    console.log('[createChatSession] Creating chat for patient:', patient.name);
+    
     const systemInstruction = `You are a patient in a medical setting. You MUST roleplay according to the following detailed profile.
     
     PATIENT PROFILE:
@@ -38,21 +45,46 @@ export const createChatSession = (patient: PatientProfile): Chat => {
     3.  Keep your responses concise and realistic for a patient in this situation.
     4.  The user is a medical professional practicing Motivational Interviewing. Interact with them naturally based on your profile.`;
 
+    console.log('[createChatSession] Using model: gemini-2.0-flash');
+    
     const chat = getAI().chats.create({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.0-flash',
         config: {
             systemInstruction,
         },
     });
+    
+    console.log('[createChatSession] Chat session created successfully');
     return chat;
 };
 
 export const getPatientResponse = async (chat: Chat, message: string): Promise<string> => {
     try {
+        console.log('[getPatientResponse] Sending message:', message);
         const result: GenerateContentResponse = await chat.sendMessage({ message });
+        console.log('[getPatientResponse] Received result:', {
+            hasText: !!result.text,
+            hasCandidates: !!result.candidates,
+            candidatesLength: result.candidates?.length,
+            firstCandidate: result.candidates?.[0],
+            text: result.text
+        });
+        
+        // Check if we have a valid text response
+        if (!result.text) {
+            console.error("[getPatientResponse] Gemini API returned no text. Full response:", result);
+            return "I'm sorry, I lost my train of thought. Could you repeat that?";
+        }
+        
         return result.text;
     } catch (error) {
-        console.error("Gemini API Error in getPatientResponse:", error);
+        console.error("[getPatientResponse] Gemini API Error:", error);
+        if (error instanceof Error) {
+            console.error("[getPatientResponse] Error details:", {
+                message: error.message,
+                stack: error.stack
+            });
+        }
         // Return a user-friendly, in-character message that prompts the user to try again.
         return "I'm sorry, I lost my train of thought. Could you repeat that?";
     }
@@ -127,7 +159,7 @@ export const getFeedbackForTranscript = async (transcript: ChatMessage[], patien
 
     try {
         const response: GenerateContentResponse = await getAI().models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-2.0-flash',
             contents: prompt,
             config: {
                 responseMimeType: 'application/json',
@@ -217,7 +249,7 @@ export const generateCoachingSummary = async (sessions: Session[]): Promise<Coac
     // 3. Call the Gemini API and handle potential errors.
     try {
         const response: GenerateContentResponse = await getAI().models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-2.0-flash',
             contents: prompt,
             config: {
                 responseMimeType: 'application/json',
