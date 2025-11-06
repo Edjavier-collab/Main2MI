@@ -1,26 +1,102 @@
 import { GoogleGenAI, Chat, GenerateContentResponse, Type } from "@google/genai";
 import { PatientProfile, ChatMessage, Feedback, UserTier, Session, CoachingSummary } from '../types';
 
-// Get API key from environment variables
+// Check if we're in development mode
+const isDevelopment = import.meta.env.DEV || import.meta.env.MODE === 'development';
+
+// Get API key from environment variables with enhanced validation
 const getApiKey = (): string => {
     const apiKey = import.meta.env.GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
-    console.log('[geminiService] Checking API key...', {
-        hasGeminiKey: !!import.meta.env.GEMINI_API_KEY,
-        hasViteKey: !!import.meta.env.VITE_GEMINI_API_KEY,
-        finalKey: apiKey ? `${apiKey.substring(0, 10)}...` : 'NOT FOUND'
-    });
+    
+    // Check if API key exists
     if (!apiKey) {
-        console.error('GEMINI_API_KEY is not set. Please set it in your .env.local file.');
-        throw new Error('GEMINI_API_KEY is required. Please set it in your .env.local file.');
+        const errorMessage = 'GEMINI_API_KEY is required but not found. Please set it in your .env.local file.\n\n' +
+            'Setup instructions:\n' +
+            '1. Create a .env.local file in the project root directory\n' +
+            '2. Add one of these lines:\n' +
+            '   VITE_GEMINI_API_KEY=your_api_key_here\n' +
+            '   OR\n' +
+            '   GEMINI_API_KEY=your_api_key_here\n' +
+            '3. Get your API key from: https://aistudio.google.com/apikey\n' +
+            '4. Restart your development server';
+        
+        if (isDevelopment) {
+            console.warn('⚠️ [geminiService] API Key Missing:', errorMessage);
+        }
+        console.error('[geminiService] API key check failed:', {
+            hasGeminiKey: !!import.meta.env.GEMINI_API_KEY,
+            hasViteKey: !!import.meta.env.VITE_GEMINI_API_KEY,
+            envMode: import.meta.env.MODE
+        });
+        throw new Error(errorMessage);
     }
-    return apiKey;
+    
+    // Validate API key format (check for empty strings, whitespace-only, etc.)
+    const trimmedKey = apiKey.trim();
+    if (!trimmedKey || trimmedKey.length === 0) {
+        const errorMessage = 'GEMINI_API_KEY is set but appears to be empty or whitespace only. Please check your .env.local file.';
+        if (isDevelopment) {
+            console.warn('⚠️ [geminiService] Invalid API Key Format:', errorMessage);
+        }
+        throw new Error(errorMessage);
+    }
+    
+    // Log API key status (only in development, and never expose full key)
+    if (isDevelopment) {
+        console.log('[geminiService] API key found:', {
+            hasKey: true,
+            keyLength: trimmedKey.length,
+            keyPrefix: `${trimmedKey.substring(0, 8)}...`,
+            source: import.meta.env.GEMINI_API_KEY ? 'GEMINI_API_KEY' : 'VITE_GEMINI_API_KEY'
+        });
+    }
+    
+    return trimmedKey;
+};
+
+// Validate API key exists before making API calls
+const validateApiKey = (): void => {
+    try {
+        getApiKey();
+    } catch (error) {
+        // Re-throw with context
+        throw error;
+    }
+};
+
+// Format dates as MM/DD/YYYY with graceful fallback
+const formatDateToMMDDYYYY = (dateInput: string | number | Date): string => {
+    const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+
+    if (Number.isNaN(date.getTime())) {
+        const fallbackValue = String(dateInput ?? 'Invalid date');
+        console.error('[geminiService] Unable to format date. Received:', fallbackValue);
+        return fallbackValue;
+    }
+
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const year = date.getFullYear();
+
+    return `${month}/${day}/${year}`;
 };
 
 // Lazy initialization of GoogleGenAI
 let aiInstance: GoogleGenAI | null = null;
 const getAI = (): GoogleGenAI => {
     if (!aiInstance) {
-        aiInstance = new GoogleGenAI({ apiKey: getApiKey() });
+        try {
+            // Validate API key before creating instance
+            validateApiKey();
+            aiInstance = new GoogleGenAI({ apiKey: getApiKey() });
+            if (isDevelopment) {
+                console.log('[geminiService] GoogleGenAI instance initialized successfully');
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error during GoogleGenAI initialization';
+            console.error('[geminiService] Failed to initialize GoogleGenAI:', errorMessage);
+            throw error;
+        }
     }
     return aiInstance;
 };
@@ -60,6 +136,9 @@ export const createChatSession = (patient: PatientProfile): Chat => {
 
 export const getPatientResponse = async (chat: Chat, message: string): Promise<string> => {
     try {
+        // Validate API key before making API call
+        validateApiKey();
+        
         console.log('[getPatientResponse] Sending message:', message);
         const result: GenerateContentResponse = await chat.sendMessage({ message });
         console.log('[getPatientResponse] Received result:', {
@@ -78,13 +157,42 @@ export const getPatientResponse = async (chat: Chat, message: string): Promise<s
         
         return result.text;
     } catch (error) {
-        console.error("[getPatientResponse] Gemini API Error:", error);
+        console.error("[getPatientResponse] Gemini API Error - Full error object:", error);
+        
+        // Handle missing API key error specifically
+        if (error instanceof Error && error.message.includes('GEMINI_API_KEY')) {
+            const userMessage = "I'm sorry, but the application is not properly configured. Please contact support or check your API key configuration.";
+            console.error("[getPatientResponse] Missing API key detected. Returning user-friendly message.");
+            return userMessage;
+        }
+        
+        // Enhanced error logging for debugging
         if (error instanceof Error) {
             console.error("[getPatientResponse] Error details:", {
+                name: error.name,
                 message: error.message,
                 stack: error.stack
             });
         }
+        
+        // Check if it's an API error with response details
+        if (error && typeof error === 'object' && 'error' in error) {
+            const apiError = error as { error?: { code?: number; message?: string; status?: string; details?: unknown } };
+            console.error("[getPatientResponse] API Error Response:", {
+                code: apiError.error?.code,
+                status: apiError.error?.status,
+                message: apiError.error?.message,
+                details: apiError.error?.details
+            });
+            
+            // Handle invalid API key errors
+            if (apiError.error?.code === 400 && apiError.error?.message?.includes('API key')) {
+                const userMessage = "I'm sorry, there's an issue with the API configuration. Please try again later.";
+                console.error("[getPatientResponse] Invalid API key detected.");
+                return userMessage;
+            }
+        }
+        
         // Return a user-friendly, in-character message that prompts the user to try again.
         return "I'm sorry, I lost my train of thought. Could you repeat that?";
     }
@@ -158,6 +266,9 @@ export const getFeedbackForTranscript = async (transcript: ChatMessage[], patien
     const isPremium = userTier === UserTier.Premium;
 
     try {
+        // Validate API key before making API call
+        validateApiKey();
+        
         const response: GenerateContentResponse = await getAI().models.generateContent({
             model: 'gemini-2.0-flash',
             contents: prompt,
@@ -167,12 +278,36 @@ export const getFeedbackForTranscript = async (transcript: ChatMessage[], patien
             },
         });
         
+        if (!response.text) {
+            throw new Error('API response did not contain text content');
+        }
+        
         const feedbackJson = JSON.parse(response.text);
 
         return feedbackJson as Feedback;
 
     } catch (error) {
         console.error("Gemini API Error in getFeedbackForTranscript:", error);
+        
+        // Handle missing API key error specifically
+        if (error instanceof Error && error.message.includes('GEMINI_API_KEY')) {
+            console.error("[getFeedbackForTranscript] Missing API key detected.");
+            return {
+                whatWentRight: "We're having trouble connecting to our feedback service right now. Your practice session was valuable regardless, and you can try again once the service is properly configured.",
+            };
+        }
+        
+        // Handle invalid API key errors
+        if (error && typeof error === 'object' && 'error' in error) {
+            const apiError = error as { error?: { code?: number; message?: string } };
+            if (apiError.error?.code === 400 && apiError.error?.message?.includes('API key')) {
+                console.error("[getFeedbackForTranscript] Invalid API key detected.");
+                return {
+                    whatWentRight: "We're having trouble connecting to our feedback service right now. Your practice session was valuable regardless, and you can try again once the service is properly configured.",
+                };
+            }
+        }
+        
         // Return a fallback Feedback object to prevent UI crashes and provide a positive, informative message.
         return {
             whatWentRight: "We encountered an issue while generating your detailed feedback. However, remember that every practice session is a valuable learning experience. Please try another session later.",
@@ -210,7 +345,7 @@ const coachingSummarySchema = {
 export const generateCoachingSummary = async (sessions: Session[]): Promise<CoachingSummary> => {
     // 1. Summarize the sessions to create a concise data set for the prompt.
     const sessionSummaries = sessions.map(session => ({
-        date: new Date(session.date).toLocaleDateString(),
+        date: formatDateToMMDDYYYY(session.date),
         patientTopic: session.patient.topic,
         stageOfChange: session.patient.stageOfChange,
         whatWentRight: session.feedback.whatWentRight,
@@ -223,8 +358,8 @@ export const generateCoachingSummary = async (sessions: Session[]): Promise<Coac
          throw new Error("No session data available to generate a summary.");
     }
 
-    const firstSessionDate = sessionSummaries[0].date;
-    const lastSessionDate = sessionSummaries[sessionSummaries.length - 1].date;
+    const firstSessionDate = formatDateToMMDDYYYY(sessions[0].date);
+    const lastSessionDate = formatDateToMMDDYYYY(sessions[sessions.length - 1].date);
 
     // 2. Craft the prompt for the Gemini model.
     const prompt = `
@@ -248,6 +383,9 @@ export const generateCoachingSummary = async (sessions: Session[]): Promise<Coac
 
     // 3. Call the Gemini API and handle potential errors.
     try {
+        // Validate API key before making API call
+        validateApiKey();
+        
         const response: GenerateContentResponse = await getAI().models.generateContent({
             model: 'gemini-2.0-flash',
             contents: prompt,
@@ -257,11 +395,41 @@ export const generateCoachingSummary = async (sessions: Session[]): Promise<Coac
             },
         });
 
-        const summaryJson = JSON.parse(response.text);
-        return summaryJson as CoachingSummary;
+        if (!response.text) {
+            throw new Error('API response did not contain text content');
+        }
+
+        const summaryJson = JSON.parse(response.text) as CoachingSummary;
+        return {
+            ...summaryJson,
+            totalSessions: sessionSummaries.length,
+            dateRange: `${firstSessionDate} to ${lastSessionDate}`,
+        };
 
     } catch (error) {
         console.error("Gemini API Error in generateCoachingSummary:", error);
+        
+        // Handle missing API key error specifically
+        if (error instanceof Error && error.message.includes('GEMINI_API_KEY')) {
+            console.error("[generateCoachingSummary] Missing API key detected.");
+            throw new Error("The coaching summary service is not properly configured. Please check your API key settings and try again.");
+        }
+        
+        // Handle invalid API key errors
+        if (error && typeof error === 'object' && 'error' in error) {
+            const apiError = error as { error?: { code?: number; message?: string } };
+            if (apiError.error?.code === 400 && apiError.error?.message?.includes('API key')) {
+                console.error("[generateCoachingSummary] Invalid API key detected.");
+                throw new Error("There's an issue with the API configuration. Please check your settings and try again.");
+            }
+        }
+        
+        // Re-throw original error if it's already an Error with a user-friendly message
+        if (error instanceof Error && error.message.includes('coaching summary')) {
+            throw error;
+        }
+        
+        // Throw user-friendly error for other cases
         throw new Error("There was an error generating your coaching summary. Please try again later.");
     }
 };
