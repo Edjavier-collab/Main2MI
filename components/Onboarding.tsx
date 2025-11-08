@@ -92,17 +92,35 @@ const onboardingSteps = [
                 </ul>
             </>
         )
+    },
+    {
+        // Step 5: Terms & Privacy Acceptance (Placeholder - rendered dynamically)
+        content: null
     }
 ];
 
 const Onboarding: React.FC<OnboardingProps> = ({ onFinish }) => {
     const [currentStep, setCurrentStep] = useState(0);
+    const [ageConfirmed, setAgeConfirmed] = useState(false);
+    const [termsAccepted, setTermsAccepted] = useState(false);
+    const [privacyAccepted, setPrivacyAccepted] = useState(false);
 
     const isLastStep = currentStep === onboardingSteps.length - 1;
+    const isAcceptanceStep = isLastStep;
 
     const handleNext = () => {
-        if (isLastStep) {
-            onFinish();
+        if (isAcceptanceStep) {
+            // On final step, check acceptance requirements
+            if (ageConfirmed && termsAccepted && privacyAccepted) {
+                // Store acceptance timestamps in localStorage for now
+                // They will be persisted to Supabase on profile creation
+                localStorage.setItem('mi-coach-age-confirmed', new Date().toISOString());
+                localStorage.setItem('mi-coach-terms-accepted', new Date().toISOString());
+                localStorage.setItem('mi-coach-privacy-accepted', new Date().toISOString());
+                onFinish();
+            } else {
+                alert('Please confirm all requirements to continue.');
+            }
         } else {
             setCurrentStep(prev => prev + 1);
         }
@@ -121,7 +139,58 @@ const Onboarding: React.FC<OnboardingProps> = ({ onFinish }) => {
 
             <main className="flex flex-col items-center justify-center flex-grow w-full mt-12 sm:mt-0 overflow-hidden">
                 <div key={currentStep} className="animate-slide-fade-in flex flex-col items-center text-center w-full">
-                    {onboardingSteps[currentStep].content}
+                    {isAcceptanceStep ? (
+                        <>
+                            <div className={'bg-sky-100 rounded-full h-40 w-40 flex items-center justify-center mb-8'}>
+                                <i className="fa-solid fa-shield-check text-5xl text-sky-500"></i>
+                            </div>
+                            <h1 className="text-3xl font-bold text-gray-800 mb-4">Before You Start</h1>
+                            <p className="text-gray-600 max-w-sm mb-6">Please confirm you meet our requirements:</p>
+                            
+                            <div className="max-w-sm w-full space-y-4 text-left">
+                                <label className="flex items-start p-4 bg-white rounded-lg border-2 cursor-pointer hover:border-sky-500 transition"
+                                       style={{ borderColor: ageConfirmed ? '#3b82f6' : '#e5e7eb' }}>
+                                    <input 
+                                        type="checkbox" 
+                                        checked={ageConfirmed}
+                                        onChange={(e) => setAgeConfirmed(e.target.checked)}
+                                        className="w-5 h-5 text-sky-600 rounded mt-1 mr-4 flex-shrink-0 cursor-pointer"
+                                    />
+                                    <span className="text-gray-800 text-sm">
+                                        I confirm I am <strong>18 years of age or older</strong>
+                                    </span>
+                                </label>
+                                
+                                <label className="flex items-start p-4 bg-white rounded-lg border-2 cursor-pointer hover:border-sky-500 transition"
+                                       style={{ borderColor: termsAccepted ? '#3b82f6' : '#e5e7eb' }}>
+                                    <input 
+                                        type="checkbox" 
+                                        checked={termsAccepted}
+                                        onChange={(e) => setTermsAccepted(e.target.checked)}
+                                        className="w-5 h-5 text-sky-600 rounded mt-1 mr-4 flex-shrink-0 cursor-pointer"
+                                    />
+                                    <span className="text-gray-800 text-sm">
+                                        I agree to the <strong>Terms of Service</strong> and <strong>Medical & Education Disclaimer</strong>
+                                    </span>
+                                </label>
+                                
+                                <label className="flex items-start p-4 bg-white rounded-lg border-2 cursor-pointer hover:border-sky-500 transition"
+                                       style={{ borderColor: privacyAccepted ? '#3b82f6' : '#e5e7eb' }}>
+                                    <input 
+                                        type="checkbox" 
+                                        checked={privacyAccepted}
+                                        onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                                        className="w-5 h-5 text-sky-600 rounded mt-1 mr-4 flex-shrink-0 cursor-pointer"
+                                    />
+                                    <span className="text-gray-800 text-sm">
+                                        I agree to the <strong>Privacy Policy</strong>
+                                    </span>
+                                </label>
+                            </div>
+                        </>
+                    ) : (
+                        onboardingSteps[currentStep].content
+                    )}
                 </div>
             </main>
 

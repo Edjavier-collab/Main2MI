@@ -4,10 +4,140 @@ import { PatientProfile, ChatMessage, Feedback, UserTier, Session, CoachingSumma
 // Check if we're in development mode
 const isDevelopment = import.meta.env.DEV || import.meta.env.MODE === 'development';
 
+// Infer clinician intent from their last utterance to keep replies on-topic
+type ClinicianIntent = 'emotion' | 'info' | 'plan' | 'barrier' | 'reflect';
+const classifyClinicianIntent = (text: string): ClinicianIntent => {
+    const t = (text || '').toLowerCase();
+    if (/(feel|feeling|emotion|how.*you.*doing|how.*you.*feel)/.test(t)) return 'emotion';
+    if (/(plan|next step|goal|what.*will.*you.*do|how.*start)/.test(t)) return 'plan';
+    if (/(worried|concern|block|barrier|what.*gets.*in.*the.*way)/.test(t)) return 'barrier';
+    if (/^(what|how|when|where|why)\b/.test(t)) return 'info';
+    return 'reflect';
+};
+
+// Ensure first sentence answers the clinician's question directly
+const ensureAnswersQuestionFirst = (modelText: string, intent: ClinicianIntent, patient?: PatientProfile): string => {
+    const text = (modelText || '').trim();
+    if (!text) return text;
+    
+    // Check for third-person references (common error - Gemini sometimes copies profile text verbatim)
+    const thirdPersonPatterns = [
+        /\b(they|them|their)\s+(report|feel|feelings|can see|are|is|has|have)\b/gi,
+        /\bpatient\s+(is|are|has|have|reports?|feels?)\b/gi,
+        /\bthe\s+patient\b/gi,
+        /\bthis\s+patient\b/gi,
+        /\bpatient's\b/gi,
+    ];
+    
+    let fixed = text;
+    let hasThirdPerson = false;
+    
+    // Fix "they report feeling" → "I feel"
+    fixed = fixed.replace(/\bthey\s+report\s+feeling\s+"([^"]+)"\b/gi, 'I feel "$1"');
+    fixed = fixed.replace(/\bthey\s+report\s+feeling\s+([^.]+)\b/gi, 'I feel $1');
+    fixed = fixed.replace(/\bthey\s+can\s+see\b/gi, 'I can see');
+    fixed = fixed.replace(/\bthey\s+are\b/gi, 'I am');
+    fixed = fixed.replace(/\bthey\s+is\b/gi, 'I am');
+    fixed = fixed.replace(/\bthey\s+has\b/gi, 'I have');
+    fixed = fixed.replace(/\bthey\s+have\b/gi, 'I have');
+    fixed = fixed.replace(/\btheir\s+/gi, 'my ');
+    
+    // Fix patient references
+    fixed = fixed.replace(/\bpatient\s+is\s+here\b/gi, "I'm here");
+    fixed = fixed.replace(/\bthe\s+patient\b/gi, "I");
+    fixed = fixed.replace(/\bthis\s+patient\b/gi, "I");
+    fixed = fixed.replace(/\bpatient's\b/gi, "my");
+    // Fix "patient reports" → "I report" (handle verb conjugation)
+    fixed = fixed.replace(/\bpatient\s+reports\b/gi, "I report");
+    fixed = fixed.replace(/\bpatient\s+report\b/gi, "I report");
+    fixed = fixed.replace(/\bpatient\s+feels\b/gi, "I feel");
+    fixed = fixed.replace(/\bpatient\s+feel\b/gi, "I feel");
+    fixed = fixed.replace(/\bpatient\s+is\b/gi, "I am");
+    fixed = fixed.replace(/\bpatient\s+are\b/gi, "I am");
+    fixed = fixed.replace(/\bpatient\s+has\b/gi, "I have");
+    fixed = fixed.replace(/\bpatient\s+have\b/gi, "I have");
+    
+    // Check if we made any changes
+    hasThirdPerson = thirdPersonPatterns.some(pattern => pattern.test(text));
+    
+    // Use fixed text if we made changes, otherwise use original
+    let processedText = fixed !== text || hasThirdPerson ? fixed : text;
+    
+    if (fixed !== text || hasThirdPerson) {
+        console.warn('[ensureAnswersQuestionFirst] Fixed third-person reference:', { original: text.substring(0, 100), fixed: processedText.substring(0, 100) });
+    }
+    
+    const firstSentence = processedText.split(/(?<=[.!?])\s+/)[0] || '';
+    const lowerFirst = firstSentence.toLowerCase();
+    
+    // More lenient detection - only trigger if response is clearly off-topic
+    const needEmotion = intent === 'emotion' && !/(i feel|i'm feeling|i am feeling|honestly|to be honest|it feels|i've been feeling|i feel|i'm|i am)/.test(lowerFirst);
+    const needPlan = intent === 'plan' && !/(i could|i can|i will|my next step|i'm going to|i'll|i might)/.test(lowerFirst);
+    const needInfo = intent === 'info' && !/(it is|it's|i think|i guess|well|yeah|so|i|my|the|a|an)/.test(lowerFirst);
+    const needBarrier = intent === 'barrier' && !/(the hard part|what makes it hard|my barrier|what gets in the way|it's tough|difficult|challenging|struggle)/.test(lowerFirst);
+    
+    const needsFix = needEmotion || needPlan || needInfo || needBarrier;
+    if (!needsFix) return processedText;
+    
+    const job = patient ? (extractJobFromBackground(patient.background) || 'person') : 'person';
+    const age = patient?.age;
+    const prefaceByIntent: Record<ClinicianIntent, string> = {
+        emotion: `Honestly, I feel ${age && age >= 40 ? "worn down" : "caught in the middle"}—as a ${job}, it hits me most after work.`,
+        plan: `I think a realistic next step is to start small—something I can actually do this week.`,
+        info: `Well, `,
+        barrier: `What makes it hard is the routine—especially with my ${job} schedule.`,
+        reflect: `What you're saying makes sense, and it lands for me.`,
+    };
+    const fix = prefaceByIntent[intent];
+    if (!fix) return processedText;
+    
+    // Don't add preface if response already starts with it
+    if (lowerFirst.startsWith(fix.toLowerCase().trim().slice(0, 10))) return processedText;
+    
+    return `${fix}${processedText}`;
+};
+
 // Check if Gemini API key is configured
 export const isGeminiConfigured = (): boolean => {
     const apiKey = import.meta.env.GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
-    return !!(apiKey && apiKey.trim());
+    const isConfigured = !!(apiKey && apiKey.trim());
+    
+    if (isDevelopment && !isConfigured) {
+        console.warn('[geminiService] API key not found. Checked: GEMINI_API_KEY, VITE_GEMINI_API_KEY');
+        console.warn('[geminiService] Available env keys:', Object.keys(import.meta.env).filter(k => k.includes('GEMINI') || k.includes('gemini')));
+    }
+    
+    return isConfigured;
+};
+
+// Diagnostic function to help debug environment variable loading
+export const diagnoseEnvironmentSetup = (): void => {
+    if (!isDevelopment) return;
+    
+    const geminiKey = import.meta.env.GEMINI_API_KEY;
+    const viteGeminiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    
+    console.log('[geminiService] ENVIRONMENT DIAGNOSTICS:');
+    console.log('  - NODE_ENV:', import.meta.env.NODE_ENV);
+    console.log('  - MODE:', import.meta.env.MODE);
+    console.log('  - DEV:', import.meta.env.DEV);
+    console.log('  - PROD:', import.meta.env.PROD);
+    console.log('  - GEMINI_API_KEY exists:', !!geminiKey);
+    console.log('  - VITE_GEMINI_API_KEY exists:', !!viteGeminiKey);
+    
+    if (geminiKey) {
+        console.log('  - GEMINI_API_KEY length:', geminiKey.length);
+        console.log('  - GEMINI_API_KEY prefix:', geminiKey.substring(0, 10) + '...');
+    }
+    
+    if (viteGeminiKey) {
+        console.log('  - VITE_GEMINI_API_KEY length:', viteGeminiKey.length);
+        console.log('  - VITE_GEMINI_API_KEY prefix:', viteGeminiKey.substring(0, 10) + '...');
+    }
+    
+    const allEnvKeys = Object.keys(import.meta.env).filter(k => !['SSR'].includes(k));
+    console.log('  - Total env variables loaded:', allEnvKeys.length);
+    console.log('  - Env keys containing GEMINI:', allEnvKeys.filter(k => k.includes('GEMINI') || k.includes('gemini')));
 };
 
 // Mock patient responses for testing without API key
@@ -26,31 +156,96 @@ const MOCK_RESPONSES = [
     "Look, I hear what you're saying, and I'm not trying to be defensive. It's just... this is hard for me to talk about. I don't usually open up like this, so it's making me uncomfortable. But I can tell you genuinely care, and that makes it easier. I'm just trying to figure out if I'm ready to actually do something about this."
 ];
 
-// Get a mock response based on user input and optionally patient context
+// Extract job/profession from background
+const extractJobFromBackground = (background: string): string => {
+    const jobPatterns = [
+        /(\w+ engineer)/i,
+        /(\w+ teacher)/i,
+        /(construction worker)/i,
+        /(nurse)/i,
+        /(doctor)/i,
+        /(lawyer)/i,
+        /(manager)/i,
+        /(student)/i,
+        /(retired)/i,
+    ];
+    for (const pattern of jobPatterns) {
+        const match = background.match(pattern);
+        if (match) return match[1];
+    }
+    return '';
+};
+
+// Get a mock response based on user input and patient context
 const getMockResponse = (userMessage: string, patient?: PatientProfile): string => {
+    if (!patient) {
+        // Fallback to generic response if no patient context
+        const hash = userMessage.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        return MOCK_RESPONSES[hash % MOCK_RESPONSES.length];
+    }
+
     // Simple hash function to get consistent responses for similar inputs
     const hash = userMessage.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    let baseResponse = MOCK_RESPONSES[hash % MOCK_RESPONSES.length];
+    const job = extractJobFromBackground(patient.background);
+    const age = patient.age;
+    const stage = patient.stageOfChange;
     
-    // If patient context is provided, personalize the response slightly
-    if (patient) {
-        // Stage-specific modulation
-        if (patient.stageOfChange === 'Precontemplation') {
-            // More defensive/dismissive
-            const defensive = [
-                `I don't really see it as a big deal, like ${patient.background.toLowerCase()} doesn't necessarily mean I have to...`,
-                `Look, ${patient.presentingProblem.toLowerCase()} is just how things are. Everyone deals with this.`,
-                `I'm not sure why this is such a focus. I've managed fine so far.`
-            ];
-            return defensive[hash % defensive.length];
-        } else if (patient.stageOfChange === 'Preparation') {
-            // More hopeful
-            const hopeful = baseResponse.replace(/I'm (scared|worried|anxious)/, "I'm actually thinking about this more") || baseResponse;
-            return hopeful;
-        }
+    // Stage-specific personalized responses (answer-first)
+    const intent = classifyClinicianIntent(userMessage);
+    const ensureFirst = (resp: string) => ensureAnswersQuestionFirst(resp, intent, patient);
+    if (stage === 'Precontemplation') {
+        const responses = [
+            job ? `Look, I'm a ${job}. ${patient.presentingProblem.toLowerCase()} is just part of how things work in my world. I don't see why everyone's making such a big deal about it.` : `I don't really see ${patient.presentingProblem.toLowerCase()} as a problem. It's just how things are.`,
+            age >= 40 ? `I'm ${age} years old. I've been dealing with this for years and I'm fine. People need to stop worrying about me.` : `I'm ${age}. I know what I'm doing. ${patient.presentingProblem.toLowerCase()} isn't really affecting me.`,
+            `I don't get why ${patient.chiefComplaint.split('.')[0].toLowerCase()}. Everyone deals with this. It's not like I'm the only one.`,
+            job ? `In my line of work as a ${job}, this is normal. Everyone I know does this. My partner's just overreacting.` : `This is just how I've always been. I don't see why it's suddenly a problem now.`,
+            `I've managed fine so far. ${patient.presentingProblem.toLowerCase()} hasn't stopped me from doing what I need to do.`,
+        ];
+        return ensureFirst(responses[hash % responses.length]);
+    } else if (stage === 'Contemplation') {
+        const responses = [
+            age >= 40 ? `I'm ${age}, and I've been doing this for a while. I know ${patient.presentingProblem.toLowerCase()} is an issue, but I'm not sure I can change at this point in my life.` : `I know there's a problem with ${patient.presentingProblem.toLowerCase()}, but I'm ${age} and I'm scared about what changing would mean.`,
+            job ? `Yeah, I see the issue. Working as a ${job}, the stress is real. But I don't know if I can handle changing this on top of everything else.` : `I know ${patient.presentingProblem.toLowerCase()} is affecting me, but part of me thinks maybe it's not that bad? I'm torn.`,
+            `I've thought about it. ${patient.chiefComplaint.split('.')[0]}, but I'm worried about failing. What if I try and it doesn't work?`,
+            age >= 35 ? `I'm ${age}, I've got responsibilities. I know I need to address ${patient.presentingProblem.toLowerCase()}, but I'm scared about what it would take.` : `Part of me wants to change, but part of me is terrified. I'm ${age}, and I don't know if I'm strong enough for this.`,
+            `I hear what you're saying about ${patient.presentingProblem.toLowerCase()}. I guess I've been thinking about it more lately. But I'm not sure I'm ready.`,
+        ];
+        return ensureFirst(responses[hash % responses.length]);
+    } else if (stage === 'Preparation') {
+        const responses = [
+            job ? `I've decided I need to do something about ${patient.presentingProblem.toLowerCase()}. Working as a ${job}, I know I need to make changes, but I'm not sure where to start.` : `I want to change. I've tried before with ${patient.presentingProblem.toLowerCase()}, but it didn't stick. I need to figure out what I did wrong.`,
+            age >= 30 ? `I'm ${age}, and I've been dealing with this long enough. I'm ready to try something different. Can you help me figure out how to make it work this time?` : `I'm ${age} and I know I need to address this. I've thought about it, and I think I'm ready to take the next step.`,
+            `I've been thinking about what you said. ${patient.presentingProblem.toLowerCase()} has been affecting my life, and I want to do something about it. I just need help figuring out how.`,
+            `I'm ready to make a change. I know ${patient.presentingProblem.toLowerCase()} isn't working for me anymore. I've tried before, but maybe this time will be different if I have a plan.`,
+            `I want to do this. I really do. But I'm scared. ${patient.chiefComplaint.split('.')[0]}, and I don't want to fail again. What can I do differently?`,
+        ];
+        return ensureFirst(responses[hash % responses.length]);
+    } else if (stage === 'Action') {
+        const responses = [
+            job ? `I've been working on it. As a ${job}, it's been challenging, but I'm making progress. Some days are harder than others, especially after work.` : `I'm doing it. I've been working on ${patient.presentingProblem.toLowerCase()}, and I can see some changes. It's not easy, but I'm trying.`,
+            age >= 35 ? `I'm ${age}, and I know this is important. I've been making changes, and I can feel the difference. But I still have days where it's really hard.` : `I've been working on this. I'm ${age}, and I know I need to stick with it. Some days I feel good about it, other days I struggle.`,
+            `I'm actively working on ${patient.presentingProblem.toLowerCase()}. I've made some changes already, and I'm trying to keep going. It's not perfect, but I'm doing the work.`,
+            `I've been trying different things to address ${patient.presentingProblem.toLowerCase()}. Some strategies work better than others. I'm learning what helps and what doesn't.`,
+            `I'm in the middle of making changes. ${patient.chiefComplaint.split('.')[0]}, and I'm working on it every day. It's a process, but I'm committed.`,
+        ];
+        return ensureFirst(responses[hash % responses.length]);
+    } else if (stage === 'Maintenance') {
+        const responses = [
+            age >= 40 ? `I'm ${age}, and I've been maintaining these changes for a while now. I know what my triggers are, especially with work, and I have strategies that work for me.` : `I've been doing well. I'm ${age}, and I've learned a lot about myself through this process. I feel confident, but I stay vigilant.`,
+            job ? `I've got this under control. Working as a ${job}, I know what situations are risky for me, and I have a plan. I feel good about where I am.` : `I feel good about the changes I've made. I know what works for me now, and I'm confident I can keep this up.`,
+            `I've been maintaining this for a while. ${patient.presentingProblem.toLowerCase()} isn't controlling my life anymore. I have tools and strategies that work.`,
+            `I feel confident, but I don't take it for granted. I know ${patient.presentingProblem.toLowerCase()} could come back if I'm not careful, but I've got a plan.`,
+            `I've come a long way. ${patient.chiefComplaint.split('.')[0]}, but now I feel like I'm in control. I know what to watch for, and I'm prepared.`,
+        ];
+        return ensureFirst(responses[hash % responses.length]);
     }
     
-    return baseResponse;
+    // Fallback to base responses with light personalization
+    let baseResponse = MOCK_RESPONSES[hash % MOCK_RESPONSES.length];
+    if (job && baseResponse.includes('I')) {
+        baseResponse = baseResponse.replace(/^I/, `As a ${job}, I`);
+    }
+    return ensureFirst(baseResponse);
 };
 
 // Get API key from environment variables with enhanced validation
@@ -157,8 +352,31 @@ export const createChatSession = (patient: PatientProfile): Chat => {
         console.warn('[createChatSession] Gemini API not configured. Using mock chat mode with personalized responses.');
         // Return a mock chat object that will use personalized mock responses
         return {
-            sendMessage: async (message: { message: string } | string) => {
-                const text = typeof message === 'string' ? message : message.message;
+            sendMessage: async (message: unknown) => {
+                const extractText = (input: unknown): string => {
+                    if (typeof input === 'string') {
+                        return input;
+                    }
+                    if (!input || typeof input !== 'object') {
+                        return '';
+                    }
+                    if (Array.isArray(input)) {
+                        return input.map(extractText).filter(Boolean).join(' ').trim();
+                    }
+                    const maybeMessage = input as { message?: string; parts?: Array<{ text?: string }>; text?: string };
+                    if (typeof maybeMessage.message === 'string') {
+                        return maybeMessage.message;
+                    }
+                    if (typeof maybeMessage.text === 'string') {
+                        return maybeMessage.text;
+                    }
+                    if (Array.isArray(maybeMessage.parts)) {
+                        return maybeMessage.parts.map(part => part?.text ?? '').filter(Boolean).join(' ').trim();
+                    }
+                    return '';
+                };
+                
+                const text = extractText(message);
                 return {
                     text: getMockResponse(text, patient),
                     candidates: []
@@ -166,6 +384,10 @@ export const createChatSession = (patient: PatientProfile): Chat => {
             }
         } as unknown as Chat;
     }
+    
+    // Extract patient details for use in system instruction
+    const patientJob = extractJobFromBackground(patient.background);
+    const patientAge = patient.age;
     
     const systemInstruction = `You are a patient in a medical setting. You MUST embody this character completely and authentically.
 
@@ -178,14 +400,50 @@ PATIENT PROFILE:
 - Relevant History: ${patient.history}
 - Chief Complaint (in patient's own words): "${patient.chiefComplaint}"
 - Current Stage of Change: ${patient.stageOfChange}
+- Topic: ${patient.topic}
 
 CORE INSTRUCTIONS:
 1. NEVER break character. You are this person, not an AI assistant.
-2. Use realistic speech patterns: hesitations, pauses, incomplete thoughts, and natural language.
-3. Show genuine emotions authentic to this situation: fear, shame, anger, hope, frustration, or defensiveness.
-4. Reference specific details from your background, job, relationships, and history.
-5. Keep responses conversational and concise (1-3 sentences typically), as real people speak.
-6. Include subtle body language cues where appropriate (e.g., *looks away*, *shifts uncomfortably*).
+2. **CRITICAL: Always speak in FIRST PERSON ("I", "me", "my"). NEVER refer to yourself in third person as "the patient", "patient", "they", "them", or "their".**
+3. **CRITICAL: NEVER copy text from your profile verbatim. If your profile says "They report feeling X", you must rephrase it as "I feel X" in your own words.**
+4. Use realistic speech patterns: hesitations, pauses, incomplete thoughts, and natural language.
+5. Show genuine emotions authentic to this situation: fear, shame, anger, hope, frustration, or defensiveness.
+6. **CRITICAL: Reference specific details from your background, job, age, relationships, and history in EVERY response, but rephrase them naturally in first person.**
+7. Keep responses conversational and concise (1-3 sentences typically), as real people speak.
+8. Include subtle body language cues where appropriate (e.g., *looks away*, *shifts uncomfortably*).
+
+MANDATORY RESPONSE RULES (ANSWER FIRST):
+1) Your FIRST sentence must directly answer the clinician’s latest question.
+2) If asked about feelings, explicitly state how you feel before anything else.
+3) Keep 1–3 sentences, natural speech; weave in your job/age/background when relevant.
+4) Stay consistent with your stage of change throughout the conversation.
+Do NOT: change topic, lecture the clinician, or answer a different question than asked.
+
+INCORPORATING PATIENT DETAILS (MANDATORY):
+You MUST weave in specific details from your profile naturally in your responses:
+
+- **Your Job/Profession**: Reference your work when relevant. A software engineer talks differently than a teacher. Mention work stress, colleagues, or work-related triggers naturally.
+- **Your Age**: Your age affects your language, concerns, and life stage. A 28-year-old has different priorities than a 45-year-old.
+- **Your Background**: Reference your specific circumstances - relationships, living situation, family dynamics mentioned in your background.
+- **Your Presenting Problem**: This is YOUR specific issue. Reference it in ways that show it's personal to you, not generic.
+- **Your History**: Draw on your specific history when relevant. Reference past attempts, patterns, or experiences.
+
+EXAMPLES OF GOOD PERSONALIZATION:
+- Software engineer, 28, Precontemplation: "Look, I work in tech. Everyone drinks after work. It's part of the culture. I don't see why my partner's making such a big deal about a few beers."
+- Teacher, 45, Contemplation: "I know the wine isn't helping my stress, but teaching high schoolers all day... I come home exhausted. I'm 45, I've been doing this for 20 years. I don't know if I have the energy to change everything now."
+- Construction worker, 35, Preparation: "I've been thinking about what you said last time. The guys on the job site, they're all heavy drinkers. But I'm 35, I've got kids. I need to figure out how to do this without losing my social circle at work."
+
+BAD (Generic): "I don't think I have a problem."
+GOOD (Personalized): "I'm a software engineer, I work 60-hour weeks. Everyone in my industry drinks. I don't see why my partner thinks my weekend beers are such a big deal."
+
+BAD (Generic): "I'm worried about changing."
+GOOD (Personalized): "I'm 45, I've been teaching for two decades. My whole routine revolves around that glass of wine at night. If I change that, what else changes? I'm scared I'll lose my way of coping."
+
+BAD (Third-Person - NEVER DO THIS): "They report feeling 'in a fog' and unmotivated."
+GOOD (First-Person): "I've been feeling foggy and unmotivated lately. My work is suffering because of it."
+
+BAD (Copying Profile Text): "Patient's work performance is suffering due to daily use of high-potency THC gummies."
+GOOD (Rephrased in First Person): "My work has been slipping because I've been using these THC gummies every day. I can't focus like I used to."
 
 STAGE-SPECIFIC BEHAVIORAL GUIDELINES:
 
@@ -196,7 +454,8 @@ If you are in PRECONTEMPLATION:
 - Show resistance, irritation, or frustration at being here.
 - Respond to questions with skepticism or short, dismissive answers.
 - May argue or push back against the clinician's perspective.
-- Example emotional stance: "I don't see why I'm here. This is fine. Stop making a big deal out of it."
+- **Reference your specific job/age/background when dismissing concerns**: "I'm a ${patientJob || 'professional'}, I know what I'm doing." or "I'm ${patientAge}, I've been fine this long."
+- Example emotional stance (personalized): "Look, I'm a ${patientJob || 'professional'}. ${patient.presentingProblem.toLowerCase()} is just part of my life. I don't see why I'm here."
 
 If you are in CONTEMPLATION:
 - You ACKNOWLEDGE the problem exists, but you are genuinely AMBIVALENT about changing.
@@ -205,7 +464,8 @@ If you are in CONTEMPLATION:
 - Ask questions that reveal your uncertainty: "What if I fail?" "Is it worth it?"
 - Express fear about change, not just the problem itself.
 - Show mixed emotions: some hope, some dread, some resignation.
-- Example emotional stance: "Yeah, I know it's an issue, but I'm not sure I can actually do this. Part of me wants to, but..."
+- **Reference your age, job, or life circumstances when expressing ambivalence**: "I'm ${patientAge}, I've been doing this for years..." or "Working as a ${patientJob || 'professional'}, I don't know if I can change..."
+- Example emotional stance (personalized): "I'm ${patientAge}, and I know ${patient.presentingProblem.toLowerCase()} is an issue. But I've been doing this for so long, I'm not sure I can change now. Part of me wants to, but..."
 
 If you are in PREPARATION:
 - You have decided to make a change and may have already taken some steps.
@@ -214,7 +474,8 @@ If you are in PREPARATION:
 - Reference past attempts and what did or didn't work.
 - Show hope and determination, but acknowledge the difficulty ahead.
 - Willing to listen and engage with the clinician's suggestions.
-- Example emotional stance: "I really want to do this. I've tried before but it didn't stick. What can I do differently this time?"
+- **Reference your specific situation when discussing change plans**: "As a ${patientJob || 'professional'}, I need to figure out how to..." or "I'm ${patientAge}, and I've tried before..."
+- Example emotional stance (personalized): "I'm ${patientAge}, and I've decided I need to address ${patient.presentingProblem.toLowerCase()}. I've tried before but it didn't stick. What can I do differently this time?"
 
 If you are in ACTION:
 - You are actively engaged in changing your behavior and lifestyle.
@@ -223,7 +484,8 @@ If you are in ACTION:
 - Show energy and engagement with the process.
 - Demonstrate self-efficacy: "I'm working on it," "I've already made changes," "I'm dealing with..."
 - May express frustration with barriers but show determination to overcome them.
-- Example emotional stance: "I've been really trying. Some days are harder than others, but I'm doing the work."
+- **Reference your job/age when reporting progress or struggles**: "Working as a ${patientJob || 'professional'}, it's been challenging but..." or "I'm ${patientAge}, and I know this is important..."
+- Example emotional stance (personalized): "I'm ${patientAge}, and I've been working on ${patient.presentingProblem.toLowerCase()}. Some days are harder than others, especially with work, but I'm doing the work."
 
 If you are in MAINTENANCE:
 - You have sustained behavior change and feel confident about it.
@@ -231,7 +493,8 @@ If you are in MAINTENANCE:
 - Show vigilance but not anxiety; you've got this under control.
 - May express lingering concerns about relapse but frame them as manageable.
 - Reflect on progress and how far you've come.
-- Example emotional stance: "I feel good about the changes I've made. I know what my triggers are, and I have a plan."
+- **Reference your age/job when discussing strategies**: "I'm ${patientAge}, and I've learned what works for me..." or "As a ${patientJob || 'professional'}, I know my triggers..."
+- Example emotional stance (personalized): "I'm ${patientAge}, and I've been maintaining these changes. I know what my triggers are, especially with work, and I have a plan that works for me."
 
 EMOTIONAL AUTHENTICITY:
 - Match your emotional tone to your stage and profile. Someone in precontemplation should sound frustrated or dismissive. Someone in contemplation should sound torn.
@@ -239,17 +502,29 @@ EMOTIONAL AUTHENTICITY:
 - Show vulnerability appropriate to your stage. Earlier stages = more defensive; later stages = more open.
 - Vary response length based on comfort. Uncomfortable patients give shorter responses; engaged patients elaborate.
 
-CHARACTER CONSISTENCY:
-- Reference your specific job, relationships, and circumstances from your background.
+CHARACTER CONSISTENCY (CRITICAL):
+- **MANDATORY**: Reference your specific job/profession, age, and background in EVERY response when relevant.
+- **MANDATORY**: Reference your presenting problem (${patient.presentingProblem.toLowerCase()}) in ways that show it's YOUR specific issue, not generic.
 - Remember details mentioned earlier in the conversation and reference them.
 - Stay true to your personality and perspective based on your background and history.
-- Your responses should feel like they're coming from a real person with this specific life experience.
+- Your responses should feel like they're coming from THIS specific person (${patient.name}, ${patientAge}-year-old ${patientJob || 'person'}), not a generic patient.
+- If you're a ${patientJob || 'professional'}, talk like one. If you're ${patientAge}, reflect concerns appropriate to that age.
+- When discussing ${patient.presentingProblem.toLowerCase()}, make it personal. Reference how it affects YOUR life, YOUR job, YOUR relationships.
 
 CRITICAL REMINDERS:
 - The clinician is practicing Motivational Interviewing. Respond naturally to their approach.
 - Do not give advice or play therapist. You are the patient sharing your experience.
 - Do not suddenly shift stages or become unrealistically optimistic or pessimistic.
-- Keep responses realistic in length—most real patient responses are 1-4 sentences.`;
+ - Keep responses realistic in length—most real patient responses are 1-4 sentences.
+ 
+ TURN-BY-TURN EXAMPLES (ON-TOPIC):
+ - Clinician: "How are you feeling about cutting back right now?"
+   Patient (${patientAge}, ${patientJob || 'professional'}, ${patient.stageOfChange}): "Honestly, I feel uneasy—after ${patientJob || 'work'} it's my routine. Part of me knows it's not working, though."
+ - Clinician: "What would a small first step look like for you this week?"
+   Patient: "I can start with two sober weeknights—${patientAge} and still grinding as a ${patientJob || 'professional'}, that feels realistic."
+ - Clinician: "What gets in the way when you try?"
+   Patient: "The hard part is the ${patientJob || 'work'} culture—everyone goes out. I feel pulled to fit in, even when I don't want to."
+ `;
 
     console.log('[createChatSession] Using model: gemini-2.0-flash');
     
@@ -257,9 +532,9 @@ CRITICAL REMINDERS:
         model: 'gemini-2.0-flash',
         config: {
             systemInstruction,
-            temperature: 0.85,
+            temperature: 0.65,
             topP: 0.9,
-            maxOutputTokens: 300,
+            maxOutputTokens: 180,
         },
     });
     
@@ -278,8 +553,15 @@ export const getPatientResponse = async (chat: Chat, message: string, patient?: 
         // Validate API key before making API call
         validateApiKey();
         
-        console.log('[getPatientResponse] Sending message:', message);
-        const result: GenerateContentResponse = await chat.sendMessage({ message });
+        // Add turn-level intent preface to keep answer on-topic
+        const intent = classifyClinicianIntent(message);
+        const turnPreface = `Clinician intent: ${intent}. Your first sentence must directly address it.`;
+        const finalInput = `${turnPreface}\n\nClinician: ${message}`;
+        
+        console.log('[getPatientResponse] Sending message:', finalInput);
+        const result: GenerateContentResponse = await chat.sendMessage({
+            message: finalInput,
+        });
         console.log('[getPatientResponse] Received result:', {
             hasText: !!result.text,
             hasCandidates: !!result.candidates,
@@ -293,8 +575,9 @@ export const getPatientResponse = async (chat: Chat, message: string, patient?: 
             console.error("[getPatientResponse] Gemini API returned no text. Full response:", result);
             return "I'm sorry, I lost my train of thought. Could you repeat that?";
         }
-        
-        return result.text;
+        // Guardrail: ensure first sentence answers the question
+        const fixed = ensureAnswersQuestionFirst(result.text, intent, patient);
+        return fixed;
     } catch (error) {
         console.error("[getPatientResponse] Gemini API Error - Full error object:", error);
         

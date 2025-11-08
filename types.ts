@@ -19,6 +19,12 @@ export enum View {
   ScenarioSelection = 'scenarioSelection',
   Calendar = 'calendar',
   CoachingSummary = 'coachingSummary',
+  PrivacyPolicy = 'privacyPolicy',
+  TermsOfService = 'termsOfService',
+  SubscriptionTerms = 'subscriptionTerms',
+  CookiePolicy = 'cookiePolicy',
+  Disclaimer = 'disclaimer',
+  Support = 'support',
 }
 
 export enum StageOfChange {

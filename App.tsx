@@ -8,6 +8,7 @@ import { saveSession, getUserSessions, getUserProfile, createUserProfile } from 
 import { canStartSession, getRemainingFreeSessions } from './services/subscriptionService';
 import { PATIENT_PROFILE_TEMPLATES, STAGE_DESCRIPTIONS } from './constants';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { diagnoseEnvironmentSetup } from './services/geminiService';
 import Dashboard from './components/Dashboard';
 import PracticeView from './components/PracticeView';
 import FeedbackView from './components/FeedbackView';
@@ -22,6 +23,13 @@ import LoginView from './components/LoginView';
 import ForgotPasswordView from './components/ForgotPasswordView';
 import CoachingSummaryView from './components/CoachingSummaryView';
 import ReviewPrompt from './components/ReviewPrompt';
+import CookieConsent from './components/CookieConsent';
+import PrivacyPolicy from './components/legal/PrivacyPolicy';
+import TermsOfService from './components/legal/TermsOfService';
+import SubscriptionTerms from './components/legal/SubscriptionTerms';
+import CookiePolicy from './components/legal/CookiePolicy';
+import Disclaimer from './components/legal/Disclaimer';
+import SupportView from './components/SupportView';
 
 // New component for premium users to select a practice scenario.
 interface ScenarioSelectionViewProps {
@@ -174,6 +182,11 @@ const AppContent: React.FC = () => {
   const [coachingSummaryError, setCoachingSummaryError] = useState<string | null>(null);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [showReviewPrompt, setShowReviewPrompt] = useState(false);
+
+  // Diagnostic: Check environment setup on app start
+  useEffect(() => {
+    diagnoseEnvironmentSetup();
+  }, []);
 
   // Navigate to dashboard when user logs in, or to login when user logs out
   useEffect(() => {
@@ -663,6 +676,7 @@ const AppContent: React.FC = () => {
                   userTier={userTier} 
                   onNavigateToPaywall={() => setView(View.Paywall)}
                   onLogout={handleLogout}
+                  onNavigate={setView}
                 />;
       case View.CoachingSummary:
         return <CoachingSummaryView
@@ -671,6 +685,18 @@ const AppContent: React.FC = () => {
                   error={coachingSummaryError}
                   onBack={() => setView(View.Calendar)}
                 />;
+      case View.PrivacyPolicy:
+        return <PrivacyPolicy onBack={() => setView(View.Settings)} />;
+      case View.TermsOfService:
+        return <TermsOfService onBack={() => setView(View.Settings)} />;
+      case View.SubscriptionTerms:
+        return <SubscriptionTerms onBack={() => setView(View.Settings)} />;
+      case View.CookiePolicy:
+        return <CookiePolicy onBack={() => setView(View.Settings)} />;
+      case View.Disclaimer:
+        return <Disclaimer onBack={() => setView(View.Settings)} />;
+      case View.Support:
+        return <SupportView onBack={() => setView(View.Settings)} />;
       case View.Dashboard:
       default:
         return (
@@ -706,6 +732,7 @@ const AppContent: React.FC = () => {
       {showReviewPrompt && (
           <ReviewPrompt onClose={handleReviewPromptClose} />
       )}
+      <CookieConsent />
     </div>
   );
 };

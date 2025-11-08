@@ -1,10 +1,11 @@
 import React from 'react';
-import { UserTier } from '../types';
+import { UserTier, View } from '../types';
 
 interface SettingsViewProps {
     userTier: UserTier;
     onNavigateToPaywall: () => void;
     onLogout: () => void;
+    onNavigate: (view: View) => void;
 }
 
 const SettingsSection: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
@@ -26,7 +27,7 @@ const SettingsRow: React.FC<{ onClick?: () => void; isLast?: boolean; children: 
 );
 
 
-const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywall, onLogout }) => {
+const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywall, onLogout, onNavigate }) => {
     const handlePlaceholderClick = (feature: string) => {
         alert(`${feature} feature coming soon!`);
     };
@@ -78,18 +79,30 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                 </SettingsSection>
 
                 <SettingsSection title="Legal">
-                    <SettingsRow onClick={() => handlePlaceholderClick('Privacy Policy')}>
+                    <SettingsRow onClick={() => onNavigate(View.PrivacyPolicy)}>
                         <span className="text-gray-800">Privacy Policy</span>
                         <i className="fa fa-chevron-right text-gray-400"></i>
                     </SettingsRow>
-                    <SettingsRow onClick={() => handlePlaceholderClick('Terms of Service')} isLast>
+                    <SettingsRow onClick={() => onNavigate(View.TermsOfService)}>
                         <span className="text-gray-800">Terms of Service</span>
+                        <i className="fa fa-chevron-right text-gray-400"></i>
+                    </SettingsRow>
+                    <SettingsRow onClick={() => onNavigate(View.SubscriptionTerms)}>
+                        <span className="text-gray-800">Subscription & Billing</span>
+                        <i className="fa fa-chevron-right text-gray-400"></i>
+                    </SettingsRow>
+                    <SettingsRow onClick={() => onNavigate(View.CookiePolicy)}>
+                        <span className="text-gray-800">Cookie Policy</span>
+                        <i className="fa fa-chevron-right text-gray-400"></i>
+                    </SettingsRow>
+                    <SettingsRow onClick={() => onNavigate(View.Disclaimer)} isLast>
+                        <span className="text-gray-800">Medical & Education Disclaimer</span>
                         <i className="fa fa-chevron-right text-gray-400"></i>
                     </SettingsRow>
                 </SettingsSection>
 
                 <SettingsSection title="Support">
-                    <SettingsRow onClick={() => handlePlaceholderClick('Contact Us / Help Center')} isLast>
+                    <SettingsRow onClick={() => onNavigate(View.Support)} isLast>
                         <span className="text-gray-800">Contact Us / Help Center</span>
                         <i className="fa fa-chevron-right text-gray-400"></i>
                     </SettingsRow>

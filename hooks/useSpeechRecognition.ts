@@ -28,6 +28,7 @@ interface SpeechRecognition {
 export const useSpeechRecognition = () => {
     const [isListening, setIsListening] = useState(false);
     const [transcript, setTranscript] = useState('');
+    const [error, setError] = useState<string | null>(null);
     // Fix: The type SpeechRecognition is now correctly resolved via the interface definition above.
     const recognitionRef = useRef<SpeechRecognition | null>(null);
     const finalTranscriptRef = useRef(''); // Ref to hold only the FINAL transcript text
@@ -36,7 +37,26 @@ export const useSpeechRecognition = () => {
 
     useEffect(() => {
         if (!SpeechRecognitionAPI) {
-            console.error("SpeechRecognition API not supported in this browser.");
+            const errorMsg = "Speech Recognition API is not supported in this browser. Please use Chrome, Edge, or another Chromium-based browser.";
+            console.error(errorMsg);
+            setError(errorMsg);
+            return;
+        }
+        
+        // Check if we're in a secure context (required for Speech Recognition API)
+        // Secure context is required by the Speech Recognition API - this includes:
+        // 1. HTTPS connections
+        // 2. localhost or 127.0.0.1 (development)
+        // 3. Explicitly secure contexts as defined by window.isSecureContext
+        const isSecureContext = window.isSecureContext || 
+                                window.location.protocol === 'https:' ||
+                                window.location.hostname === 'localhost' ||
+                                window.location.hostname === '127.0.0.1';
+        
+        if (!isSecureContext) {
+            const errorMsg = "Speech Recognition requires a secure context (HTTPS or localhost). Please access this app via HTTPS or localhost.";
+            console.error(errorMsg);
+            setError(errorMsg);
             return;
         }
 
@@ -86,6 +106,32 @@ export const useSpeechRecognition = () => {
             console.error('Speech recognition error', event.error);
             setIsListening(false);
             stopTriggeredRef.current = false; // Reset on error too
+            
+            // Provide user-friendly error messages
+            let errorMessage = 'Microphone error occurred.';
+            switch (event.error) {
+                case 'no-speech':
+                    errorMessage = 'No speech detected. Please try again.';
+                    break;
+                case 'audio-capture':
+                    errorMessage = 'Microphone not found or access denied. Please check your microphone permissions.';
+                    break;
+                case 'not-allowed':
+                    errorMessage = 'Microphone access denied. Please allow microphone access in your browser settings.';
+                    break;
+                case 'network':
+                    errorMessage = 'Network error. Please check your internet connection.';
+                    break;
+                case 'aborted':
+                    // User stopped, not really an error
+                    return;
+                default:
+                    errorMessage = `Speech recognition error: ${event.error}`;
+            }
+            setError(errorMessage);
+            
+            // Clear error after 5 seconds
+            setTimeout(() => setError(null), 5000);
         };
         
         recognitionRef.current = recognition;
@@ -98,10 +144,24 @@ export const useSpeechRecognition = () => {
     }, []);
 
     const startListening = () => {
-        if (recognitionRef.current && !isListening) {
+        if (!recognitionRef.current) {
+            setError('Speech recognition not initialized. Please refresh the page.');
+            return;
+        }
+        
+        if (isListening) {
+            return; // Already listening
+        }
+        
+        try {
             stopTriggeredRef.current = false; // Ensure we are ready for new results
+            setError(null); // Clear any previous errors
             recognitionRef.current.start();
             setIsListening(true);
+        } catch (err) {
+            console.error('Failed to start speech recognition:', err);
+            setError('Failed to start microphone. Please check your browser permissions.');
+            setIsListening(false);
         }
     };
 
@@ -119,7 +179,12 @@ export const useSpeechRecognition = () => {
         setTranscript(text);
     }, []);
     
-    const hasSupport = !!SpeechRecognitionAPI;
+    // Check if Speech Recognition API is supported and we're in a secure context
+    const isSecureContext = window.isSecureContext || 
+                            window.location.protocol === 'https:' ||
+                            window.location.hostname === 'localhost' ||
+                            window.location.hostname === '127.0.0.1';
+    const hasSupport = !!SpeechRecognitionAPI && isSecureContext;
 
-    return { isListening, transcript, startListening, stopListening, hasSupport, setTranscript: customSetTranscript };
+    return { isListening, transcript, startListening, stopListening, hasSupport, error, setTranscript: customSetTranscript };
 };

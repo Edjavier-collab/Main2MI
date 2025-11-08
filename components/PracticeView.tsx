@@ -30,7 +30,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
     const [isPatientTyping, setIsPatientTyping] = useState(false);
     const [isEndingSession, setIsEndingSession] = useState(false);
     
-    const { isListening, transcript: speechTranscript, startListening, stopListening, hasSupport, setTranscript: setSpeechTranscript } = useSpeechRecognition();
+    const { isListening, transcript: speechTranscript, startListening, stopListening, hasSupport, error: micError, setTranscript: setSpeechTranscript } = useSpeechRecognition();
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -140,6 +140,12 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
             </div>
 
             <div className="p-4 border-t border-gray-200 bg-gray-50">
+                {micError && (
+                    <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
+                        <i className="fa fa-exclamation-circle"></i>
+                        <span>{micError}</span>
+                    </div>
+                )}
                  <div className="flex items-end space-x-2">
                     <div className="flex-1 flex items-end bg-white border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-blue-500 transition-shadow duration-200">
                         {isListening && <SpeechVisualizer />}

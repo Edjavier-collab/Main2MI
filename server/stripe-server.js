@@ -24,12 +24,30 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: '2024-11-20.acacia',
 });
 
-// Middleware
-app.use(cors());
+// Check development mode
+const isDevelopment = process.env.NODE_ENV !== 'production';
+
+// Middleware - CORS configuration
+const corsOptions = {
+    origin: function(origin, callback) {
+        const allowedOrigins = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const frontendUrls = allowedOrigins.split(',').map(url => url.trim());
+        
+        // Allow requests with no origin (like Stripe webhooks) in production
+        if (!origin || frontendUrls.includes(origin) || isDevelopment) {
+            callback(null, true);
+        } else {
+            console.warn('[stripe-server] CORS blocked origin:', origin);
+            callback(new Error('CORS not allowed'));
+        }
+    },
+    credentials: true
+};
+
+app.use(cors(corsOptions));
 
 // IMPORTANT: Webhook route needs raw body for signature verification
 // Define webhook route BEFORE JSON parsing middleware
-const isDevelopment = process.env.NODE_ENV !== 'production';
 
 // Price IDs - Replace these with your actual Stripe Price IDs after creating products
 const PRICE_IDS = {
@@ -212,7 +230,10 @@ app.post('/api/create-checkout-session', async (req, res) => {
                 plan,
                 tier: 'premium',
             },
-            customer_email: req.body.email, // Optional: if you want to pre-fill email
+            customer_email: req.body.email,
+            customer_creation: 'always', // Create customer for later billing portal use
+            automatic_tax: { enabled: true }, // Enable automatic tax calculation
+            billing_address_collection: 'required', // Require billing address for worldwide compliance
         });
 
         console.log('[stripe-server] Checkout session created:', session.id, 'for user:', userId);
@@ -237,6 +258,46 @@ app.post('/api/create-checkout-session', async (req, res) => {
     }
 });
 
+/**
+ * Create Billing Portal Session - allows users to manage their subscription
+ */
+app.post('/api/create-billing-portal-session', async (req, res) => {
+    try {
+        console.log('[stripe-server] Received billing portal request:', { body: req.body });
+        const { customerId, returnUrl } = req.body;
+
+        if (!customerId) {
+            console.error('[stripe-server] Missing customerId');
+            return res.status(400).json({ error: 'Missing customerId' });
+        }
+
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const portalReturnUrl = returnUrl || `${frontendUrl}`;
+
+        // Create Billing Portal Session
+        const session = await stripe.billingPortal.sessions.create({
+            customer: customerId,
+            return_url: portalReturnUrl,
+        });
+
+        console.log('[stripe-server] Billing portal session created:', session.id, 'for customer:', customerId);
+        console.log('[stripe-server] Portal URL:', session.url);
+
+        res.json({
+            url: session.url,
+        });
+    } catch (error) {
+        console.error('[stripe-server] Error creating billing portal session:', error);
+        console.error('[stripe-server] Error details:', {
+            message: error.message,
+            type: error.type,
+            code: error.code,
+        });
+        res.status(500).json({
+            error: error.message || 'Failed to create billing portal session',
+        });
+    }
+});
 
 app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
