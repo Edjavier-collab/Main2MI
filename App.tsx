@@ -9,6 +9,7 @@ import { canStartSession, getRemainingFreeSessions } from './services/subscripti
 import { PATIENT_PROFILE_TEMPLATES, STAGE_DESCRIPTIONS } from './constants';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { diagnoseEnvironmentSetup } from './services/geminiService';
+import { getSupabaseClient, isSupabaseConfigured } from './lib/supabase';
 import Dashboard from './components/Dashboard';
 import PracticeView from './components/PracticeView';
 import FeedbackView from './components/FeedbackView';
@@ -21,6 +22,7 @@ import BottomNavBar from './components/BottomNavBar';
 import CalendarView from './components/CalendarView';
 import LoginView from './components/LoginView';
 import ForgotPasswordView from './components/ForgotPasswordView';
+import ResetPasswordView from './components/ResetPasswordView';
 import CoachingSummaryView from './components/CoachingSummaryView';
 import ReviewPrompt from './components/ReviewPrompt';
 import CookieConsent from './components/CookieConsent';
@@ -188,6 +190,46 @@ const AppContent: React.FC = () => {
     diagnoseEnvironmentSetup();
   }, []);
 
+  // Handle password reset URL detection and Supabase auth callback
+  useEffect(() => {
+    const handlePasswordReset = async () => {
+      // Check if URL contains password reset token (Supabase sends it in hash)
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const type = hashParams.get('type');
+      const accessToken = hashParams.get('access_token');
+      
+      // Check if we're on the reset password page or have recovery token
+      if (window.location.pathname === '/reset-password' || (type === 'recovery' && accessToken)) {
+        if (isSupabaseConfigured()) {
+          try {
+            const supabase = getSupabaseClient();
+            
+            // If we have a recovery token in the URL, Supabase will handle it via auth state change
+            // But we need to show the reset password view
+            if (type === 'recovery' && accessToken) {
+              setView(View.ResetPassword);
+              // Clear the hash after detecting it (the component will handle the session)
+              // Don't clear immediately - let Supabase process it first
+            } else {
+              // Check if we already have a session (user clicked link and Supabase created session)
+              const { data } = await supabase.auth.getSession();
+              if (data?.session) {
+                setView(View.ResetPassword);
+              }
+            }
+          } catch (error) {
+            console.error('[App] Error handling password reset:', error);
+          }
+        } else {
+          // In mock mode, just show the reset password view
+          setView(View.ResetPassword);
+        }
+      }
+    };
+
+    handlePasswordReset();
+  }, []);
+
   // Navigate to dashboard when user logs in, or to login when user logs out
   useEffect(() => {
     if (authLoading) {
@@ -196,12 +238,13 @@ const AppContent: React.FC = () => {
 
     if (user) {
       // User is logged in, navigate to dashboard if on login-related screens
-      if (view === View.Login || view === View.ForgotPassword) {
+      // But don't navigate away from reset password if they're in the middle of resetting
+      if ((view === View.Login || view === View.ForgotPassword) && view !== View.ResetPassword) {
         setView(View.Dashboard);
       }
     } else {
-      // User is not logged in, show login screen (unless already there)
-      if (view !== View.Login && view !== View.ForgotPassword) {
+      // User is not logged in, show login screen (unless already on login-related screens)
+      if (view !== View.Login && view !== View.ForgotPassword && view !== View.ResetPassword) {
         setView(View.Login);
       }
     }
@@ -275,59 +318,74 @@ const AppContent: React.FC = () => {
     const plan = urlParams.get('plan');
 
     if (sessionId && plan) {
-      console.log('[App] Stripe checkout success detected. Session:', sessionId, 'Plan:', plan);
+      console.log('[App] ✅ Stripe checkout success detected. Session:', sessionId, 'Plan:', plan);
       
       // Clear URL params
       window.history.replaceState({}, '', window.location.pathname);
       
-      // Refresh user tier from Supabase with retry logic
+      // Refresh user tier from Supabase with enhanced retry logic
       const refreshTierWithRetry = async () => {
-        const maxRetries = 3;
-        const delayBetweenRetries = 3000; // 3 seconds
+        const maxRetries = 5;
+        const initialDelay = 2000; // 2 seconds initial delay for webhook processing
         let retryCount = 0;
         let tierUpdated = false;
 
+        console.log('[App] Starting tier refresh with retry logic (max', maxRetries, 'attempts)');
+
         while (retryCount < maxRetries && !tierUpdated) {
           try {
-            if (retryCount > 0) {
-              console.log(`[App] Retry attempt ${retryCount} to fetch updated tier...`);
-              // Wait before retrying
-              await new Promise(resolve => setTimeout(resolve, delayBetweenRetries));
-            } else {
+            if (retryCount === 0) {
               // Initial wait for webhook to process
-              console.log('[App] Waiting for webhook to process...');
-              await new Promise(resolve => setTimeout(resolve, 3000));
+              console.log('[App] ⏳ Waiting for webhook to process...');
+              await new Promise(resolve => setTimeout(resolve, initialDelay));
+            } else {
+              // Exponential backoff: 2s, 4s, 8s, 16s
+              const delayMs = initialDelay * Math.pow(2, retryCount - 1);
+              console.log(`[App] 🔄 Retry attempt ${retryCount}/${maxRetries - 1}, waiting ${delayMs}ms...`);
+              await new Promise(resolve => setTimeout(resolve, delayMs));
             }
 
+            console.log('[App] 📡 Fetching user profile for tier check...');
             const profile = await getUserProfile(user.id);
             
             if (profile && profile.tier === 'premium') {
-              console.log('[App] Tier refreshed after payment:', profile.tier);
+              console.log('[App] ✅ Tier successfully updated to premium!');
               setUserTier(profile.tier as UserTier);
               localStorage.setItem('mi-coach-tier', profile.tier);
+              setRemainingFreeSessions(null); // Clear free sessions limit immediately for premium users
               tierUpdated = true;
               
               // Show success and navigate to dashboard
               alert(`🎉 Payment successful! Your ${plan} subscription is now active. Enjoy unlimited practice sessions!`);
               setView(View.Dashboard);
             } else if (profile && profile.tier) {
-              console.warn('[App] Tier is still:', profile.tier, '(expected premium)');
+              console.warn(`[App] ⏳ Tier still ${profile.tier} (expected premium). Retrying...`);
               retryCount++;
             } else {
-              console.warn('[App] No profile found or tier is empty');
+              console.warn('[App] ⏳ No profile found or tier is empty. Retrying...');
               retryCount++;
             }
           } catch (error) {
-            console.error('[App] Error refreshing tier after payment:', error);
+            console.error('[App] ❌ Error refreshing tier:', error);
             retryCount++;
           }
         }
 
         // If tier wasn't updated after retries
         if (!tierUpdated) {
-          console.warn('[App] Tier was not updated after', maxRetries, 'attempts');
-          console.warn('[App] Webhook may still be processing or there was an error');
-          alert('Payment received! Your subscription is being activated. Please refresh the page if you don\'t see premium features immediately.');
+          console.warn(`[App] ⚠️  Tier was not updated after ${maxRetries} attempts`);
+          console.warn('[App] Possible causes:');
+          console.warn('  1. Backend server is not running (npm run dev:server)');
+          console.warn('  2. Stripe CLI is not forwarding webhooks');
+          console.warn('  3. Supabase credentials are missing or incorrect');
+          console.warn('  4. Database connection failed');
+          console.warn('[App] Action: Check server logs and run: curl http://localhost:3001/api/setup-check');
+          
+          alert('✅ Payment received! Your subscription is being activated.\n\n' +
+                'If premium features don\'t appear after 30 seconds:\n' +
+                '1. Refresh the page\n' +
+                '2. Check that the backend server is running (npm run dev:server)\n' +
+                '3. Verify Supabase credentials in .env.local');
           setView(View.Dashboard);
           
           // Still try to refresh tier from localStorage as fallback
@@ -395,6 +453,8 @@ const AppContent: React.FC = () => {
                 return s.tier === UserTier.Free && sessionDate >= monthStart && sessionDate <= now;
               }).length;
               setRemainingFreeSessions(Math.max(0, 3 - freeSessionsThisMonth));
+            } else {
+              setRemainingFreeSessions(null); // Premium users don't have limits
             }
           } catch (parseError) {
             console.error("[App] Failed to parse sessions from localStorage:", parseError);
@@ -634,6 +694,19 @@ const AppContent: React.FC = () => {
       <>
         {view === View.Login && <LoginView onLogin={() => {}} onNavigate={handleNavigate} />}
         {view === View.ForgotPassword && <ForgotPasswordView onBack={() => setView(View.Login)} />}
+        {view === View.ResetPassword && (
+          <ResetPasswordView 
+            onBack={() => {
+              window.history.replaceState({}, '', window.location.pathname);
+              setView(View.Login);
+            }} 
+            onSuccess={() => {
+              alert('Password reset successful! Please log in with your new password.');
+              window.history.replaceState({}, '', window.location.pathname);
+              setView(View.Login);
+            }}
+          />
+        )}
       </>
     );
   }
@@ -644,6 +717,20 @@ const AppContent: React.FC = () => {
         return <LoginView onLogin={() => {}} onNavigate={handleNavigate} />;
       case View.ForgotPassword:
         return <ForgotPasswordView onBack={() => setView(View.Login)} />;
+      case View.ResetPassword:
+        return (
+          <ResetPasswordView 
+            onBack={() => {
+              window.history.replaceState({}, '', window.location.pathname);
+              setView(View.Login);
+            }} 
+            onSuccess={() => {
+              alert('Password reset successful! Please log in with your new password.');
+              window.history.replaceState({}, '', window.location.pathname);
+              setView(View.Login);
+            }}
+          />
+        );
       case View.ScenarioSelection:
         return <ScenarioSelectionView onBack={() => setView(View.Dashboard)} onStartPractice={handleStartFilteredPractice} />;
       case View.Practice:
@@ -705,6 +792,7 @@ const AppContent: React.FC = () => {
             userTier={userTier} 
             sessions={sessions}
             remainingFreeSessions={remainingFreeSessions}
+            onNavigateToPaywall={() => setView(View.Paywall)}
           />
         );
     }

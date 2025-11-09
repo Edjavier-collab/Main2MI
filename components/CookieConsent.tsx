@@ -186,7 +186,7 @@ const CookieConsent: React.FC<CookieConsentProps> = ({ onConsent }) => {
     }
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-xl z-50 p-6 sm:p-8">
+        <div className="fixed left-0 right-0 bg-white border-t border-gray-200 shadow-xl z-50 p-6 sm:p-8 bottom-20 sm:bottom-24">
             <div className="max-w-6xl mx-auto">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
                     <div className="flex-1">

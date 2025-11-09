@@ -60,20 +60,20 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
             </header>
 
             <main className="py-6 px-6 space-y-6">
+                {!isFreeTier && (
+                    <InfoSection icon="fa-clipboard-question" title="Presenting Problem" colorClassName="text-amber-600">
+                         <p>{patient.presentingProblem}</p>
+                    </InfoSection>
+                )}
+
                 <InfoSection icon="fa-file-waveform" title="Relevant History" colorClassName="text-sky-600">
                     <p>{isFreeTier ? abbreviate(patient.history) : patient.history}</p>
                 </InfoSection>
 
                 {!isFreeTier && (
-                    <>
-                        <InfoSection icon="fa-user" title="Background" colorClassName="text-teal-600">
-                            <p>{patient.background}</p>
-                        </InfoSection>
-
-                        <InfoSection icon="fa-clipboard-question" title="Presenting Problem" colorClassName="text-amber-600">
-                             <p>{patient.presentingProblem}</p>
-                        </InfoSection>
-                    </>
+                    <InfoSection icon="fa-user" title="Background" colorClassName="text-teal-600">
+                        <p>{patient.background}</p>
+                    </InfoSection>
                 )}
 
                  <div>

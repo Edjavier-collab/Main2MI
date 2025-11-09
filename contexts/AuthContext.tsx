@@ -2,14 +2,21 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
 
+// Sign up result interface
+export interface SignUpResult {
+    requiresConfirmation: boolean;
+    email: string;
+}
+
 // Auth Context Interface
 interface AuthContextType {
     user: User | null;
     loading: boolean;
     signIn: (email: string, password: string) => Promise<void>;
-    signUp: (email: string, password: string) => Promise<void>;
+    signUp: (email: string, password: string) => Promise<SignUpResult>;
     signOut: () => Promise<void>;
     resetPassword: (email: string) => Promise<void>;
+    updatePassword: (newPassword: string) => Promise<void>;
 }
 
 // Create the context
@@ -148,8 +155,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     /**
      * Sign up with email and password
+     * Returns information about whether email confirmation is required
      */
-    const signUp = async (email: string, password: string): Promise<void> => {
+    const signUp = async (email: string, password: string): Promise<SignUpResult> => {
         try {
             console.log('[AuthProvider] Signing up user:', email);
             setLoading(true);
@@ -169,13 +177,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 localStorage.setItem('mock_user', JSON.stringify({ email }));
                 
                 console.log('[AuthProvider] Mock sign up successful');
-                return;
+                // Mock mode doesn't require confirmation
+                return { requiresConfirmation: false, email };
             }
 
             const supabase = getSupabaseClient();
-            const { error } = await supabase.auth.signUp({
+            const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
+                options: {
+                    emailRedirectTo: `${window.location.origin}/`,
+                },
             });
 
             if (error) {
@@ -183,7 +195,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 throw new Error(error.message);
             }
 
-            console.log('[AuthProvider] User signed up successfully');
+            // Log signup response details for debugging
+            console.log('[AuthProvider] Sign up response:', {
+                user: data.user ? {
+                    id: data.user.id,
+                    email: data.user.email,
+                    email_confirmed_at: data.user.email_confirmed_at,
+                    confirmation_sent_at: data.user.confirmation_sent_at,
+                } : null,
+                session: data.session ? 'exists' : 'null',
+            });
+
+            // Check if user is signed in (session exists)
+            // If no session, email confirmation is required
+            const { data: sessionData } = await supabase.auth.getSession();
+            const requiresConfirmation = !sessionData?.session;
+
+            // Check if confirmation email was sent
+            const confirmationSent = data.user?.confirmation_sent_at !== null && data.user?.confirmation_sent_at !== undefined;
+            
+            if (confirmationSent) {
+                console.log('[AuthProvider] ✅ Confirmation email was sent at:', data.user?.confirmation_sent_at);
+            } else {
+                console.warn('[AuthProvider] ⚠️  Confirmation email was NOT sent. Check Supabase email settings:');
+                console.warn('  1. Go to Supabase Dashboard > Authentication > Providers > Email');
+                console.warn('  2. Ensure "Confirm email" is enabled');
+                console.warn('  3. Check SMTP settings in Project Settings > Auth');
+                console.warn('  4. Verify email templates are configured');
+            }
+
+            // Always show confirmation message if Supabase is configured
+            // Supabase sends a confirmation email by default, even if email confirmation is disabled
+            // The difference is whether the user is immediately signed in or not
+            if (requiresConfirmation) {
+                console.log('[AuthProvider] User signed up successfully, but email confirmation is required');
+            } else {
+                console.log('[AuthProvider] User signed up and logged in successfully (email confirmation may still be sent)');
+                // Even if user is signed in, Supabase may have sent a confirmation email
+                // Check if user email is confirmed
+                if (data.user && !data.user.email_confirmed_at) {
+                    // User is signed in but email is not confirmed - show confirmation message
+                    return { requiresConfirmation: true, email };
+                }
+            }
+
+            return { requiresConfirmation, email };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Sign up failed';
             console.error('[AuthProvider] Error in signUp:', errorMessage);
@@ -263,6 +319,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    /**
+     * Update user password (used after password reset)
+     */
+    const updatePassword = async (newPassword: string): Promise<void> => {
+        try {
+            console.log('[AuthProvider] Updating password');
+            setLoading(true);
+
+            if (!isSupabaseConfigured()) {
+                // Mock password update
+                console.log('[AuthProvider] Mock password update - password changed');
+                await new Promise(resolve => setTimeout(resolve, 500));
+                return;
+            }
+
+            const supabase = getSupabaseClient();
+            const { error } = await supabase.auth.updateUser({
+                password: newPassword,
+            });
+
+            if (error) {
+                console.error('[AuthProvider] Password update failed:', error.message);
+                throw new Error(error.message);
+            }
+
+            console.log('[AuthProvider] Password updated successfully');
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Password update failed';
+            console.error('[AuthProvider] Error in updatePassword:', errorMessage);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const value: AuthContextType = {
         user,
         loading,
@@ -270,6 +361,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signUp,
         signOut,
         resetPassword,
+        updatePassword,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

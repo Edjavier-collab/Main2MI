@@ -9,6 +9,7 @@ export enum UserTier {
 export enum View {
   Login = 'login',
   ForgotPassword = 'forgotPassword',
+  ResetPassword = 'resetPassword',
   Dashboard = 'dashboard',
   Practice = 'practice',
   Feedback = 'feedback',

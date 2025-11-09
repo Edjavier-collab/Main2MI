@@ -6,9 +6,10 @@ interface DashboardProps {
     userTier: UserTier;
     sessions: Session[];
     remainingFreeSessions: number | null;
+    onNavigateToPaywall: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ onStartPractice, userTier, sessions, remainingFreeSessions }) => {
+const Dashboard: React.FC<DashboardProps> = ({ onStartPractice, userTier, sessions, remainingFreeSessions, onNavigateToPaywall }) => {
     // Calculate remaining sessions from prop if available, otherwise fallback to local calculation
     const displayRemaining = remainingFreeSessions !== null 
         ? remainingFreeSessions 
@@ -53,10 +54,20 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartPractice, userTier, sessio
                 </button>
                 
                 {userTier === UserTier.Free && displayRemaining === 0 && (
-                    <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded">
-                        <p className="text-red-700 font-semibold text-sm">Free practices limit reached for this month</p>
-                        <p className="text-red-600 text-xs mt-1">Upgrade to Premium for unlimited access</p>
-                    </div>
+                    <button
+                        onClick={onNavigateToPaywall}
+                        className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg text-left w-full hover:bg-red-100 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                    >
+                        <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                                <p className="text-red-800 font-semibold text-sm mb-1">Free practices limit reached for this month</p>
+                                <p className="text-red-700 text-xs">Upgrade to Premium for unlimited access</p>
+                            </div>
+                            <svg className="w-5 h-5 text-red-600 ml-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                    </button>
                 )}
             </div>
         </div>

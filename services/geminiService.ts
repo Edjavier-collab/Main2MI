@@ -806,17 +806,33 @@ export const generateCoachingSummary = async (sessions: Session[]): Promise<Coac
     const prompt = `
     You are an expert Motivational Interviewing (MI) coach analyzing a user's practice sessions.
     Your tone should be encouraging, insightful, and focused on growth.
-    Based on the following session summaries, generate a concise "Coaching Summary" for the user.
+    
+    IMPORTANT: This analysis is based on ${sessionSummaries.length} practice session${sessionSummaries.length === 1 ? '' : 's'} that have been aggregated and analyzed together. Make sure to reference this in your analysis where relevant.
+    
+    Based on the following ${sessionSummaries.length} session${sessionSummaries.length === 1 ? '' : 's'}, generate a comprehensive "Coaching Summary" for the user.
 
     Provide a JSON object with the following structure:
-    - totalSessions: The total number of sessions.
-    - dateRange: The date range of the sessions.
-    - strengthsAndTrends: Analyze recurring strengths from "whatWentRight". Analyze the "keySkillsUsed" across sessions—are they using more complex skills over time (e.g., moving from only Open Questions to more Reflections)? Comment on the consistency of the "empathyScore" and any upward trends. Use markdown for bullet points (e.g., "* Point one").
-    - areasForFocus: Synthesize the "constructiveFeedback" fields into 1-2 core themes. Explain *why* focusing on these themes will have the biggest impact. For example, "A recurring theme is the opportunity to use complex reflections to deepen conversations, which can help elicit more change talk."
-    - summaryAndNextSteps: Provide a brief, encouraging summary and suggest a concrete, actionable next step for their next practice session that builds on the identified themes.
+    - totalSessions: The total number of sessions analyzed (${sessionSummaries.length}).
+    - dateRange: The date range of the sessions analyzed (${firstSessionDate} to ${lastSessionDate}).
+    - strengthsAndTrends: 
+      * Analyze recurring strengths and patterns across all ${sessionSummaries.length} session${sessionSummaries.length === 1 ? '' : 's'} from "whatWentRight" fields.
+      * Analyze the "keySkillsUsed" across sessions—are they using more complex skills over time (e.g., moving from only Open Questions to more Reflections)? Look for skill progression patterns.
+      * Comment on the consistency and trends in "empathyScore" across sessions—are scores improving, stable, or varying? Note any upward trends.
+      * Reference specific examples from the sessions when highlighting strengths.
+      * Use markdown for bullet points (e.g., "* Point one").
+      * Begin by acknowledging the number of sessions analyzed (e.g., "Across your ${sessionSummaries.length} session${sessionSummaries.length === 1 ? '' : 's'}, you've demonstrated...").
+    - areasForFocus: 
+      * Synthesize the "constructiveFeedback" fields from all ${sessionSummaries.length} session${sessionSummaries.length === 1 ? '' : 's'} into 1-2 core themes that appear consistently.
+      * Explain *why* focusing on these themes will have the biggest impact on their MI practice.
+      * Provide specific, actionable guidance based on patterns observed across multiple sessions.
+      * Reference that these patterns emerged from analyzing ${sessionSummaries.length} session${sessionSummaries.length === 1 ? '' : 's'}.
+    - summaryAndNextSteps: 
+      * Provide a brief, encouraging summary that acknowledges the ${sessionSummaries.length} session${sessionSummaries.length === 1 ? '' : 's'} analyzed.
+      * Suggest a concrete, actionable next step for their next practice session that builds on the identified themes.
+      * Make the recommendation specific and measurable.
 
-    Here is the data:
-    - Total Sessions: ${sessionSummaries.length}
+    Here is the aggregated data from ${sessionSummaries.length} session${sessionSummaries.length === 1 ? '' : 's'}:
+    - Total Sessions Analyzed: ${sessionSummaries.length}
     - Date Range: ${firstSessionDate} to ${lastSessionDate}
     - Session Summaries:
     ${JSON.stringify(sessionSummaries, null, 2)}
@@ -830,15 +846,13 @@ export const generateCoachingSummary = async (sessions: Session[]): Promise<Coac
             return {
                 totalSessions: sessionSummaries.length,
                 dateRange: `${firstSessionDate} to ${lastSessionDate}`,
-                strengthsAndTrends: `* You've demonstrated consistent engagement across ${sessionSummaries.length} practice sessions, showing real commitment to developing your MI skills
-* Your reflective listening skills are a clear strength—you're regularly validating patient experiences and helping them feel heard
+                strengthsAndTrends: `* Across your ${sessionSummaries.length} practice session${sessionSummaries.length === 1 ? '' : 's'}, you've demonstrated consistent engagement and real commitment to developing your MI skills
+* Your reflective listening skills are a clear strength—you're regularly validating patient experiences and helping them feel heard across multiple sessions
 * You're showing strong adaptability by working with different patient profiles and stages of change, which is crucial for real-world practice
-* Your empathy scores have remained stable, indicating you maintain a genuine, non-judgmental stance across conversations
+* Your empathy scores have remained stable across ${sessionSummaries.length === 1 ? 'this session' : 'these sessions'}, indicating you maintain a genuine, non-judgmental stance across conversations
 * You're successfully creating safe spaces where patients feel comfortable opening up about their concerns`,
-                areasForFocus: `* Developing more complex reflections that name both sides of patient ambivalence—moving beyond simple reflections to ones that deepen understanding and build discrepancy
-* Strategically using open-ended questions to explore motivations and values rather than relying on closed questions—this helps patients discover their own reasons for change
-* Building on the foundation you've established to add more advanced MI skills like developing discrepancy and supporting self-efficacy`,
-                summaryAndNextSteps: `You're demonstrating real growth in your Motivational Interviewing practice! Your consistent engagement and genuine curiosity are creating meaningful connections with patients. The next level of your development is to deepen your reflections and become more intentional about using specific MI skills to help patients move toward behavior change. For your next practice session, pick one specific skill to focus on—whether it's complex reflections, exploring ambivalence, or eliciting change talk—and practice it with intention. Quality over quantity will accelerate your growth.`
+                areasForFocus: `A recurring theme across your ${sessionSummaries.length} session${sessionSummaries.length === 1 ? '' : 's'} is the opportunity to use more complex reflections that name both sides of patient ambivalence—moving beyond simple reflections to ones that deepen understanding and build discrepancy. Focusing on this will help you explore patients' ambivalence and motivations more effectively, which is crucial for facilitating movement through the stages of change.`,
+                summaryAndNextSteps: `You're demonstrating real growth in your Motivational Interviewing practice! Based on the analysis of your ${sessionSummaries.length} session${sessionSummaries.length === 1 ? '' : 's'}, your consistent engagement and genuine curiosity are creating meaningful connections with patients. The next level of your development is to deepen your reflections and become more intentional about using specific MI skills to help patients move toward behavior change. For your next practice session, pick one specific skill to focus on—whether it's complex reflections, exploring ambivalence, or eliciting change talk—and practice it with intention. Quality over quantity will accelerate your growth.`
             };
         }
         
