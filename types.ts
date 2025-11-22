@@ -10,6 +10,7 @@ export enum View {
   Login = 'login',
   ForgotPassword = 'forgotPassword',
   ResetPassword = 'resetPassword',
+  EmailConfirmation = 'emailConfirmation',
   Dashboard = 'dashboard',
   Practice = 'practice',
   Feedback = 'feedback',

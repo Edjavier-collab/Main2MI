@@ -23,6 +23,7 @@ import CalendarView from './components/CalendarView';
 import LoginView from './components/LoginView';
 import ForgotPasswordView from './components/ForgotPasswordView';
 import ResetPasswordView from './components/ResetPasswordView';
+import EmailConfirmationView from './components/EmailConfirmationView';
 import CoachingSummaryView from './components/CoachingSummaryView';
 import ReviewPrompt from './components/ReviewPrompt';
 import CookieConsent from './components/CookieConsent';
@@ -184,26 +185,27 @@ const AppContent: React.FC = () => {
   const [coachingSummaryError, setCoachingSummaryError] = useState<string | null>(null);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [showReviewPrompt, setShowReviewPrompt] = useState(false);
+  const [confirmationEmail, setConfirmationEmail] = useState<string>('');
 
   // Diagnostic: Check environment setup on app start
   useEffect(() => {
     diagnoseEnvironmentSetup();
   }, []);
 
-  // Handle password reset URL detection and Supabase auth callback
+  // Handle password reset and email confirmation URL detection and Supabase auth callback
   useEffect(() => {
-    const handlePasswordReset = async () => {
-      // Check if URL contains password reset token (Supabase sends it in hash)
+    const handleAuthCallback = async () => {
+      // Check if URL contains auth token (Supabase sends it in hash)
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const type = hashParams.get('type');
       const accessToken = hashParams.get('access_token');
       
-      // Check if we're on the reset password page or have recovery token
-      if (window.location.pathname === '/reset-password' || (type === 'recovery' && accessToken)) {
-        if (isSupabaseConfigured()) {
-          try {
-            const supabase = getSupabaseClient();
-            
+      if (isSupabaseConfigured()) {
+        try {
+          const supabase = getSupabaseClient();
+          
+          // Handle password reset
+          if (window.location.pathname === '/reset-password' || (type === 'recovery' && accessToken)) {
             // If we have a recovery token in the URL, Supabase will handle it via auth state change
             // But we need to show the reset password view
             if (type === 'recovery' && accessToken) {
@@ -217,17 +219,28 @@ const AppContent: React.FC = () => {
                 setView(View.ResetPassword);
               }
             }
-          } catch (error) {
-            console.error('[App] Error handling password reset:', error);
           }
-        } else {
-          // In mock mode, just show the reset password view
+          // Handle email confirmation
+          else if (type === 'signup' && accessToken) {
+            console.log('[App] Email confirmation callback detected');
+            // Supabase will automatically process the token and create a session
+            // The auth state change listener will detect the user and navigate to dashboard
+            // Clear the hash from URL
+            window.history.replaceState({}, '', window.location.pathname);
+            // The user will be automatically logged in via onAuthStateChange
+          }
+        } catch (error) {
+          console.error('[App] Error handling auth callback:', error);
+        }
+      } else {
+        // In mock mode, just show the reset password view if needed
+        if (window.location.pathname === '/reset-password' || (type === 'recovery' && accessToken)) {
           setView(View.ResetPassword);
         }
       }
     };
 
-    handlePasswordReset();
+    handleAuthCallback();
   }, []);
 
   // Navigate to dashboard when user logs in, or to login when user logs out
@@ -239,12 +252,12 @@ const AppContent: React.FC = () => {
     if (user) {
       // User is logged in, navigate to dashboard if on login-related screens
       // But don't navigate away from reset password if they're in the middle of resetting
-      if ((view === View.Login || view === View.ForgotPassword) && view !== View.ResetPassword) {
+      if ((view === View.Login || view === View.ForgotPassword || view === View.EmailConfirmation) && view !== View.ResetPassword) {
         setView(View.Dashboard);
       }
     } else {
       // User is not logged in, show login screen (unless already on login-related screens)
-      if (view !== View.Login && view !== View.ForgotPassword && view !== View.ResetPassword) {
+      if (view !== View.Login && view !== View.ForgotPassword && view !== View.EmailConfirmation && view !== View.ResetPassword) {
         setView(View.Login);
       }
     }
@@ -668,6 +681,11 @@ const AppContent: React.FC = () => {
     };
 
   const handleNavigate = (targetView: View) => setView(targetView);
+  
+  const handleEmailConfirmation = (email: string) => {
+    setConfirmationEmail(email);
+    setView(View.EmailConfirmation);
+  };
 
   const handleLogout = async () => {
     try {
@@ -737,8 +755,15 @@ const AppContent: React.FC = () => {
   if (!user && !authLoading) {
     return (
       <>
-        {view === View.Login && <LoginView onLogin={() => {}} onNavigate={handleNavigate} />}
+        {view === View.Login && <LoginView onLogin={() => {}} onNavigate={handleNavigate} onEmailConfirmation={handleEmailConfirmation} />}
         {view === View.ForgotPassword && <ForgotPasswordView onBack={() => setView(View.Login)} />}
+        {view === View.EmailConfirmation && (
+          <EmailConfirmationView 
+            email={confirmationEmail}
+            onBack={() => setView(View.Login)} 
+            onNavigate={handleNavigate}
+          />
+        )}
         {view === View.ResetPassword && (
           <ResetPasswordView 
             onBack={() => {
@@ -759,9 +784,17 @@ const AppContent: React.FC = () => {
   const renderView = () => {
     switch (view) {
       case View.Login:
-        return <LoginView onLogin={() => {}} onNavigate={handleNavigate} />;
+        return <LoginView onLogin={() => {}} onNavigate={handleNavigate} onEmailConfirmation={handleEmailConfirmation} />;
       case View.ForgotPassword:
         return <ForgotPasswordView onBack={() => setView(View.Login)} />;
+      case View.EmailConfirmation:
+        return (
+          <EmailConfirmationView 
+            email={confirmationEmail}
+            onBack={() => setView(View.Login)} 
+            onNavigate={handleNavigate}
+          />
+        );
       case View.ResetPassword:
         return (
           <ResetPasswordView 

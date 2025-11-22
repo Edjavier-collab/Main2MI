@@ -6,9 +6,10 @@ import { isSupabaseConfigured } from '../lib/supabase';
 interface LoginViewProps {
     onLogin: () => void;
     onNavigate: (view: View) => void;
+    onEmailConfirmation?: (email: string) => void;
 }
 
-const LoginView: React.FC<LoginViewProps> = ({ onLogin, onNavigate }) => {
+const LoginView: React.FC<LoginViewProps> = ({ onLogin, onNavigate, onEmailConfirmation }) => {
     const { signIn, signUp, resendSignUpConfirmation } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -122,9 +123,14 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, onNavigate }) => {
                 const result = await signUp(email, password);
                 // Only show confirmation screen if email confirmation is actually required
                 if (result.requiresConfirmation) {
-                    // Email confirmation is required - show message
-                    setEmailConfirmationSent(true);
-                    setConfirmationEmail(result.email);
+                    // Email confirmation is required - navigate to confirmation page
+                    if (onEmailConfirmation) {
+                        onEmailConfirmation(result.email);
+                    } else {
+                        // Fallback: show inline confirmation (for backwards compatibility)
+                        setEmailConfirmationSent(true);
+                        setConfirmationEmail(result.email);
+                    }
                     // Clear password for security
                     setPassword('');
                     // Don't call onLogin() - user needs to confirm email first
