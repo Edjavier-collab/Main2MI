@@ -42,8 +42,9 @@ export const createCheckoutSession = async (
     });
 
     if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'Failed to create checkout session' }));
-        throw new Error(error.message || 'Failed to create checkout session');
+        const errorData = await response.json().catch(() => ({ error: 'Failed to create checkout session' }));
+        const errorMessage = errorData.error || errorData.message || 'Failed to create checkout session';
+        throw new Error(errorMessage);
     }
 
     return await response.json();
@@ -74,5 +75,156 @@ export const redirectToCheckout = async (userId: string, plan: 'monthly' | 'annu
         console.error('[stripeService] Checkout error:', error);
         throw error;
     }
+};
+
+/**
+ * Get user's subscription details
+ * Returns null if no subscription is found (404), throws error for other failures
+ */
+export const getUserSubscription = async (userId: string): Promise<any | null> => {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+    
+    const response = await fetch(`${backendUrl}/api/get-subscription?userId=${userId}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        // Handle 404 (no subscription found)
+        if (response.status === 404) {
+            // Check if the response includes premium tier info
+            const errorData = await response.json().catch(() => ({}));
+            if (errorData.hasPremiumTier) {
+                // Return a special object to indicate premium tier mismatch
+                return { _premiumTierMismatch: true, error: errorData.error || 'No subscription found' };
+            }
+            return null;
+        }
+        
+        // For other errors, parse and throw with proper error message
+        const errorData = await response.json().catch(() => ({ error: 'Failed to get subscription' }));
+        const errorMessage = errorData.error || errorData.message || 'Failed to get subscription';
+        throw new Error(errorMessage);
+    }
+
+    return await response.json();
+};
+
+/**
+ * Cancel subscription with retention offer option
+ */
+export const cancelSubscription = async (userId: string, acceptOffer: boolean): Promise<any> => {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+    
+    const response = await fetch(`${backendUrl}/api/cancel-subscription`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            userId,
+            action: acceptOffer ? 'accept_offer' : 'cancel',
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to cancel subscription' }));
+        const errorMessage = errorData.error || errorData.message || 'Failed to cancel subscription';
+        throw new Error(errorMessage);
+    }
+
+    return await response.json();
+};
+
+/**
+ * Apply retention discount to subscription
+ */
+export const applyRetentionDiscount = async (userId: string): Promise<any> => {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+    
+    const response = await fetch(`${backendUrl}/api/apply-retention-discount`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            userId,
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to apply retention discount' }));
+        const errorMessage = errorData.error || errorData.message || 'Failed to apply retention discount';
+        throw new Error(errorMessage);
+    }
+
+    return await response.json();
+};
+
+/**
+ * Restore a cancelled subscription
+ */
+export const restoreSubscription = async (userId: string): Promise<any> => {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+    
+    const response = await fetch(`${backendUrl}/api/restore-subscription`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            userId,
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to restore subscription' }));
+        const errorMessage = errorData.error || errorData.message || 'Failed to restore subscription';
+        throw new Error(errorMessage);
+    }
+
+    return await response.json();
+};
+
+/**
+ * Create a mock subscription (development only)
+ */
+export const createMockSubscription = async (userId: string, plan: 'monthly' | 'annual'): Promise<any> => {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+
+    let response: Response;
+    try {
+        response = await fetch(`${backendUrl}/api/create-mock-subscription`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                userId,
+                plan,
+            }),
+        });
+    } catch (networkError) {
+        console.error('[stripeService] createMockSubscription network error:', networkError);
+        throw new Error('Unable to reach the subscription server. Please run `npm run dev:server` (default http://localhost:3001).');
+    }
+
+    if (!response.ok) {
+        let errorMessage = `Failed to create mock subscription (HTTP ${response.status})`;
+
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+            const errorData = await response.json().catch(() => ({}));
+            errorMessage = errorData.error || errorData.message || errorMessage;
+        } else if (response.status === 404) {
+            errorMessage = 'Mock subscription endpoint not found. Is `npm run dev:server` running on port 3001?';
+        }
+
+        throw new Error(errorMessage);
+    }
+
+    return await response.json();
 };
 

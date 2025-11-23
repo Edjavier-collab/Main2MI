@@ -2,11 +2,13 @@
 import React, { useState } from 'react';
 import { redirectToCheckout } from '../services/stripeService';
 import { User } from '@supabase/supabase-js';
+import { View } from '../types';
 
 interface PaywallViewProps {
     onBack: () => void;
     onUpgrade: () => void;
     user: User | null;
+    onNavigateToLogin?: () => void;
 }
 
 const FeatureItem: React.FC<{ icon: string; text: React.ReactNode }> = ({ icon, text }) => (
@@ -16,9 +18,71 @@ const FeatureItem: React.FC<{ icon: string; text: React.ReactNode }> = ({ icon, 
     </li>
 );
 
-const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user }) => {
+const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNavigateToLogin }) => {
     const [loading, setLoading] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+
+    // If no user (anonymous), show login prompt instead of checkout
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 sm:p-6">
+                <div className="absolute top-6 right-6">
+                    <button onClick={onBack} className="text-gray-500 hover:text-gray-800 transition-colors">
+                        <i className="fa fa-times text-2xl"></i>
+                    </button>
+                </div>
+
+                <div className="w-full max-w-md mx-auto text-center">
+                    <div className="mb-6">
+                        <div className="mx-auto mb-4 bg-sky-100 h-20 w-20 rounded-full flex items-center justify-center ring-8 ring-sky-100/50">
+                            <i className="fa-solid fa-user-lock text-4xl text-sky-500"></i>
+                        </div>
+                        <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-2">Create an Account to Upgrade</h1>
+                        <p className="text-gray-600">Sign up or log in to unlock unlimited practice sessions and premium features!</p>
+                    </div>
+                    
+                    <div className="bg-white rounded-2xl shadow-md p-6 text-left mb-6">
+                        <p className="text-gray-700 mb-4">Creating an account gives you:</p>
+                        <ul className="space-y-3">
+                            <li className="flex items-center text-gray-700">
+                                <i className="fa-solid fa-check text-green-500 w-6 text-center"></i>
+                                <span className="ml-3">Unlimited practice sessions</span>
+                            </li>
+                            <li className="flex items-center text-gray-700">
+                                <i className="fa-solid fa-check text-green-500 w-6 text-center"></i>
+                                <span className="ml-3">Access to all premium features</span>
+                            </li>
+                            <li className="flex items-center text-gray-700">
+                                <i className="fa-solid fa-check text-green-500 w-6 text-center"></i>
+                                <span className="ml-3">Secure session history across devices</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div className="space-y-4">
+                        <button
+                            onClick={() => {
+                                if (onNavigateToLogin) {
+                                    onNavigateToLogin();
+                                } else {
+                                    onBack();
+                                }
+                            }}
+                            className="w-full bg-sky-500 text-white font-bold py-3 rounded-lg hover:bg-sky-600 transition"
+                        >
+                            Sign Up or Log In
+                        </button>
+                        <button
+                            onClick={onBack}
+                            className="w-full text-gray-600 hover:text-gray-800 text-sm py-2"
+                        >
+                            Continue as Guest (3 free sessions/month)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     const handleSubscribe = async (plan: 'monthly' | 'annual') => {
         if (!user) {

@@ -7,9 +7,10 @@ interface LoginViewProps {
     onLogin: () => void;
     onNavigate: (view: View) => void;
     onEmailConfirmation?: (email: string) => void;
+    onContinueAsGuest?: () => void;
 }
 
-const LoginView: React.FC<LoginViewProps> = ({ onLogin, onNavigate, onEmailConfirmation }) => {
+const LoginView: React.FC<LoginViewProps> = ({ onLogin, onNavigate, onEmailConfirmation, onContinueAsGuest }) => {
     const { signIn, signUp, resendSignUpConfirmation } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -323,6 +324,31 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, onNavigate, onEmailConfi
                         </button>
                     </div>
                 </form>
+
+                {/* Continue as Guest Button */}
+                {onContinueAsGuest && (
+                    <div className="mt-6">
+                        <div className="relative my-6">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-gray-300"></div>
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="px-2 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400">Or</span>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={onContinueAsGuest}
+                            disabled={loading}
+                            className="w-full bg-gray-100 text-gray-700 font-semibold py-3 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Continue as Guest
+                        </button>
+                        <p className="text-xs text-gray-500 text-center mt-2">
+                            3 free practice sessions per month
+                        </p>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -27,6 +27,7 @@ export enum View {
   CookiePolicy = 'cookiePolicy',
   Disclaimer = 'disclaimer',
   Support = 'support',
+  CancelSubscription = 'cancelSubscription',
 }
 
 export enum StageOfChange {
@@ -73,6 +74,8 @@ export interface Feedback {
     constructiveFeedback?: string; // Formerly areasForGrowth
     keySkillsUsed?: string[]; // Changed from string to string[]
     nextPracticeFocus?: string;
+    analysisStatus?: 'complete' | 'insufficient-data';
+    analysisMessage?: string;
 }
 
 export interface Session {
@@ -90,4 +93,17 @@ export interface CoachingSummary {
     strengthsAndTrends: string;
     areasForFocus: string;
     summaryAndNextSteps: string;
+}
+
+export interface SubscriptionDetails {
+    customerId: string;
+    subscriptionId: string;
+    plan: 'monthly' | 'annual' | 'unknown';
+    status: string;
+    currentPeriodEnd: string;
+    cancelAtPeriodEnd: boolean;
+    currentPrice: number;
+    originalPrice: number;
+    discountPercent: number;
+    hasRetentionDiscount: boolean;
 }

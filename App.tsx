@@ -5,7 +5,7 @@ import { UserTier, View, PatientProfile, Session, Feedback, ChatMessage, StageOf
 import { generatePatientProfile } from './services/patientService';
 import { generateCoachingSummary } from './services/geminiService';
 import { saveSession, getUserSessions, getUserProfile, createUserProfile } from './services/databaseService';
-import { canStartSession, getRemainingFreeSessions } from './services/subscriptionService';
+import { canStartSession, getRemainingFreeSessions, getRemainingFreeSessionsAnonymous } from './services/subscriptionService';
 import { PATIENT_PROFILE_TEMPLATES, STAGE_DESCRIPTIONS } from './constants';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { diagnoseEnvironmentSetup } from './services/geminiService';
@@ -18,6 +18,7 @@ import ResourceLibrary from './components/ResourceLibrary';
 import Onboarding from './components/Onboarding';
 import PaywallView from './components/PaywallView';
 import SettingsView from './components/SettingsView';
+import CancelSubscriptionView from './components/CancelSubscriptionView';
 import BottomNavBar from './components/BottomNavBar';
 import CalendarView from './components/CalendarView';
 import LoginView from './components/LoginView';
@@ -174,7 +175,8 @@ const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ onBack, o
 const AppContent: React.FC = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const [userTier, setUserTier] = useState<UserTier>(UserTier.Free);
-  const [view, setView] = useState<View>(View.Login);
+  // Start with Dashboard for anonymous access (will redirect to Login if user logs in and was on login screen)
+  const [view, setView] = useState<View>(View.Dashboard);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [remainingFreeSessions, setRemainingFreeSessions] = useState<number | null>(null);
@@ -243,7 +245,7 @@ const AppContent: React.FC = () => {
     handleAuthCallback();
   }, []);
 
-  // Navigate to dashboard when user logs in, or to login when user logs out
+  // Navigate to dashboard when user logs in, allow anonymous access to dashboard
   useEffect(() => {
     if (authLoading) {
       return; // Don't change view while loading
@@ -256,10 +258,19 @@ const AppContent: React.FC = () => {
         setView(View.Dashboard);
       }
     } else {
-      // User is not logged in, show login screen (unless already on login-related screens)
-      if (view !== View.Login && view !== View.ForgotPassword && view !== View.EmailConfirmation && view !== View.ResetPassword) {
-        setView(View.Login);
+      // User is not logged in - allow anonymous access to free tier features
+      // Only show login if on login/auth screens, otherwise allow Dashboard and other views
+      if (view === View.Login || view === View.ForgotPassword || view === View.EmailConfirmation || view === View.ResetPassword) {
+        // Already on auth screens, stay there
+        return;
       }
+      // Anonymous users can access Dashboard, Paywall (shows login prompt), Settings (shows sign up), and other free tier views
+      // Only redirect premium-only views that require authentication
+      if (view === View.Calendar || view === View.CoachingSummary || view === View.CancelSubscription) {
+        // These views require login - redirect to dashboard
+        setView(View.Dashboard);
+      }
+      // Note: PaywallView and SettingsView handle anonymous users by showing login/signup prompts
     }
   }, [user, authLoading, view]);
 
@@ -269,12 +280,18 @@ const AppContent: React.FC = () => {
     const onboardingComplete = localStorage.getItem('mi-coach-onboarding-complete');
     setShowOnboarding(onboardingComplete !== 'true');
 
-    // Load saved user tier from localStorage (fallback only)
-    const savedTier = localStorage.getItem('mi-coach-tier') as UserTier;
-    if (savedTier && Object.values(UserTier).includes(savedTier)) {
-      setUserTier(savedTier);
+    // For anonymous users, always use Free tier
+    // For authenticated users, load from localStorage as fallback (will be overridden by Supabase)
+    if (!user) {
+      setUserTier(UserTier.Free);
+    } else {
+      // Authenticated user - load saved tier from localStorage (fallback, will be overridden by Supabase)
+      const savedTier = localStorage.getItem('mi-coach-tier') as UserTier;
+      if (savedTier && Object.values(UserTier).includes(savedTier)) {
+        setUserTier(savedTier);
+      }
     }
-  }, []); // Empty dependency array ensures this runs only once on mount.
+  }, [user]); // Re-run when user changes
 
   // Load user tier from Supabase after authentication
   useEffect(() => {
@@ -458,66 +475,92 @@ const AppContent: React.FC = () => {
     }
   }, [user, authLoading]);
 
-  // Load sessions from Supabase when user is authenticated
+  // Load sessions from Supabase when user is authenticated, or from localStorage for anonymous users
   useEffect(() => {
-    if (!user || authLoading) {
+    if (authLoading) {
       return;
     }
 
     const loadSessions = async () => {
       setSessionsLoading(true);
       try {
-        // Try to fetch from Supabase
-        const supabaseSessions = await getUserSessions(user.id);
-        setSessions(supabaseSessions);
-        
-        // Update remaining free sessions if user is on free tier
-        if (userTier === UserTier.Free) {
-          const remaining = await getRemainingFreeSessions(user.id);
-          setRemainingFreeSessions(remaining);
-        } else {
-          setRemainingFreeSessions(null); // Premium users don't have limits
-        }
-        
-        // If no sessions in Supabase, try to migrate from localStorage
-        if (supabaseSessions.length === 0) {
-          const savedSessions = localStorage.getItem('mi-coach-sessions');
-          if (savedSessions) {
-            try {
-              const localSessions = JSON.parse(savedSessions) as Session[];
-              // Optionally migrate old sessions to Supabase (could be done in background)
-              console.log('[App] Found', localSessions.length, 'sessions in localStorage (migration may be needed)');
-            } catch (error) {
-              console.error("[App] Failed to parse sessions from localStorage:", error);
-              localStorage.removeItem('mi-coach-sessions');
+        if (user) {
+          // Authenticated user - load from Supabase
+          const supabaseSessions = await getUserSessions(user.id);
+          setSessions(supabaseSessions);
+          
+          // Update remaining free sessions if user is on free tier
+          if (userTier === UserTier.Free) {
+            const remaining = await getRemainingFreeSessions(user.id);
+            setRemainingFreeSessions(remaining);
+          } else {
+            setRemainingFreeSessions(null); // Premium users don't have limits
+          }
+          
+          // If no sessions in Supabase, try to migrate from localStorage (old logged-in sessions)
+          if (supabaseSessions.length === 0) {
+            const savedSessions = localStorage.getItem('mi-coach-sessions');
+            if (savedSessions) {
+              try {
+                const localSessions = JSON.parse(savedSessions) as Session[];
+                // Optionally migrate old sessions to Supabase (could be done in background)
+                console.log('[App] Found', localSessions.length, 'sessions in localStorage (migration may be needed)');
+              } catch (error) {
+                console.error("[App] Failed to parse sessions from localStorage:", error);
+                localStorage.removeItem('mi-coach-sessions');
+              }
             }
+          }
+        } else {
+          // Anonymous user - load from localStorage
+          const anonymousSessionsJson = localStorage.getItem('mi-coach-anonymous-sessions');
+          if (anonymousSessionsJson) {
+            try {
+              const anonymousSessions = JSON.parse(anonymousSessionsJson) as Session[];
+              setSessions(anonymousSessions);
+              
+              // Calculate remaining free sessions for anonymous user
+              if (userTier === UserTier.Free) {
+                const remaining = getRemainingFreeSessionsAnonymous();
+                setRemainingFreeSessions(remaining);
+              } else {
+                setRemainingFreeSessions(null);
+              }
+            } catch (error) {
+              console.error("[App] Failed to parse anonymous sessions from localStorage:", error);
+              localStorage.removeItem('mi-coach-anonymous-sessions');
+              setSessions([]);
+              setRemainingFreeSessions(3); // Default to 3 remaining if we can't load
+            }
+          } else {
+            // No anonymous sessions yet
+            setSessions([]);
+            setRemainingFreeSessions(3); // Start with 3 free sessions
           }
         }
       } catch (error) {
-        console.error("[App] Failed to load sessions from Supabase, falling back to localStorage:", error);
-        // Fallback to localStorage if Supabase fails
-        const savedSessions = localStorage.getItem('mi-coach-sessions');
-        if (savedSessions) {
+        console.error("[App] Failed to load sessions:", error);
+        // Fallback: try localStorage for anonymous users
+        if (!user) {
           try {
-            const localSessions = JSON.parse(savedSessions) as Session[];
-            setSessions(localSessions);
-            
-            // Calculate remaining sessions from local data
-            if (userTier === UserTier.Free) {
-              const now = new Date();
-              const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-              const freeSessionsThisMonth = localSessions.filter(s => {
-                const sessionDate = new Date(s.date);
-                return s.tier === UserTier.Free && sessionDate >= monthStart && sessionDate <= now;
-              }).length;
-              setRemainingFreeSessions(Math.max(0, 3 - freeSessionsThisMonth));
+            const anonymousSessionsJson = localStorage.getItem('mi-coach-anonymous-sessions');
+            if (anonymousSessionsJson) {
+              const anonymousSessions = JSON.parse(anonymousSessionsJson) as Session[];
+              setSessions(anonymousSessions);
+              setRemainingFreeSessions(getRemainingFreeSessionsAnonymous());
             } else {
-              setRemainingFreeSessions(null); // Premium users don't have limits
+              setSessions([]);
+              setRemainingFreeSessions(3);
             }
           } catch (parseError) {
-            console.error("[App] Failed to parse sessions from localStorage:", parseError);
-            localStorage.removeItem('mi-coach-sessions');
+            console.error("[App] Failed to parse anonymous sessions from localStorage:", parseError);
+            setSessions([]);
+            setRemainingFreeSessions(3);
           }
+        } else {
+          // For authenticated users, fallback to empty sessions
+          setSessions([]);
+          setRemainingFreeSessions(userTier === UserTier.Free ? 3 : null);
         }
       } finally {
         setSessionsLoading(false);
@@ -530,7 +573,8 @@ const AppContent: React.FC = () => {
   const handleOnboardingFinish = () => {
     localStorage.setItem('mi-coach-onboarding-complete', 'true');
     setShowOnboarding(false);
-    setView(View.Login);
+    // After onboarding, go to Dashboard (anonymous users can access it)
+    setView(View.Dashboard);
   };
 
   // A function to update sessions in state (localStorage writes removed - using Supabase)
@@ -540,19 +584,14 @@ const AppContent: React.FC = () => {
   }, []);
 
   const handleStartPractice = async () => {
-    if (!user) {
-      console.error('[App] Cannot start practice: user not authenticated');
-      return;
-    }
-
     // Guard: wait until userTier is loaded (avoid using stale tier from state)
     if (!userTier || userTier === '') {
       console.warn('[App] User tier not yet loaded, waiting...');
       return;
     }
 
-    // Check if user can start a new session
-    const canStart = await canStartSession(user.id, userTier);
+    // Check if user can start a new session (works for both authenticated and anonymous)
+    const canStart = await canStartSession(user?.id || null, userTier);
     if (!canStart) {
       console.log('[App] User cannot start session (limit reached), showing paywall');
       setView(View.Paywall);
@@ -574,10 +613,10 @@ const AppContent: React.FC = () => {
     setView(View.Practice);
   };
 
-  // Save the new session to Supabase when practice is finished.
+  // Save the new session to Supabase (authenticated) or localStorage (anonymous) when practice is finished.
   const handleFinishPractice = async (transcript: ChatMessage[], feedback: Feedback) => {
-    if (!currentPatient || !user) {
-      console.error("[App] Cannot save session: missing patient or user");
+    if (!currentPatient) {
+      console.error("[App] Cannot save session: missing patient");
       return;
     }
 
@@ -600,20 +639,37 @@ const AppContent: React.FC = () => {
     setCoachingSummaryError(null);
     setView(View.Feedback);
 
-    // Save to Supabase in the background
-    try {
-      await saveSession(newSession, user.id);
-      console.log('[App] Session saved to Supabase successfully');
-      
-      // Refresh remaining free sessions if user is on free tier
-      if (userTier === UserTier.Free) {
-        const remaining = await getRemainingFreeSessions(user.id);
-        setRemainingFreeSessions(remaining);
+    // Save based on whether user is authenticated or anonymous
+    if (user) {
+      // Authenticated user - save to Supabase
+      try {
+        await saveSession(newSession, user.id);
+        console.log('[App] Session saved to Supabase successfully');
+        
+        // Refresh remaining free sessions if user is on free tier
+        if (userTier === UserTier.Free) {
+          const remaining = await getRemainingFreeSessions(user.id);
+          setRemainingFreeSessions(remaining);
+        }
+      } catch (error) {
+        console.error('[App] Failed to save session to Supabase:', error);
+        // Session is already in local state, so UI remains functional
       }
-    } catch (error) {
-      console.error('[App] Failed to save session to Supabase:', error);
-      // Session is already in local state, so UI remains functional
-      // User could be notified of sync failure if needed
+    } else {
+      // Anonymous user - save to localStorage
+      try {
+        localStorage.setItem('mi-coach-anonymous-sessions', JSON.stringify(updatedSessions));
+        console.log('[App] Session saved to localStorage for anonymous user');
+        
+        // Update remaining free sessions
+        if (userTier === UserTier.Free) {
+          const remaining = getRemainingFreeSessionsAnonymous();
+          setRemainingFreeSessions(remaining);
+        }
+      } catch (error) {
+        console.error('[App] Failed to save anonymous session to localStorage:', error);
+        // Session is already in local state, so UI remains functional
+      }
     }
   };
   
@@ -751,11 +807,16 @@ const AppContent: React.FC = () => {
     return <Onboarding onFinish={handleOnboardingFinish} />;
   }
 
-  // Show login screen if user is not authenticated
-  if (!user && !authLoading) {
+  // Show login/auth screens when on those views (allow anonymous access to other views)
+  if (!user && !authLoading && (view === View.Login || view === View.ForgotPassword || view === View.EmailConfirmation || view === View.ResetPassword)) {
     return (
       <>
-        {view === View.Login && <LoginView onLogin={() => {}} onNavigate={handleNavigate} onEmailConfirmation={handleEmailConfirmation} />}
+        {view === View.Login && <LoginView 
+          onLogin={() => {}} 
+          onNavigate={handleNavigate} 
+          onEmailConfirmation={handleEmailConfirmation}
+          onContinueAsGuest={() => setView(View.Dashboard)}
+        />}
         {view === View.ForgotPassword && <ForgotPasswordView onBack={() => setView(View.Login)} />}
         {view === View.EmailConfirmation && (
           <EmailConfirmationView 
@@ -784,7 +845,12 @@ const AppContent: React.FC = () => {
   const renderView = () => {
     switch (view) {
       case View.Login:
-        return <LoginView onLogin={() => {}} onNavigate={handleNavigate} onEmailConfirmation={handleEmailConfirmation} />;
+        return <LoginView 
+          onLogin={() => {}} 
+          onNavigate={handleNavigate} 
+          onEmailConfirmation={handleEmailConfirmation}
+          onContinueAsGuest={() => setView(View.Dashboard)}
+        />;
       case View.ForgotPassword:
         return <ForgotPasswordView onBack={() => setView(View.Login)} />;
       case View.EmailConfirmation:
@@ -826,7 +892,12 @@ const AppContent: React.FC = () => {
       case View.Paywall:
         // For simplicity, 'onBack' from paywall always returns to dashboard.
         // A more complex implementation could use a 'previousView' state.
-        return <PaywallView onBack={() => setView(View.Dashboard)} onUpgrade={handleUpgrade} user={user} />;
+        return <PaywallView 
+          onBack={() => setView(View.Dashboard)} 
+          onUpgrade={handleUpgrade} 
+          user={user}
+          onNavigateToLogin={() => setView(View.Login)}
+        />;
       case View.Calendar:
         return <CalendarView 
                   sessions={sessions} 
@@ -842,6 +913,28 @@ const AppContent: React.FC = () => {
                   onNavigateToPaywall={() => setView(View.Paywall)}
                   onLogout={handleLogout}
                   onNavigate={setView}
+                  user={user}
+                />;
+      case View.CancelSubscription:
+        if (!user) {
+          // Redirect to login if not authenticated
+          setView(View.Login);
+          return null;
+        }
+        return <CancelSubscriptionView 
+                  user={user}
+                  userTier={userTier}
+                  onBack={() => setView(View.Settings)}
+                  onTierUpdated={async () => {
+                    // Reload tier from Supabase after subscription change
+                    if (user) {
+                      const profile = await getUserProfile(user.id);
+                      if (profile && profile.tier) {
+                        setUserTier(profile.tier as UserTier);
+                        localStorage.setItem('mi-coach-tier', profile.tier);
+                      }
+                    }
+                  }}
                 />;
       case View.CoachingSummary:
         return <CoachingSummaryView

@@ -669,6 +669,16 @@ const freeFeedbackSchema = {
 
 export const getFeedbackForTranscript = async (transcript: ChatMessage[], patient: PatientProfile, userTier: UserTier): Promise<Feedback> => {
     const formattedTranscript = transcript.map(msg => `${msg.author === 'user' ? 'Clinician' : 'Patient'}: ${msg.text}`).join('\n');
+    const hasClinicianInput = transcript.some(msg => msg.author === 'user' && msg.text?.trim());
+    
+    if (!hasClinicianInput) {
+        console.warn('[getFeedbackForTranscript] No clinician input detected. Returning insufficient data feedback.');
+        return {
+            whatWentRight: "There's not enough clinician input from this session to generate feedback.",
+            analysisStatus: 'insufficient-data',
+            analysisMessage: "We didn’t receive any clinician responses, so there isn’t enough information to interpret this encounter. Try another session when you’re ready to practice."
+        };
+    }
     
     const prompt = `You are an expert MI coach, trained by Miller and Rollnick, the founders of Motivational Interviewing. Your tone is supportive, educational, and never judgmental. You focus on building the user's confidence while providing concrete, evidence-based suggestions for improvement.
 

@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { UserTier, View } from '../types';
+import { User } from '@supabase/supabase-js';
+import { restoreSubscription } from '../services/stripeService';
 
 interface SettingsViewProps {
     userTier: UserTier;
     onNavigateToPaywall: () => void;
     onLogout: () => void;
     onNavigate: (view: View) => void;
+    user: User | null;
 }
 
 const SettingsSection: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
@@ -27,12 +30,42 @@ const SettingsRow: React.FC<{ onClick?: () => void; isLast?: boolean; children: 
 );
 
 
-const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywall, onLogout, onNavigate }) => {
+const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywall, onLogout, onNavigate, user }) => {
+    const [restoreLoading, setRestoreLoading] = useState(false);
+    const [restoreError, setRestoreError] = useState<string | null>(null);
+    const [restoreSuccess, setRestoreSuccess] = useState<string | null>(null);
+
     const handlePlaceholderClick = (feature: string) => {
         alert(`${feature} feature coming soon!`);
     };
 
+    const handleRestorePurchase = async () => {
+        if (!user) {
+            alert('Please log in to restore your purchase');
+            return;
+        }
+
+        setRestoreLoading(true);
+        setRestoreError(null);
+        setRestoreSuccess(null);
+
+        try {
+            await restoreSubscription(user.id);
+            setRestoreSuccess('Your subscription has been restored successfully!');
+            // Reload the page or refresh tier after a delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } catch (err) {
+            console.error('[SettingsView] Error restoring purchase:', err);
+            setRestoreError(err instanceof Error ? err.message : 'Failed to restore purchase. Please try again.');
+        } finally {
+            setRestoreLoading(false);
+        }
+    };
+
     const isPremium = userTier === UserTier.Premium;
+    const isAnonymous = !user;
 
     return (
         <div className="flex-grow p-4 sm:p-6 bg-slate-50 min-h-full">
@@ -42,9 +75,21 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
 
             <main className="max-w-2xl mx-auto">
                 <SettingsSection title="Account">
-                    <div onClick={onLogout} className="flex justify-center items-center p-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-xl">
-                        <span className="text-red-500 font-medium">Log Out</span>
-                    </div>
+                    {isAnonymous ? (
+                        <>
+                            <SettingsRow onClick={() => onNavigate(View.Login)} isLast>
+                                <div>
+                                    <span className="text-sky-600 font-medium">Sign In or Create Account</span>
+                                    <p className="text-xs text-gray-500 mt-1">Access unlimited sessions and sync across devices</p>
+                                </div>
+                                <i className="fa fa-chevron-right text-gray-400"></i>
+                            </SettingsRow>
+                        </>
+                    ) : (
+                        <div onClick={onLogout} className="flex justify-center items-center p-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-xl">
+                            <span className="text-red-500 font-medium">Log Out</span>
+                        </div>
+                    )}
                 </SettingsSection>
 
                 <SettingsSection title="Subscription">
@@ -54,11 +99,30 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                                 <span className="text-gray-800">Current Plan</span>
                                 <span className="font-semibold text-gray-800">Premium</span>
                             </SettingsRow>
-                            <SettingsRow onClick={() => handlePlaceholderClick('Manage Subscription')}>
+                            <SettingsRow onClick={() => onNavigate(View.CancelSubscription)}>
                                 <span className="text-sky-600">Manage Subscription</span>
+                                <i className="fa fa-chevron-right text-gray-400"></i>
                             </SettingsRow>
-                            <SettingsRow onClick={() => handlePlaceholderClick('Restore Purchase')} isLast>
-                                <span className="text-sky-600">Restore Purchase</span>
+                            <SettingsRow onClick={handleRestorePurchase} isLast>
+                                <div className="flex-1">
+                                    <span className="text-sky-600">Restore Purchase</span>
+                                    {restoreLoading && (
+                                        <span className="ml-2 text-xs text-gray-500">
+                                            <i className="fa fa-spinner fa-spin"></i> Restoring...
+                                        </span>
+                                    )}
+                                    {restoreSuccess && (
+                                        <span className="ml-2 text-xs text-green-600">
+                                            <i className="fa fa-check"></i> Restored!
+                                        </span>
+                                    )}
+                                    {restoreError && (
+                                        <span className="ml-2 text-xs text-red-600">
+                                            <i className="fa fa-exclamation-triangle"></i> {restoreError}
+                                        </span>
+                                    )}
+                                </div>
+                                {!restoreLoading && <i className="fa fa-chevron-right text-gray-400"></i>}
                             </SettingsRow>
                         </>
                     ) : (
@@ -70,9 +134,26 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                                 </div>
                                 <i className="fa fa-chevron-right text-gray-400"></i>
                             </SettingsRow>
-                             <SettingsRow onClick={() => handlePlaceholderClick('Restore Purchase')} isLast>
-                                <span className="text-gray-800">Restore Purchase</span>
-                                <i className="fa fa-chevron-right text-gray-400"></i>
+                             <SettingsRow onClick={handleRestorePurchase} isLast>
+                                <div className="flex-1">
+                                    <span className="text-gray-800">Restore Purchase</span>
+                                    {restoreLoading && (
+                                        <span className="ml-2 text-xs text-gray-500">
+                                            <i className="fa fa-spinner fa-spin"></i> Restoring...
+                                        </span>
+                                    )}
+                                    {restoreSuccess && (
+                                        <span className="ml-2 text-xs text-green-600">
+                                            <i className="fa fa-check"></i> Restored!
+                                        </span>
+                                    )}
+                                    {restoreError && (
+                                        <span className="ml-2 text-xs text-red-600">
+                                            <i className="fa fa-exclamation-triangle"></i> {restoreError}
+                                        </span>
+                                    )}
+                                </div>
+                                {!restoreLoading && <i className="fa fa-chevron-right text-gray-400"></i>}
                             </SettingsRow>
                         </>
                     )}

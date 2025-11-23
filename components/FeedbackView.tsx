@@ -93,6 +93,40 @@ const FeedbackSectionCard: React.FC<{ title: string; icon: string; children: Rea
 
 const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade, onStartPractice }) => {
     const { feedback, tier } = session;
+    const isInsufficientData = feedback.analysisStatus === 'insufficient-data';
+    const insufficientMessage = feedback.analysisMessage ?? "We didn’t capture any clinician responses during this session, so there isn’t enough information to generate feedback. Try another session when you’re ready to practice.";
+    
+    if (isInsufficientData) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
+                <div className="w-full max-w-md bg-white rounded-3xl shadow-lg p-8 border border-gray-100">
+                    <div className="mb-6 flex justify-center">
+                        <div className="h-20 w-20 rounded-full bg-yellow-100 flex items-center justify-center">
+                            <i className="fa-solid fa-circle-exclamation text-4xl text-yellow-500"></i>
+                        </div>
+                    </div>
+                    <h1 className="text-2xl font-extrabold text-gray-900 mb-3">Not Enough Data</h1>
+                    <p className="text-gray-600 leading-relaxed">{insufficientMessage}</p>
+                    <div className="mt-8 space-y-3">
+                        {onStartPractice && (
+                            <button
+                                onClick={onStartPractice}
+                                className="w-full bg-sky-500 text-white font-bold py-3 rounded-full hover:bg-sky-600 transition"
+                            >
+                                Start a New Practice
+                            </button>
+                        )}
+                        <button
+                            onClick={onDone}
+                            className="w-full bg-gray-100 text-gray-700 font-semibold py-3 rounded-full hover:bg-gray-200 transition"
+                        >
+                            Back to Dashboard
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
     
     if (tier === UserTier.Free) {
         return (
