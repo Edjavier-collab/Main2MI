@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
 // Fix: Import ChatMessage type to resolve type error in handleFinishPractice.
 import { UserTier, View, PatientProfile, Session, Feedback, ChatMessage, StageOfChange, PatientProfileFilters, DifficultyLevel, CoachingSummary } from './types';
 import { generatePatientProfile } from './services/patientService';
@@ -10,30 +10,39 @@ import { PATIENT_PROFILE_TEMPLATES, STAGE_DESCRIPTIONS } from './constants';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { diagnoseEnvironmentSetup } from './services/geminiService';
 import { getSupabaseClient, isSupabaseConfigured } from './lib/supabase';
-import Dashboard from './components/Dashboard';
-import PracticeView from './components/PracticeView';
-import FeedbackView from './components/FeedbackView';
-import HistoryView from './components/HistoryView';
-import ResourceLibrary from './components/ResourceLibrary';
-import Onboarding from './components/Onboarding';
-import PaywallView from './components/PaywallView';
-import SettingsView from './components/SettingsView';
-import CancelSubscriptionView from './components/CancelSubscriptionView';
+
+// Core components (always loaded)
+import ErrorBoundary from './components/ErrorBoundary';
+import OfflineIndicator from './components/OfflineIndicator';
+import { PageLoader } from './components/LoadingSpinner';
 import BottomNavBar from './components/BottomNavBar';
-import CalendarView from './components/CalendarView';
-import LoginView from './components/LoginView';
-import ForgotPasswordView from './components/ForgotPasswordView';
-import ResetPasswordView from './components/ResetPasswordView';
-import EmailConfirmationView from './components/EmailConfirmationView';
-import CoachingSummaryView from './components/CoachingSummaryView';
 import ReviewPrompt from './components/ReviewPrompt';
 import CookieConsent from './components/CookieConsent';
-import PrivacyPolicy from './components/legal/PrivacyPolicy';
-import TermsOfService from './components/legal/TermsOfService';
-import SubscriptionTerms from './components/legal/SubscriptionTerms';
-import CookiePolicy from './components/legal/CookiePolicy';
-import Disclaimer from './components/legal/Disclaimer';
-import SupportView from './components/SupportView';
+
+// Lazy-loaded view components for code splitting
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const PracticeView = lazy(() => import('./components/PracticeView'));
+const FeedbackView = lazy(() => import('./components/FeedbackView'));
+const HistoryView = lazy(() => import('./components/HistoryView'));
+const ResourceLibrary = lazy(() => import('./components/ResourceLibrary'));
+const Onboarding = lazy(() => import('./components/Onboarding'));
+const PaywallView = lazy(() => import('./components/PaywallView'));
+const SettingsView = lazy(() => import('./components/SettingsView'));
+const CancelSubscriptionView = lazy(() => import('./components/CancelSubscriptionView'));
+const CalendarView = lazy(() => import('./components/CalendarView'));
+const LoginView = lazy(() => import('./components/LoginView'));
+const ForgotPasswordView = lazy(() => import('./components/ForgotPasswordView'));
+const ResetPasswordView = lazy(() => import('./components/ResetPasswordView'));
+const EmailConfirmationView = lazy(() => import('./components/EmailConfirmationView'));
+const CoachingSummaryView = lazy(() => import('./components/CoachingSummaryView'));
+const SupportView = lazy(() => import('./components/SupportView'));
+
+// Lazy-loaded legal pages
+const PrivacyPolicy = lazy(() => import('./components/legal/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('./components/legal/TermsOfService'));
+const SubscriptionTerms = lazy(() => import('./components/legal/SubscriptionTerms'));
+const CookiePolicy = lazy(() => import('./components/legal/CookiePolicy'));
+const Disclaimer = lazy(() => import('./components/legal/Disclaimer'));
 
 // New component for premium users to select a practice scenario.
 interface ScenarioSelectionViewProps {
@@ -82,8 +91,12 @@ const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ onBack, o
     return (
         <div className="min-h-screen bg-slate-50 p-4 sm:p-6">
             <header className="flex items-center mb-6 pt-2 max-w-2xl mx-auto">
-                <button onClick={onBack} className="p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200 transition-colors">
-                    <i className="fa fa-arrow-left text-xl text-gray-600"></i>
+                <button
+                    onClick={onBack}
+                    className="p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200 transition-colors"
+                    aria-label="Go back"
+                >
+                    <i className="fa fa-arrow-left text-xl text-gray-600" aria-hidden="true"></i>
                 </button>
                 <h1 className="text-2xl font-bold text-gray-800">Choose a Scenario</h1>
             </header>
@@ -99,11 +112,12 @@ const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ onBack, o
                             id="topic-select"
                             value={selectedTopic}
                             onChange={(e) => setSelectedTopic(e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                            className="w-full p-4 text-base md:text-lg border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium"
+                            style={{ fontSize: '16px' }}
                         >
-                            <option value="any">Any Topic</option>
+                            <option value="any" style={{ fontSize: '16px' }}>Any Topic</option>
                             {uniqueTopics.map(topic => (
-                                <option key={topic} value={topic}>{topic}</option>
+                                <option key={topic} value={topic} style={{ fontSize: '16px' }}>{topic}</option>
                             ))}
                         </select>
                     </div>
@@ -117,11 +131,12 @@ const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ onBack, o
                             id="difficulty-select"
                             value={selectedDifficulty}
                             onChange={(e) => setSelectedDifficulty(e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                            className="w-full p-4 text-base md:text-lg border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium"
+                            style={{ fontSize: '16px' }}
                         >
-                            <option value="any">Any Difficulty</option>
+                            <option value="any" style={{ fontSize: '16px' }}>Any Difficulty</option>
                             {allDifficulties.map(level => (
-                                <option key={level} value={level}>{level}</option>
+                                <option key={level} value={level} style={{ fontSize: '16px' }}>{level}</option>
                             ))}
                         </select>
                          {selectedDifficulty !== 'any' && (
@@ -138,11 +153,12 @@ const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ onBack, o
                             id="stage-select"
                             value={selectedStage}
                             onChange={(e) => setSelectedStage(e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                            className="w-full p-4 text-base md:text-lg border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium"
+                            style={{ fontSize: '16px' }}
                         >
-                            <option value="any">Any Stage</option>
+                            <option value="any" style={{ fontSize: '16px' }}>Any Stage</option>
                             {allStages.map(stage => (
-                                <option key={stage} value={stage}>{stage}</option>
+                                <option key={stage} value={stage} style={{ fontSize: '16px' }}>{stage}</option>
                             ))}
                         </select>
                         {selectedStage !== 'any' && (
@@ -188,6 +204,7 @@ const AppContent: React.FC = () => {
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [showReviewPrompt, setShowReviewPrompt] = useState(false);
   const [confirmationEmail, setConfirmationEmail] = useState<string>('');
+  const [loggingOut, setLoggingOut] = useState(false);
 
   // Diagnostic: Check environment setup on app start
   useEffect(() => {
@@ -743,23 +760,35 @@ const AppContent: React.FC = () => {
     setView(View.EmailConfirmation);
   };
 
+  const resetAppStateAfterLogout = () => {
+    setUserTier(UserTier.Free);
+    localStorage.removeItem('mi-coach-tier');
+    setSessions([]);
+    setRemainingFreeSessions(null);
+    setView(View.Login);
+  };
+
   const handleLogout = async () => {
+    if (loggingOut) {
+      return;
+    }
+
+    setLoggingOut(true);
+    resetAppStateAfterLogout();
+
+    let logoutError: Error | null = null;
     try {
       await signOut();
-      // Clear tier state on logout
-      setUserTier(UserTier.Free);
-      localStorage.removeItem('mi-coach-tier');
-      setSessions([]);
-      setRemainingFreeSessions(null);
-      setView(View.Login);
     } catch (error) {
-      console.error('[App] Logout failed:', error);
-      // Still navigate to login even if signOut fails
-      setUserTier(UserTier.Free);
-      localStorage.removeItem('mi-coach-tier');
-      setSessions([]);
-      setRemainingFreeSessions(null);
-      setView(View.Login);
+      const err = error instanceof Error ? error : new Error('Logout failed');
+      console.error('[App] Logout failed:', err);
+      logoutError = err;
+    } finally {
+      setLoggingOut(false);
+    }
+
+    if (logoutError) {
+      throw logoutError;
     }
   };
 
@@ -797,20 +826,22 @@ const AppContent: React.FC = () => {
   
   // Show loading state while auth is initializing
   if (authLoading || showOnboarding === null) {
-    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-gray-600">Loading...</div>
-    </div>;
+    return <PageLoader message="Initializing..." />;
   }
 
   // Show onboarding if not completed
   if (showOnboarding) {
-    return <Onboarding onFinish={handleOnboardingFinish} />;
+    return (
+      <Suspense fallback={<PageLoader message="Loading onboarding..." />}>
+        <Onboarding onFinish={handleOnboardingFinish} />
+      </Suspense>
+    );
   }
 
   // Show login/auth screens when on those views (allow anonymous access to other views)
   if (!user && !authLoading && (view === View.Login || view === View.ForgotPassword || view === View.EmailConfirmation || view === View.ResetPassword)) {
     return (
-      <>
+      <Suspense fallback={<PageLoader message="Loading..." />}>
         {view === View.Login && <LoginView 
           onLogin={() => {}} 
           onNavigate={handleNavigate} 
@@ -838,7 +869,7 @@ const AppContent: React.FC = () => {
             }}
           />
         )}
-      </>
+      </Suspense>
     );
   }
 
@@ -975,18 +1006,25 @@ const AppContent: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen bg-slate-50 text-gray-800">
+    <div className="min-h-screen bg-slate-50 text-gray-800" id="main-content">
+      {/* Offline status indicator */}
+      <OfflineIndicator />
+      
       {shouldShowNavBar ? (
           <div className="flex flex-col" style={{ height: '100vh' }}>
-              <main className="flex-1 overflow-y-auto pb-20">
-                  {renderView()}
+              <main className="flex-1 overflow-y-auto pb-20" role="main" aria-label="Main content">
+                  <Suspense fallback={<PageLoader message="Loading..." />}>
+                      {renderView()}
+                  </Suspense>
               </main>
               <BottomNavBar currentView={view} onNavigate={handleNavigate} userTier={userTier} />
           </div>
       ) : (
           // Views without the main nav bar (e.g., practice, feedback, paywall)
           // These components manage their own full-screen layout.
-          renderView()
+          <Suspense fallback={<PageLoader message="Loading..." />}>
+              {renderView()}
+          </Suspense>
       )}
       {showReviewPrompt && (
           <ReviewPrompt onClose={handleReviewPromptClose} />
@@ -996,11 +1034,17 @@ const AppContent: React.FC = () => {
   );
 };
 
+/**
+ * Main App Component
+ * Wrapped with ErrorBoundary for graceful error handling
+ */
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ErrorBoundary>
   );
 };
 

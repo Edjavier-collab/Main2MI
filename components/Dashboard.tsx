@@ -36,12 +36,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartPractice, userTier, sessio
             <p className="text-slate-600 mb-12">Ready to sharpen your MI skills?</p>
 
             <div className="flex flex-col gap-4 w-full max-w-sm">
-                <button 
+                <button
                     onClick={onStartPractice}
                     disabled={userTier === UserTier.Free && displayRemaining === 0}
                     className={`font-bold py-3 px-6 rounded-2xl shadow-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 ${
                         userTier === UserTier.Free && displayRemaining === 0
-                            ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                            ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
                             : 'bg-sky-500 text-white hover:bg-sky-600 focus:ring-sky-300'
                     }`}
                 >
@@ -63,7 +63,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartPractice, userTier, sessio
                                 <p className="text-red-800 font-semibold text-sm mb-1">Free practices limit reached for this month</p>
                                 <p className="text-red-700 text-xs">Upgrade to Premium for unlimited access</p>
                             </div>
-                            <svg className="w-5 h-5 text-red-600 ml-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 text-red-600 ml-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
                         </div>

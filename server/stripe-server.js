@@ -2,8 +2,11 @@ import express from 'express';
 import Stripe from 'stripe';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { sendPurchaseConfirmationEmail, getDevEmails, clearDevEmails } from './emailService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -15,15 +18,6 @@ console.log("[DEBUG] SUPABASE_SERVICE_ROLE_KEY after dotenv:", process.env.SUPAB
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Initialize Stripe
-if (!process.env.STRIPE_SECRET_KEY) {
-    console.error('[stripe-server] ERROR: STRIPE_SECRET_KEY not found in environment variables');
-    process.exit(1);
-}
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2024-11-20.acacia',
-});
 
 // Check development mode
 const isDevelopment = process.env.NODE_ENV !== 'production';
@@ -35,6 +29,23 @@ const USE_MOCK_SUBSCRIPTIONS = process.env.USE_MOCK_SUBSCRIPTIONS === 'true' || 
 console.log('[stripe-server] Mock subscription mode:', USE_MOCK_SUBSCRIPTIONS ? 'ENABLED' : 'DISABLED');
 console.log('[stripe-server] isDevelopment:', isDevelopment);
 console.log('[stripe-server] USE_MOCK_SUBSCRIPTIONS env:', process.env.USE_MOCK_SUBSCRIPTIONS);
+
+// Initialize Stripe only if we have credentials and are not in pure mock mode
+let stripe = null;
+if (process.env.STRIPE_SECRET_KEY) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+        apiVersion: '2024-11-20.acacia',
+    });
+    console.log('[stripe-server] Stripe initialized with API key');
+} else if (USE_MOCK_SUBSCRIPTIONS) {
+    console.log('[stripe-server] Stripe not initialized - running in mock mode without credentials');
+} else {
+    console.error('[stripe-server] ERROR: STRIPE_SECRET_KEY not found and mock mode is disabled');
+    process.exit(1);
+}
+
+// Helper to check if Stripe is available
+const isStripeAvailable = () => stripe !== null;
 
 // Mock subscription service (loaded dynamically)
 let mockSubscriptionService = null;
@@ -54,16 +65,22 @@ const getFrontendUrlCandidates = () => {
 
 const getRequestBaseUrl = (req) => {
     const origin = req?.headers?.origin;
-    if (origin) {
+    console.log('[stripe-server] getRequestBaseUrl - origin:', origin);
+
+    if (origin && origin.trim()) {
         return origin;
     }
 
     const envCandidates = getFrontendUrlCandidates();
-    if (envCandidates.length > 0) {
+    console.log('[stripe-server] getRequestBaseUrl - envCandidates:', envCandidates);
+
+    if (envCandidates.length > 0 && envCandidates[0]) {
         return envCandidates[0];
     }
 
-    return DEFAULT_FRONTEND_URL;
+    // Always return the default as a guaranteed fallback
+    console.log('[stripe-server] getRequestBaseUrl - using default:', DEFAULT_FRONTEND_URL);
+    return DEFAULT_FRONTEND_URL || 'http://localhost:3000';
 };
 
 const corsOptions = {
@@ -83,6 +100,78 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+// Security middleware - Helmet for HTTP security headers
+app.use(helmet({
+    // Configure Content Security Policy
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com", "https://js.stripe.com"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
+            fontSrc: ["'self'", "https://cdnjs.cloudflare.com", "https://fonts.gstatic.com"],
+            imgSrc: ["'self'", "data:", "https:", "blob:"],
+            connectSrc: [
+                "'self'",
+                "https://*.supabase.co",
+                "wss://*.supabase.co",
+                "https://generativelanguage.googleapis.com",
+                "https://api.stripe.com",
+                isDevelopment ? "http://localhost:*" : ""
+            ].filter(Boolean),
+            frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"],
+            objectSrc: ["'none'"],
+            upgradeInsecureRequests: isDevelopment ? null : []
+        }
+    },
+    // Enable cross-origin isolation for better security
+    crossOriginEmbedderPolicy: false, // Disabled to allow third-party resources
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    // Other security headers
+    hsts: !isDevelopment, // Only enable HSTS in production
+    noSniff: true,
+    xssFilter: true,
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" }
+}));
+
+// Rate limiting configuration
+const generalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: { error: 'Too many requests from this IP, please try again after 15 minutes.' },
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    skip: (req) => {
+        // Skip rate limiting for webhook endpoints (Stripe needs to send multiple webhooks)
+        return req.path === '/api/stripe-webhook';
+    }
+});
+
+// Stricter rate limit for authentication-related endpoints
+const authLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 10, // Limit each IP to 10 requests per hour for sensitive operations
+    message: { error: 'Too many attempts, please try again after an hour.' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+// Apply general rate limiting to all API routes
+app.use('/api/', generalLimiter);
+
+// Apply stricter rate limiting to sensitive endpoints
+app.use('/api/create-checkout-session', authLimiter);
+// Note: cancel-subscription uses general limiter (100 req/15min) instead of strict authLimiter
+// to allow users to easily cancel their subscription without hitting rate limits
+
+// Request logging middleware (for debugging)
+if (isDevelopment) {
+    app.use((req, res, next) => {
+        const timestamp = new Date().toISOString();
+        console.log(`[${timestamp}] ${req.method} ${req.path}`);
+        next();
+    });
+}
 
 // IMPORTANT: Webhook route needs raw body for signature verification
 // Define webhook route BEFORE JSON parsing middleware
@@ -236,6 +325,128 @@ const updateUserTierToPremium = async (userId) => {
 };
 
 /**
+ * Update user subscription plan in Supabase
+ * @param {string} userId - User ID
+ * @param {string} plan - Plan type ('monthly' or 'annual')
+ */
+const updateUserPlan = async (userId, plan) => {
+    // Validate Supabase setup
+    const setupValidation = validateSupabaseSetup();
+    if (!setupValidation.isValid) {
+        const errorMsg = `Supabase setup validation failed: ${setupValidation.errors.join(', ')}`;
+        console.warn('[stripe-server] [updateUserPlan]', errorMsg, '- skipping plan update');
+        return;
+    }
+
+    if (!['monthly', 'annual'].includes(plan)) {
+        console.warn('[stripe-server] [updateUserPlan] Invalid plan:', plan, '- skipping update');
+        return;
+    }
+
+    const { createClient } = await import('@supabase/supabase-js');
+    
+    const supabaseUrl = process.env.VITE_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+        auth: {
+            autoRefreshToken: false,
+            persistSession: false
+        }
+    });
+    
+    console.log('[stripe-server] [updateUserPlan] Updating subscription plan for user:', userId, 'to:', plan);
+    try {
+        const { data, error: updateError } = await retrySupabaseOperation(async () => {
+            return await supabase
+                .from('profiles')
+                .update({ 
+                    subscription_plan: plan,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('user_id', userId)
+                .select('*');
+        });
+        
+        if (updateError) {
+            // Check if error is due to missing column
+            if (updateError.message && (updateError.message.includes('column') || updateError.message.includes('does not exist'))) {
+                console.warn('[stripe-server] [updateUserPlan] subscription_plan column does not exist yet - migration may not have been run. Skipping plan update.');
+                return null;
+            }
+            console.error('[stripe-server] [updateUserPlan] Supabase update error:', updateError);
+            throw updateError;
+        }
+        
+        if (!data || data.length === 0) {
+            console.warn('[stripe-server] [updateUserPlan] ⚠️ No rows updated for user:', userId);
+        } else {
+            console.log('[stripe-server] [updateUserPlan] ✅ Successfully updated subscription plan to', plan);
+            return data[0];
+        }
+    } catch (err) {
+        // Handle any unexpected errors (e.g., column doesn't exist)
+        if (err.message && (err.message.includes('column') || err.message.includes('does not exist'))) {
+            console.warn('[stripe-server] [updateUserPlan] subscription_plan column does not exist yet - migration may not have been run. Skipping plan update.');
+            return null;
+        }
+        throw err;
+    }
+};
+
+/**
+ * Get user subscription plan from Supabase
+ * @param {string} userId - User ID
+ * @returns {Promise<string|null>} - Plan type ('monthly' or 'annual') or null
+ */
+const getUserPlan = async (userId) => {
+    const setupValidation = validateSupabaseSetup();
+    if (!setupValidation.isValid) {
+        console.warn('[stripe-server] [getUserPlan] Supabase not configured - cannot retrieve plan');
+        return null;
+    }
+
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabaseUrl = process.env.VITE_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+        auth: {
+            autoRefreshToken: false,
+            persistSession: false
+        }
+    });
+    
+    try {
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('subscription_plan')
+            .eq('user_id', userId)
+            .single();
+        
+        if (error) {
+            // Check if error is due to missing column (column doesn't exist yet)
+            if (error.message && (error.message.includes('column') || error.message.includes('does not exist'))) {
+                console.warn('[stripe-server] [getUserPlan] subscription_plan column does not exist yet - migration may not have been run');
+                return null;
+            }
+            console.warn('[stripe-server] [getUserPlan] Error retrieving plan:', error.message);
+            return null;
+        }
+        
+        return data?.subscription_plan || null;
+    } catch (err) {
+        // Handle any unexpected errors (e.g., column doesn't exist)
+        if (err.message && (err.message.includes('column') || err.message.includes('does not exist'))) {
+            console.warn('[stripe-server] [getUserPlan] subscription_plan column does not exist yet - migration may not have been run');
+            return null;
+        }
+        console.warn('[stripe-server] [getUserPlan] Unexpected error:', err.message);
+        return null;
+    }
+};
+
+/**
  * Determine the correct user tier based on subscription status
  * @param {Object} subscription - Stripe subscription object
  * @returns {string} - 'premium' or 'free'
@@ -289,6 +500,12 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
 
     let event;
 
+    // Check if Stripe is available
+    if (!isStripeAvailable()) {
+        console.warn('[stripe-server] Webhook received but Stripe is not initialized (mock mode)');
+        return res.status(200).json({ received: true, message: 'Webhook received in mock mode - no action taken' });
+    }
+
     // In development with Stripe CLI, signature verification can be skipped
     // Stripe CLI already verifies signatures
     if (isDevelopment && !webhookSecret) {
@@ -338,11 +555,69 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
             }
 
             console.log('[stripe-server] [checkout.session.completed] Checkout completed for user:', userId);
+            const plan = session.metadata?.plan || 'monthly';
+            console.log('[stripe-server] [checkout.session.completed] Plan from session metadata:', plan);
 
-            // Update user tier in Supabase using helper function
+            // Update subscription metadata with plan information (if subscription exists)
+            // This ensures the plan is stored on the subscription for future retrieval
+            if (session.subscription) {
+                try {
+                    await stripe.subscriptions.update(session.subscription, {
+                        metadata: {
+                            userId: userId,
+                            plan: plan,
+                            tier: 'premium',
+                        }
+                    });
+                    console.log('[stripe-server] [checkout.session.completed] ✅ Updated subscription metadata with plan:', plan);
+                } catch (metadataError) {
+                    console.warn('[stripe-server] [checkout.session.completed] ⚠️ Could not update subscription metadata:', metadataError.message);
+                    // Don't fail the webhook - continue with tier update
+                }
+            }
+
+            // Update user tier and plan in Supabase using helper functions
             try {
                 await updateUserTier(userId, 'premium');
                 console.log('[stripe-server] [checkout.session.completed] ✅ Successfully updated user to premium tier');
+                
+                // Save subscription plan to profiles table
+                try {
+                    await updateUserPlan(userId, plan);
+                    console.log('[stripe-server] [checkout.session.completed] ✅ Successfully saved subscription plan:', plan);
+                } catch (planError) {
+                    console.error('[stripe-server] [checkout.session.completed] ⚠️ Failed to save subscription plan:', planError.message);
+                    // Don't fail the webhook if plan save fails - tier update is more important
+                }
+                
+                // Send purchase confirmation email
+                try {
+                    const userEmail = await getUserEmail(userId);
+                    
+                    // Get subscription details if available
+                    let subscriptionDetails = null;
+                    if (session.subscription) {
+                        try {
+                            const subscription = await stripe.subscriptions.retrieve(session.subscription);
+                            subscriptionDetails = {
+                                currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
+                                cancelAtPeriodEnd: subscription.cancel_at_period_end,
+                            };
+                        } catch (subError) {
+                            console.warn('[stripe-server] Could not retrieve subscription details for email:', subError.message);
+                        }
+                    }
+                    
+                    const emailResult = await sendPurchaseConfirmationEmail(userEmail, plan, subscriptionDetails);
+                    if (emailResult.success) {
+                        console.log('[stripe-server] [checkout.session.completed] ✅ Purchase confirmation email sent to:', userEmail);
+                    } else {
+                        console.warn('[stripe-server] [checkout.session.completed] ⚠️  Email not sent:', emailResult.message);
+                    }
+                } catch (emailError) {
+                    console.error('[stripe-server] [checkout.session.completed] ⚠️  Failed to send purchase confirmation email:', emailError.message);
+                    // Don't fail the webhook if email fails - tier update is more important
+                }
             } catch (updateError) {
                 console.error('[stripe-server] [checkout.session.completed] ❌ Failed to update user tier:', updateError.message);
                 console.error('[stripe-server] [checkout.session.completed] Full error:', {
@@ -517,6 +792,13 @@ app.get('/api/setup-check', async (req, res) => {
             urlConfigured: !!process.env.VITE_SUPABASE_URL,
             serviceKeyConfigured: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
         },
+        email: {
+            resendConfigured: !!process.env.RESEND_API_KEY,
+            smtpConfigured: !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),
+            edgeFunctionConfigured: !!process.env.SUPABASE_EDGE_FUNCTION_URL,
+            skipSend: process.env.EMAIL_SKIP_SEND === 'true',
+            fromEmail: process.env.EMAIL_FROM || 'Not configured',
+        },
         frontend: {
             backendUrlConfigured: !!process.env.FRONTEND_URL,
             backendUrlValue: process.env.FRONTEND_URL || 'Not set (will use default)',
@@ -555,6 +837,15 @@ app.use(express.json());
 app.post('/api/create-checkout-session', async (req, res) => {
     try {
         console.log('[stripe-server] Received checkout request:', { body: req.body });
+        
+        // Check if Stripe is available
+        if (!isStripeAvailable()) {
+            return res.status(503).json({ 
+                error: 'Stripe is not configured. Please set STRIPE_SECRET_KEY or use mock subscriptions in development mode.',
+                mockMode: USE_MOCK_SUBSCRIPTIONS
+            });
+        }
+
         const { userId, plan } = req.body;
 
         if (!userId || !plan) {
@@ -648,6 +939,15 @@ app.post('/api/create-checkout-session', async (req, res) => {
 app.post('/api/update-tier-from-session', async (req, res) => {
     try {
         console.log('[stripe-server] Received tier update request:', { body: req.body });
+        
+        // Check if Stripe is available
+        if (!isStripeAvailable()) {
+            return res.status(503).json({ 
+                error: 'Stripe is not configured. Cannot retrieve checkout session.',
+                mockMode: USE_MOCK_SUBSCRIPTIONS
+            });
+        }
+
         const { sessionId } = req.body;
 
         if (!sessionId) {
@@ -675,16 +975,39 @@ app.post('/api/update-tier-from-session', async (req, res) => {
             return res.status(400).json({ error: 'Missing userId in session metadata' });
         }
 
-        console.log('[stripe-server] Updating tier for user:', userId, 'from session:', sessionId);
+        // Get plan from session metadata
+        const plan = session.metadata?.plan || 'monthly';
+        console.log('[stripe-server] Updating tier for user:', userId, 'from session:', sessionId, 'plan:', plan);
 
         // Update user tier using helper function
         const updatedProfile = await updateUserTier(userId, 'premium');
 
+        // Save subscription plan to profiles table
+        try {
+            await updateUserPlan(userId, plan);
+            console.log('[stripe-server] ✅ Successfully saved subscription plan:', plan);
+        } catch (planError) {
+            console.error('[stripe-server] ⚠️ Failed to save subscription plan:', planError.message);
+            // Don't fail the request if plan save fails
+        }
+
+        // Create mock subscription with correct plan (for mock mode)
+        if (USE_MOCK_SUBSCRIPTIONS) {
+            try {
+                const mockSubscriptionService = await import('./mockSubscriptionService.js');
+                mockSubscriptionService.createMockSubscription(userId, plan);
+                console.log('[stripe-server] ✅ Created mock subscription with plan:', plan);
+            } catch (mockError) {
+                console.warn('[stripe-server] ⚠️ Failed to create mock subscription:', mockError.message);
+            }
+        }
+
         console.log('[stripe-server] ✅ Tier updated successfully via direct API call');
-        res.json({ 
+        res.json({
             success: true,
             userId,
             tier: updatedProfile.tier,
+            plan: plan,
             updated_at: updatedProfile.updated_at
         });
     } catch (error) {
@@ -708,6 +1031,15 @@ app.post('/api/update-tier-from-session', async (req, res) => {
 app.post('/api/create-billing-portal-session', async (req, res) => {
     try {
         console.log('[stripe-server] Received billing portal request:', { body: req.body });
+        
+        // Check if Stripe is available
+        if (!isStripeAvailable()) {
+            return res.status(503).json({ 
+                error: 'Stripe is not configured. Billing portal is not available in mock mode.',
+                mockMode: USE_MOCK_SUBSCRIPTIONS
+            });
+        }
+
         const { customerId, returnUrl } = req.body;
 
         if (!customerId) {
@@ -789,13 +1121,116 @@ app.get('/api/get-subscription', async (req, res) => {
                     return res.json(mockSub);
                 } else {
                     console.log('[stripe-server] [get-subscription] No mock subscription found for user:', userId);
-                    console.log('[stripe-server] [get-subscription] Falling back to Stripe API lookup');
+                    console.log('[stripe-server] [get-subscription] Attempting to recover from Supabase...');
+                    // In mock mode, check if user is premium and try to recover subscription
+                    const { createClient } = await import('@supabase/supabase-js');
+                    const supabaseUrl = process.env.VITE_SUPABASE_URL;
+                    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+                    console.log('[stripe-server] [get-subscription] Supabase URL:', supabaseUrl ? 'SET' : 'MISSING');
+                    console.log('[stripe-server] [get-subscription] Supabase service key:', supabaseServiceKey ? 'SET' : 'MISSING');
+
+                    if (supabaseUrl && supabaseServiceKey) {
+                        const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+                            auth: { autoRefreshToken: false, persistSession: false }
+                        });
+                        
+                        // Try to get tier and subscription_plan from profiles table
+                        let profile;
+                        try {
+                            // First try to get tier and subscription_plan
+                            let { data, error } = await supabase
+                                .from('profiles')
+                                .select('tier, subscription_plan')
+                                .eq('user_id', userId)
+                                .single();
+
+                            // If subscription_plan column doesn't exist, fall back to just tier
+                            if (error && error.message && error.message.includes('subscription_plan')) {
+                                console.log('[stripe-server] [get-subscription] subscription_plan column not found, trying without it');
+                                const tierResult = await supabase
+                                    .from('profiles')
+                                    .select('tier')
+                                    .eq('user_id', userId)
+                                    .single();
+                                data = tierResult.data;
+                                error = tierResult.error;
+                            }
+
+                            if (error) {
+                                console.error('[stripe-server] [get-subscription] Supabase query error:', error);
+                                // Don't throw - let it fall through to create profile
+                            }
+
+                            profile = data;
+                            console.log('[stripe-server] [get-subscription] Profile from Supabase:', JSON.stringify(profile));
+
+                            // Auto-create profile if it doesn't exist (handles case where trigger failed)
+                            if (!profile) {
+                                console.log('[stripe-server] [get-subscription] No profile found - creating one');
+                                try {
+                                    const { data: newProfile, error: insertError } = await supabase
+                                        .from('profiles')
+                                        .insert({ user_id: userId, tier: 'free' })
+                                        .select('tier')
+                                        .single();
+
+                                    if (insertError) {
+                                        console.error('[stripe-server] [get-subscription] Failed to create profile:', insertError);
+                                    } else {
+                                        profile = newProfile;
+                                        console.log('[stripe-server] [get-subscription] Created profile:', JSON.stringify(profile));
+                                    }
+                                } catch (createErr) {
+                                    console.error('[stripe-server] [get-subscription] Error creating profile:', createErr.message);
+                                }
+                            }
+                        } catch (err) {
+                            console.error('[stripe-server] [get-subscription] Error fetching profile:', err.message);
+                        }
+
+                        if (profile?.tier === 'premium') {
+                            // User is premium but subscription was lost (e.g., server restart)
+                            // Use stored plan if available, otherwise default to monthly
+                            const storedPlan = profile?.subscription_plan;
+                            const planToUse = (storedPlan === 'annual' || storedPlan === 'monthly') ? storedPlan : 'monthly';
+                            console.log('[stripe-server] [get-subscription] Recovering subscription for premium user with plan:', planToUse);
+                            try {
+                                const recoveredSub = mockSubscriptionService.createMockSubscription(userId, planToUse);
+                                console.log('[stripe-server] [get-subscription] ✅ Successfully recovered subscription');
+                                return res.json(recoveredSub);
+                            } catch (recoverError) {
+                                console.error('[stripe-server] [get-subscription] Failed to recover subscription:', recoverError.message);
+                                return res.status(404).json({
+                                    error: 'Failed to recover subscription. Please contact support.',
+                                    hasPremiumTier: true
+                                });
+                            }
+                        }
+                    }
+                    
+                    // In mock mode, don't fall through to Stripe - return 404
+                    return res.status(404).json({ 
+                        error: 'No subscription found',
+                        mockMode: true
+                    });
                 }
             } else {
-                console.log('[stripe-server] [get-subscription] Mock service not available, falling back to Stripe');
+                console.log('[stripe-server] [get-subscription] Mock service not available');
+                return res.status(500).json({ 
+                    error: 'Mock subscription service is not available',
+                    mockMode: true
+                });
             }
         } else {
             console.log('[stripe-server] [get-subscription] Mock mode disabled, using Stripe');
+        }
+
+        // Only proceed with Stripe if not in mock mode
+        if (!isStripeAvailable()) {
+            return res.status(503).json({ 
+                error: 'Stripe is not configured and mock mode is disabled',
+            });
         }
 
         console.log('[stripe-server] [get-subscription] Proceeding with Stripe API lookup...');
@@ -894,11 +1329,51 @@ app.get('/api/get-subscription', async (req, res) => {
 
         const subscription = subscriptions.data[0];
         const priceId = subscription.items.data[0]?.price?.id;
-        const plan = priceId === PRICE_IDS.monthly ? 'monthly' : 
-                    priceId === PRICE_IDS.annual ? 'annual' : 'unknown';
+        const priceAmount = subscription.items.data[0]?.price?.unit_amount || 0; // Price in cents
+        
+        // Detect plan using multiple methods (in order of reliability):
+        // 1. Check subscription metadata (set from checkout session)
+        // 2. Check price ID match
+        // 3. Infer from price amount
+        let plan = 'unknown';
+        
+        // Method 1: Check subscription metadata (most reliable - set at creation)
+        if (subscription.metadata?.plan && ['monthly', 'annual'].includes(subscription.metadata.plan)) {
+            plan = subscription.metadata.plan;
+            console.log('[stripe-server] [get-subscription] ✅ Plan detected from subscription metadata:', plan);
+        }
+        // Method 2: Check price ID match
+        else if (priceId === PRICE_IDS.monthly) {
+            plan = 'monthly';
+            console.log('[stripe-server] [get-subscription] ✅ Plan detected by price ID (monthly):', priceId);
+        } else if (priceId === PRICE_IDS.annual) {
+            plan = 'annual';
+            console.log('[stripe-server] [get-subscription] ✅ Plan detected by price ID (annual):', priceId);
+        }
+        // Method 3: Fallback - infer from price amount
+        else {
+            console.log('[stripe-server] [get-subscription] ⚠️ Plan detection failed by metadata and price ID, attempting fallback detection');
+            console.log('[stripe-server] [get-subscription] Subscription metadata:', subscription.metadata);
+            console.log('[stripe-server] [get-subscription] Price ID:', priceId);
+            console.log('[stripe-server] [get-subscription] Price amount (cents):', priceAmount);
+            console.log('[stripe-server] [get-subscription] Expected monthly price ID:', PRICE_IDS.monthly);
+            console.log('[stripe-server] [get-subscription] Expected annual price ID:', PRICE_IDS.annual);
+            
+            // Use price amount to infer plan type
+            // Annual plans are typically 10x monthly (e.g., $99.99 vs $9.99)
+            // Threshold: if price > $50, likely annual; otherwise monthly
+            const priceInDollars = priceAmount / 100;
+            if (priceInDollars > 50) {
+                plan = 'annual';
+                console.log('[stripe-server] [get-subscription] ✅ Inferred plan as "annual" from price amount:', priceInDollars);
+            } else {
+                plan = 'monthly';
+                console.log('[stripe-server] [get-subscription] ✅ Inferred plan as "monthly" from price amount:', priceInDollars);
+            }
+        }
 
         // Calculate discounted price if coupon is applied
-        let currentPrice = subscription.items.data[0]?.price?.unit_amount || 0;
+        let currentPrice = priceAmount;
         let originalPrice = currentPrice;
         let discountPercent = 0;
         
@@ -927,6 +1402,7 @@ app.get('/api/get-subscription', async (req, res) => {
         };
 
         console.log('[stripe-server] [get-subscription] Found Stripe subscription:', subscriptionDetails);
+        console.log('[stripe-server] [get-subscription] Plan:', plan, '| Price ID:', priceId, '| Original Price:', originalPrice / 100, '| Current Price:', currentPrice / 100);
         console.log('[stripe-server] [get-subscription] ✅ Successfully retrieved subscription from Stripe');
         res.json(subscriptionDetails);
     } catch (error) {
@@ -979,8 +1455,27 @@ app.post('/api/apply-retention-discount', async (req, res) => {
                         subscriptionId: updated.subscriptionId,
                         discountApplied: true,
                     });
+                } else {
+                    // In mock mode, if no subscription exists, return error instead of falling through to Stripe
+                    return res.status(404).json({ 
+                        error: 'No subscription found. Please create a subscription first.',
+                        mockMode: true
+                    });
                 }
             }
+            
+            // If we're in mock mode but service failed to load, don't fall through to Stripe
+            return res.status(500).json({ 
+                error: 'Mock subscription service is not available',
+                mockMode: true
+            });
+        }
+
+        // Only proceed with Stripe if not in mock mode
+        if (!isStripeAvailable()) {
+            return res.status(503).json({ 
+                error: 'Stripe is not configured and mock mode is disabled',
+            });
         }
 
         // Get user email and find subscription
@@ -1083,6 +1578,7 @@ app.post('/api/cancel-subscription', async (req, res) => {
                     console.log('[stripe-server] [cancel-subscription] Mock subscription service loaded successfully');
                 } catch (error) {
                     console.error('[stripe-server] [cancel-subscription] Failed to load mock subscription service:', error.message);
+                    return res.status(500).json({ error: 'Failed to load mock subscription service' });
                 }
             }
             
@@ -1108,8 +1604,27 @@ app.post('/api/cancel-subscription', async (req, res) => {
                             ? 'Retention discount applied successfully'
                             : 'Subscription will be cancelled at the end of the billing period',
                     });
+                } else {
+                    // In mock mode, if no subscription exists, return error instead of falling through to Stripe
+                    return res.status(404).json({ 
+                        error: 'No subscription found. Please create a subscription first.',
+                        mockMode: true
+                    });
                 }
             }
+            
+            // If we're in mock mode but service failed to load, don't fall through to Stripe
+            return res.status(500).json({ 
+                error: 'Mock subscription service is not available',
+                mockMode: true
+            });
+        }
+
+        // Only proceed with Stripe if not in mock mode
+        if (!isStripeAvailable()) {
+            return res.status(503).json({ 
+                error: 'Stripe is not configured and mock mode is disabled',
+            });
         }
 
         // Get user email and find subscription
@@ -1246,6 +1761,15 @@ app.post('/api/create-mock-subscription', async (req, res) => {
         });
 
         await safeUpdateUserTier(userId, 'premium', 'create-mock-subscription');
+        
+        // Save subscription plan to profiles table
+        try {
+            await updateUserPlan(userId, plan);
+            console.log('[stripe-server] [create-mock-subscription] ✅ Successfully saved subscription plan:', plan);
+        } catch (planError) {
+            console.error('[stripe-server] [create-mock-subscription] ⚠️ Failed to save subscription plan:', planError.message);
+            // Don't fail the request if plan save fails
+        }
 
         console.log('[stripe-server] [create-mock-subscription] Returning subscription data to client');
         res.json({
@@ -1285,12 +1809,15 @@ app.post('/api/restore-subscription', async (req, res) => {
                     console.log('[stripe-server] [restore-subscription] Mock subscription service loaded successfully');
                 } catch (error) {
                     console.error('[stripe-server] [restore-subscription] Failed to load mock subscription service:', error.message);
+                    return res.status(500).json({ error: 'Failed to load mock subscription service' });
                 }
             }
             
             if (mockSubscriptionService) {
-                const mockSub = mockSubscriptionService.getMockSubscription(userId);
+                let mockSub = mockSubscriptionService.getMockSubscription(userId);
+                
                 if (mockSub) {
+                    // Restore existing subscription
                     const restored = mockSubscriptionService.restoreMockSubscription(userId);
                     
                     await safeUpdateUserTier(userId, 'premium', 'restore-subscription');
@@ -1301,8 +1828,96 @@ app.post('/api/restore-subscription', async (req, res) => {
                         subscription: restored,
                         message: 'Subscription restored successfully',
                     });
+                } else {
+                    // No subscription found - check if user is premium and create one
+                    const { createClient } = await import('@supabase/supabase-js');
+                    const supabaseUrl = process.env.VITE_SUPABASE_URL;
+                    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+                    
+                    if (supabaseUrl && supabaseServiceKey) {
+                        const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+                            auth: { autoRefreshToken: false, persistSession: false }
+                        });
+                        
+                        // Try to get tier and subscription_plan, but handle missing column gracefully
+                        let profile;
+                        try {
+                            const { data, error } = await supabase
+                                .from('profiles')
+                                .select('tier, subscription_plan')
+                                .eq('user_id', userId)
+                                .single();
+                            
+                            if (error && !(error.message && (error.message.includes('column') || error.message.includes('does not exist')))) {
+                                throw error;
+                            }
+                            
+                            profile = data;
+                        } catch (err) {
+                            // If column doesn't exist, try querying just tier
+                            if (err.message && (err.message.includes('column') || err.message.includes('does not exist'))) {
+                                console.warn('[stripe-server] [restore-subscription] subscription_plan column does not exist - trying without it');
+                                const { data, error: tierError } = await supabase
+                                    .from('profiles')
+                                    .select('tier')
+                                    .eq('user_id', userId)
+                                    .single();
+                                
+                                if (tierError) {
+                                    throw tierError;
+                                }
+                                
+                                profile = data;
+                            } else {
+                                throw err;
+                            }
+                        }
+                        
+                        if (profile?.tier === 'premium') {
+                            // User is premium but no subscription exists - create one using stored plan
+                            const storedPlan = profile?.subscription_plan && ['monthly', 'annual'].includes(profile.subscription_plan)
+                                ? profile.subscription_plan
+                                : 'monthly'; // Default to monthly if no stored plan
+                            
+                            console.log('[stripe-server] [restore-subscription] User is premium but no subscription found - creating mock subscription with plan:', storedPlan);
+                            const newSub = mockSubscriptionService.createMockSubscription(userId, storedPlan);
+                            await safeUpdateUserTier(userId, 'premium', 'restore-subscription');
+                            
+                            // Ensure plan is saved (in case it wasn't before)
+                            try {
+                                await updateUserPlan(userId, storedPlan);
+                            } catch (planError) {
+                                console.warn('[stripe-server] [restore-subscription] Failed to save plan:', planError.message);
+                            }
+                            
+                            return res.json({
+                                success: true,
+                                subscription: newSub,
+                                message: 'Subscription recreated successfully (you were premium but subscription was missing)',
+                            });
+                        }
+                    }
+                    
+                    // In mock mode, if no subscription exists, return error instead of falling through to Stripe
+                    return res.status(404).json({ 
+                        error: 'No subscription found to restore. Please create a subscription first.',
+                        mockMode: true
+                    });
                 }
             }
+            
+            // If we're in mock mode but service failed to load, don't fall through to Stripe
+            return res.status(500).json({ 
+                error: 'Mock subscription service is not available',
+                mockMode: true
+            });
+        }
+
+        // Only proceed with Stripe if not in mock mode
+        if (!isStripeAvailable()) {
+            return res.status(503).json({ 
+                error: 'Stripe is not configured and mock mode is disabled',
+            });
         }
 
         // Real Stripe restore logic would go here
@@ -1359,9 +1974,26 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Dev Email Inbox Endpoints (Development Only)
+if (isDevelopment) {
+    app.get('/api/dev/emails', (req, res) => {
+        const emails = getDevEmails();
+        res.json(emails);
+    });
+
+    app.delete('/api/dev/emails', (req, res) => {
+        clearDevEmails();
+        res.json({ success: true, message: 'Dev email inbox cleared' });
+    });
+}
+
 app.listen(PORT, () => {
     console.log(`[stripe-server] Server running on port ${PORT}`);
     console.log(`[stripe-server] Webhook endpoint: http://localhost:${PORT}/api/stripe-webhook`);
     console.log(`[stripe-server] Setup check endpoint: http://localhost:${PORT}/api/setup-check`);
+    console.log(`[stripe-server] Get subscription endpoint: http://localhost:${PORT}/api/get-subscription`);
+    console.log(`[stripe-server] Health check endpoint: http://localhost:${PORT}/health`);
+    console.log(`[stripe-server] ✅ All routes registered successfully`);
 });
+
 

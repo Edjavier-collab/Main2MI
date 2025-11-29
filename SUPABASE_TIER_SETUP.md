@@ -48,7 +48,64 @@ Restart the dev server after adding these.
    - `http://localhost:3000`
    - `http://localhost:3000/reset-password` (optional, for password resets)
 
+### Email Configuration for Signup Confirmations
+
+**IMPORTANT**: Supabase requires email configuration to send signup confirmation emails.
+
+#### Option A: Use Supabase's Built-in Email (Development Only)
+- Supabase provides a default email service for development
+- **Limitation**: Only works for emails sent to the project owner's email
+- **For production**: You MUST configure custom SMTP or use an email service
+
+#### Option B: Configure Custom SMTP (Recommended for Production)
+
+1. Go to **Project Settings → Auth → SMTP Settings**
+2. Enable "Enable Custom SMTP"
+3. Configure your SMTP provider:
+   - **SMTP Host**: `smtp.gmail.com` (for Gmail) or your provider's SMTP server
+   - **SMTP Port**: `587` (TLS) or `465` (SSL)
+   - **SMTP User**: Your email address
+   - **SMTP Password**: App-specific password (not your regular password)
+   - **Sender Email**: The email address that will send emails
+   - **Sender Name**: "MI Practice Coach"
+
+4. **For Gmail**:
+   - Enable 2-factor authentication
+   - Generate an "App Password" at https://myaccount.google.com/apppasswords
+   - Use the app password as SMTP Password
+
+5. **For other providers** (SendGrid, Mailgun, etc.):
+   - Use their SMTP credentials
+   - Check their documentation for SMTP settings
+
+#### Option C: Use Resend API (Recommended - Best Deliverability)
+
+1. Sign up at [Resend.com](https://resend.com)
+2. Get your API key from the dashboard
+3. Add to `.env.local`:
+   ```env
+   RESEND_API_KEY=re_xxxxxxxxxxxxx
+   EMAIL_FROM=MI Practice Coach <noreply@yourdomain.com>
+   ```
+4. Verify your domain in Resend dashboard
+5. The app will automatically use Resend for all emails
+
+#### Verify Email Configuration
+
+After configuring, test by:
+1. Creating a new account
+2. Check the email inbox (and spam folder)
+3. You should receive a confirmation email
+
+**Troubleshooting**:
+- If emails aren't sent, check Supabase logs: **Logs → Auth Logs**
+- Verify SMTP credentials are correct
+- Check spam/junk folders
+- For production, ensure your domain is verified with your email provider
+
 ## Step 4: Create Database Tables
+
+### Initial Schema
 
 Run the following SQL in the Supabase SQL editor (**SQL Editor** → **New Query**):
 
@@ -77,6 +134,26 @@ create table if not exists public.profiles (
 create index if not exists sessions_user_id_idx on public.sessions(user_id);
 create index if not exists profiles_user_id_idx on public.profiles(user_id);
 ```
+
+### Add Subscription Plan Column (Required for Subscription Management)
+
+**IMPORTANT**: If you're setting up subscription management, you need to add the `subscription_plan` column to the `profiles` table. This column stores whether a user has a monthly or annual subscription.
+
+Run this migration in the Supabase SQL editor:
+
+```sql
+-- Add subscription_plan column to profiles table
+-- This stores the user's subscription plan type (monthly or annual) for persistence
+
+ALTER TABLE public.profiles 
+ADD COLUMN IF NOT EXISTS subscription_plan TEXT DEFAULT NULL 
+CHECK (subscription_plan IS NULL OR subscription_plan IN ('monthly', 'annual'));
+
+-- Add comment for documentation
+COMMENT ON COLUMN public.profiles.subscription_plan IS 'User subscription plan type: monthly or annual. NULL for free tier users.';
+```
+
+**Note**: The app will work without this column, but subscription plan information won't persist across server restarts. The backend will log warnings if the column is missing, but will continue to function.
 
 ## Step 5: Enable Row Level Security (RLS)
 

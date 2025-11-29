@@ -118,6 +118,10 @@ const EmailConfirmationView: React.FC<EmailConfirmationViewProps> = ({ email, on
                             <p className="text-xs text-green-700 mt-2">
                                 <strong>Tip:</strong> Don't see the email? Check your spam folder or try resending below.
                             </p>
+                            <p className="text-xs text-amber-700 mt-2 bg-amber-50 p-2 rounded">
+                                <strong>Note:</strong> If emails aren't being sent, your Supabase project may need SMTP configuration. 
+                                See <code className="text-xs">EMAIL_SETUP.md</code> for setup instructions.
+                            </p>
                         </div>
                     </div>
                 </div>

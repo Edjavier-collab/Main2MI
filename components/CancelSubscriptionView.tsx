@@ -33,12 +33,36 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                 setPremiumTierMismatch(true);
                 setError(sub.error);
                 setSubscription(null);
+                
+                // Backend's get-subscription endpoint now automatically recovers subscriptions
+                // using the stored plan from the database, so no need to auto-create here
+                // The subscription should be recovered on the next page load or refresh
             } else {
                 setSubscription(sub);
+                // Log subscription details for debugging
+                if (sub) {
+                    console.log('[CancelSubscriptionView] Subscription loaded:', {
+                        plan: sub.plan,
+                        originalPrice: sub.originalPrice,
+                        currentPrice: sub.currentPrice,
+                        periodLabel: sub.plan === 'monthly' ? 'month' : 'year',
+                        hasRetentionDiscount: sub.hasRetentionDiscount
+                    });
+                }
             }
         } catch (err) {
             console.error('[CancelSubscriptionView] Error loading subscription:', err);
-            setError(err instanceof Error ? err.message : 'Failed to load subscription details');
+            const errorMessage = err instanceof Error ? err.message : 'Failed to load subscription details';
+            
+            // Check if this is a network/server error with more details
+            let displayError = errorMessage;
+            if (errorMessage.includes('endpoint not found') || errorMessage.includes('Failed to fetch')) {
+                displayError = 'Unable to reach the subscription server. Please ensure `npm run dev:server` is running on port 3001.';
+            } else if (errorMessage.includes('Mock subscription')) {
+                displayError = errorMessage; // Use the detailed backend error
+            }
+            
+            setError(displayError);
         } finally {
             setLoading(false);
         }
@@ -117,8 +141,12 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
     const formatMockCreationError = (err: unknown) => {
         const baseMessage = err instanceof Error ? err.message : 'Failed to create mock subscription';
         if (/Failed to fetch|NetworkError/i.test(baseMessage)) {
-            return 'Unable to reach the subscription server. Please run `npm run dev:server` (default http://localhost:3001) and try again.';
+            return 'Unable to reach the subscription server. Please ensure `npm run dev:server` is running on port 3001.';
         }
+        if (baseMessage.includes('endpoint not found')) {
+            return 'Mock subscription endpoint not found. Is `npm run dev:server` running on port 3001?';
+        }
+        // Return the backend error message as-is for better debugging
         return baseMessage;
     };
 
@@ -175,6 +203,16 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                         </div>
                         <h1 className="text-2xl font-bold text-gray-900 mb-2">Unable to Load Subscription</h1>
                         <p className="text-gray-600 mb-4">{error}</p>
+                        {error.includes('dev:server') && (
+                            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-left">
+                                <p className="text-sm text-yellow-800">
+                                    <strong>Development Mode:</strong> Make sure you're running the backend server:
+                                </p>
+                                <code className="block mt-2 text-xs bg-yellow-100 p-2 rounded">
+                                    npm run dev:server
+                                </code>
+                            </div>
+                        )}
                     </div>
                     <button
                         onClick={onBack}
@@ -251,14 +289,45 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
     }
 
     const discountedPrice = calculateDiscountedPrice();
-    const planName = subscription.plan === 'monthly' ? 'Monthly' : 'Annual';
-    const periodLabel = subscription.plan === 'monthly' ? 'month' : 'year';
+    
+    // Determine plan type with fallback for 'unknown' plans
+    let detectedPlan = subscription.plan;
+    if (detectedPlan === 'unknown') {
+        // Infer plan from pricing: annual plans are typically > $50
+        // This matches the backend fallback logic
+        if (subscription.originalPrice > 50) {
+            detectedPlan = 'annual';
+            console.warn('[CancelSubscriptionView] Plan was "unknown", inferred as "annual" from price:', subscription.originalPrice);
+        } else {
+            detectedPlan = 'monthly';
+            console.warn('[CancelSubscriptionView] Plan was "unknown", inferred as "monthly" from price:', subscription.originalPrice);
+        }
+    }
+    
+    const planName = detectedPlan === 'monthly' ? 'Monthly' : 'Annual';
+    const periodLabel = detectedPlan === 'monthly' ? 'month' : 'year';
+    
+    // Validate that pricing matches plan type
+    // Annual subscriptions should be significantly higher than monthly
+    const isLikelyAnnual = subscription.originalPrice > 50;
+    const isLikelyMonthly = subscription.originalPrice <= 50;
+    if ((detectedPlan === 'annual' && !isLikelyAnnual) || (detectedPlan === 'monthly' && !isLikelyMonthly)) {
+        console.warn('[CancelSubscriptionView] ⚠️ Plan type mismatch detected:', {
+            plan: detectedPlan,
+            originalPrice: subscription.originalPrice,
+            expectedRange: detectedPlan === 'annual' ? '> $50' : '<= $50'
+        });
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 sm:p-6">
             <div className="absolute top-6 left-6">
-                <button onClick={onBack} className="text-gray-500 hover:text-gray-800 transition-colors">
-                    <i className="fa fa-arrow-left text-2xl"></i>
+                <button
+                    onClick={onBack}
+                    className="text-gray-500 hover:text-gray-800 transition-colors"
+                    aria-label="Go back"
+                >
+                    <i className="fa fa-arrow-left text-2xl" aria-hidden="true"></i>
                 </button>
             </div>
 
@@ -403,10 +472,23 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                 )}
 
                 {subscription.hasRetentionDiscount && !subscription.cancelAtPeriodEnd && (
-                    <div className="text-center">
-                        <p className="text-gray-600 mb-4">
-                            You're already enjoying the 30% discount! Your subscription will continue at the discounted rate.
-                        </p>
+                    <div className="space-y-4">
+                        <div className="text-center">
+                            <p className="text-gray-600 mb-4">
+                                You're already enjoying the 30% discount! Your subscription will continue at the discounted rate.
+                            </p>
+                        </div>
+                        <button
+                            onClick={handleCancel}
+                            disabled={actionLoading !== null}
+                            className="w-full bg-gray-200 text-gray-800 font-bold py-4 rounded-lg hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {actionLoading === 'cancel' ? (
+                                <span><i className="fa fa-spinner fa-spin mr-2"></i>Cancelling...</span>
+                            ) : (
+                                <span>Cancel Subscription</span>
+                            )}
+                        </button>
                         <button
                             onClick={onBack}
                             className="w-full bg-sky-500 text-white font-bold py-3 rounded-lg hover:bg-sky-600 transition"

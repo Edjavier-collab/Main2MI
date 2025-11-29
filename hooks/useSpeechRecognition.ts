@@ -42,17 +42,17 @@ export const useSpeechRecognition = () => {
             setError(errorMsg);
             return;
         }
-        
+
         // Check if we're in a secure context (required for Speech Recognition API)
         // Secure context is required by the Speech Recognition API - this includes:
         // 1. HTTPS connections
         // 2. localhost or 127.0.0.1 (development)
         // 3. Explicitly secure contexts as defined by window.isSecureContext
-        const isSecureContext = window.isSecureContext || 
+        const isSecureContext = window.isSecureContext ||
                                 window.location.protocol === 'https:' ||
                                 window.location.hostname === 'localhost' ||
                                 window.location.hostname === '127.0.0.1';
-        
+
         if (!isSecureContext) {
             const errorMsg = "Speech Recognition requires a secure context (HTTPS or localhost). Please access this app via HTTPS or localhost.";
             console.error(errorMsg);
@@ -86,14 +86,14 @@ export const useSpeechRecognition = () => {
                     interim_transcript += result[0].transcript;
                 }
             }
-            
+
             // Update the display with the final text plus the current interim text.
             // Ensure proper spacing between final and interim parts.
             const currentFinal = finalTranscriptRef.current;
             const currentInterim = interim_transcript.trim();
             setTranscript(currentFinal + (currentInterim ? (currentFinal ? ' ' : '') + currentInterim : ''));
         };
-        
+
         recognition.onend = () => {
             setIsListening(false);
             stopTriggeredRef.current = false;
@@ -101,12 +101,12 @@ export const useSpeechRecognition = () => {
             // This cleans up any lingering interim results if recognition ends abruptly.
             setTranscript(finalTranscriptRef.current);
         };
-        
+
         recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
             console.error('Speech recognition error', event.error);
             setIsListening(false);
             stopTriggeredRef.current = false; // Reset on error too
-            
+
             // Provide user-friendly error messages
             let errorMessage = 'Microphone error occurred.';
             switch (event.error) {
@@ -129,11 +129,11 @@ export const useSpeechRecognition = () => {
                     errorMessage = `Speech recognition error: ${event.error}`;
             }
             setError(errorMessage);
-            
+
             // Clear error after 5 seconds
             setTimeout(() => setError(null), 5000);
         };
-        
+
         recognitionRef.current = recognition;
 
         return () => {
@@ -148,11 +148,11 @@ export const useSpeechRecognition = () => {
             setError('Speech recognition not initialized. Please refresh the page.');
             return;
         }
-        
+
         if (isListening) {
             return; // Already listening
         }
-        
+
         try {
             stopTriggeredRef.current = false; // Ensure we are ready for new results
             setError(null); // Clear any previous errors
@@ -172,15 +172,15 @@ export const useSpeechRecognition = () => {
             setIsListening(false);
         }
     };
-    
+
     // This function allows components to reset the transcript and ensures the ref is also cleared.
     const customSetTranscript = useCallback((text: string) => {
         finalTranscriptRef.current = text;
         setTranscript(text);
     }, []);
-    
+
     // Check if Speech Recognition API is supported and we're in a secure context
-    const isSecureContext = window.isSecureContext || 
+    const isSecureContext = window.isSecureContext ||
                             window.location.protocol === 'https:' ||
                             window.location.hostname === 'localhost' ||
                             window.location.hostname === '127.0.0.1';

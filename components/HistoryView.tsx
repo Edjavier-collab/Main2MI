@@ -23,8 +23,12 @@ const HistoryView: React.FC<HistoryViewProps> = ({ sessions, onBack, onNavigateT
     return (
         <div className="p-4 sm:p-6 bg-slate-50 min-h-full">
             <header className="flex items-center mb-6 pt-2">
-                 <button onClick={onBack} className="p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200 transition-colors">
-                    <i className="fa fa-arrow-left text-xl text-gray-600"></i>
+                <button
+                    onClick={onBack}
+                    className="p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200 transition-colors"
+                    aria-label="Go back"
+                >
+                    <i className="fa fa-arrow-left text-xl text-gray-600" aria-hidden="true"></i>
                 </button>
                 <h1 className="text-2xl font-bold text-gray-800">Session History</h1>
             </header>

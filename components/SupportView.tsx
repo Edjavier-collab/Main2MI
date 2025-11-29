@@ -11,8 +11,9 @@ const SupportView: React.FC<SupportViewProps> = ({ onBack }) => {
                 <button
                     onClick={onBack}
                     className="mb-6 text-sky-600 hover:text-sky-700 flex items-center gap-2"
+                    aria-label="Go back to settings"
                 >
-                    <i className="fa fa-arrow-left"></i>
+                    <i className="fa fa-arrow-left" aria-hidden="true"></i>
                     Back
                 </button>
 

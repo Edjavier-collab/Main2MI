@@ -48,8 +48,12 @@ const CalendarView: React.FC<CalendarViewProps> = ({ sessions, onBack, userTier,
     return (
         <div className="flex-grow p-4 sm:p-6 bg-slate-50 min-h-full">
             <header className="flex items-center mb-6 pt-2">
-                <button onClick={onBack} className="p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200 transition-colors">
-                    <i className="fa fa-arrow-left text-xl text-gray-600"></i>
+                <button
+                    onClick={onBack}
+                    className="p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200 transition-colors"
+                    aria-label="Go back"
+                >
+                    <i className="fa fa-arrow-left text-xl text-gray-600" aria-hidden="true"></i>
                 </button>
                 <h1 className="text-2xl font-bold text-gray-800">My Calendar</h1>
             </header>
@@ -80,7 +84,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ sessions, onBack, userTier,
                                             {`${session.patient.age} y/o ${session.patient.sex.toLowerCase()}, ${session.patient.topic}, ${session.patient.stageOfChange}`}
                                         </p>
                                     </div>
-                                    <i className="fa fa-chevron-right text-gray-400"></i>
+                                    <i className="fa fa-chevron-right text-gray-400" aria-hidden="true"></i>
                                 </div>
                             </div>
                         ))}

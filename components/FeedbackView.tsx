@@ -108,6 +108,15 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                     <h1 className="text-2xl font-extrabold text-gray-900 mb-3">Not Enough Data</h1>
                     <p className="text-gray-600 leading-relaxed">{insufficientMessage}</p>
                     <div className="mt-8 space-y-3">
+                        {tier === UserTier.Free && (
+                            <button
+                                onClick={onUpgrade}
+                                className="w-full flex items-center justify-center gap-3 bg-sky-500 text-white font-bold py-4 rounded-full shadow-md hover:bg-sky-600 transition-transform transform hover:scale-105"
+                            >
+                                <i className="fa fa-award text-yellow-300"></i>
+                                <span>Upgrade to Premium</span>
+                            </button>
+                        )}
                         {onStartPractice && (
                             <button
                                 onClick={onStartPractice}
@@ -132,8 +141,12 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
         return (
             <div className="flex flex-col items-center text-center w-full max-w-sm mx-auto py-2">
                 <header className="relative w-full flex justify-center items-center mb-6">
-                    <button onClick={onDone} className="absolute left-0 text-2xl text-gray-400 hover:text-gray-700 transition-colors">
-                        <i className="fa fa-times"></i>
+                    <button
+                        onClick={onDone}
+                        className="absolute left-0 text-2xl text-gray-400 hover:text-gray-700 transition-colors"
+                        aria-label="Close and return to dashboard"
+                    >
+                        <i className="fa fa-times" aria-hidden="true"></i>
                     </button>
                     <h1 className="text-xl font-bold text-gray-800">Encounter Summary</h1>
                 </header>
@@ -175,8 +188,12 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
              <div className="p-4 sm:p-6 max-w-2xl mx-auto">
                 <header className="flex items-center justify-between mb-6">
                     <div className="flex items-center">
-                        <button onClick={onDone} className="p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200 transition-colors">
-                            <i className="fa fa-arrow-left text-xl text-gray-600"></i>
+                        <button
+                            onClick={onDone}
+                            className="p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200 transition-colors"
+                            aria-label="Go back"
+                        >
+                            <i className="fa fa-arrow-left text-xl text-gray-600" aria-hidden="true"></i>
                         </button>
                         <h1 className="text-2xl font-bold text-gray-800">Encounter Summary</h1>
                     </div>

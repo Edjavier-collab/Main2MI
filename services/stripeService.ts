@@ -19,6 +19,37 @@ const getStripe = () => {
 };
 
 /**
+ * Get and validate backend URL from environment
+ * Detects malformed URLs (e.g., starting with '.' or ':') and falls back to default
+ * Logs a warning if a malformed URL is detected
+ */
+const getBackendUrl = (): string => {
+    const envUrl = import.meta.env.VITE_BACKEND_URL;
+    const defaultUrl = 'http://localhost:3001';
+    
+    // If no env var is set, use default
+    if (!envUrl) {
+        return defaultUrl;
+    }
+    
+    // Check if URL is malformed (starts with '.' or ':' without protocol)
+    const isMalformed = envUrl.startsWith('.') || 
+                       (envUrl.startsWith(':') && !envUrl.startsWith('://')) ||
+                       (!envUrl.startsWith('http://') && !envUrl.startsWith('https://'));
+    
+    if (isMalformed) {
+        console.warn(
+            `[stripeService] Invalid VITE_BACKEND_URL detected: "${envUrl}". ` +
+            `Expected a full URL (e.g., "http://localhost:3001"). ` +
+            `Falling back to default: "${defaultUrl}"`
+        );
+        return defaultUrl;
+    }
+    
+    return envUrl;
+};
+
+/**
  * Create a Stripe Checkout Session via backend API
  * This calls a backend endpoint that creates the checkout session securely
  */
@@ -28,7 +59,7 @@ export const createCheckoutSession = async (
 ): Promise<{ sessionId: string; url: string }> => {
     // Backend URL - defaults to localhost:3001 for development
     // In production, set VITE_BACKEND_URL to your deployed server URL
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+    const backendUrl = getBackendUrl();
     
     const response = await fetch(`${backendUrl}/api/create-checkout-session`, {
         method: 'POST',
@@ -82,7 +113,7 @@ export const redirectToCheckout = async (userId: string, plan: 'monthly' | 'annu
  * Returns null if no subscription is found (404), throws error for other failures
  */
 export const getUserSubscription = async (userId: string): Promise<any | null> => {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+    const backendUrl = getBackendUrl();
     
     const response = await fetch(`${backendUrl}/api/get-subscription?userId=${userId}`, {
         method: 'GET',
@@ -116,7 +147,7 @@ export const getUserSubscription = async (userId: string): Promise<any | null> =
  * Cancel subscription with retention offer option
  */
 export const cancelSubscription = async (userId: string, acceptOffer: boolean): Promise<any> => {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+    const backendUrl = getBackendUrl();
     
     const response = await fetch(`${backendUrl}/api/cancel-subscription`, {
         method: 'POST',
@@ -142,7 +173,7 @@ export const cancelSubscription = async (userId: string, acceptOffer: boolean): 
  * Apply retention discount to subscription
  */
 export const applyRetentionDiscount = async (userId: string): Promise<any> => {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+    const backendUrl = getBackendUrl();
     
     const response = await fetch(`${backendUrl}/api/apply-retention-discount`, {
         method: 'POST',
@@ -167,7 +198,7 @@ export const applyRetentionDiscount = async (userId: string): Promise<any> => {
  * Restore a cancelled subscription
  */
 export const restoreSubscription = async (userId: string): Promise<any> => {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+    const backendUrl = getBackendUrl();
     
     const response = await fetch(`${backendUrl}/api/restore-subscription`, {
         method: 'POST',
@@ -192,7 +223,7 @@ export const restoreSubscription = async (userId: string): Promise<any> => {
  * Create a mock subscription (development only)
  */
 export const createMockSubscription = async (userId: string, plan: 'monthly' | 'annual'): Promise<any> => {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+    const backendUrl = getBackendUrl();
 
     let response: Response;
     try {

@@ -2,69 +2,218 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MI Practice Coach</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    
+    <!-- Primary Meta Tags -->
+    <title>MI Practice Coach - Motivational Interviewing Training</title>
+    <meta name="title" content="MI Practice Coach - Motivational Interviewing Training">
+    <meta name="description" content="Practice Motivational Interviewing techniques with AI-powered patient simulations. Get instant feedback and improve your counseling skills.">
+    <meta name="keywords" content="motivational interviewing, MI training, counseling practice, healthcare training, AI simulation">
+    <meta name="author" content="MI Practice Coach">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#0ea5e9">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="MI Coach">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="MI Coach">
+    <meta name="msapplication-TileColor" content="#0ea5e9">
+    <meta name="msapplication-tap-highlight" content="no">
+    
+    <!-- Favicon & Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-192x192.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mipracticecoach.com/">
+    <meta property="og:title" content="MI Practice Coach - Motivational Interviewing Training">
+    <meta property="og:description" content="Practice Motivational Interviewing techniques with AI-powered patient simulations. Get instant feedback and improve your counseling skills.">
+    <meta property="og:image" content="/icons/icon-512x512.png">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://mipracticecoach.com/">
+    <meta property="twitter:title" content="MI Practice Coach - Motivational Interviewing Training">
+    <meta property="twitter:description" content="Practice Motivational Interviewing techniques with AI-powered patient simulations. Get instant feedback and improve your counseling skills.">
+    <meta property="twitter:image" content="/icons/icon-512x512.png">
+    
+    <!-- Security Headers (Content Security Policy via meta tag - supplement server headers) -->
+    <!-- Note: Full CSP should be set via server headers for production -->
+    
+    <!-- Preconnect to external resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    
+    <!-- External Stylesheets -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <script type="importmap">
-{
-  "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.27.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
-  }
-}
-</script>
-<style>
-  @keyframes slide-fade-in {
-    from {
-      opacity: 0;
-      transform: translateY(15px);
+    
+    <!-- Import Map for ES modules -->
+    <script type="importmap">
+    {
+      "imports": {
+        "react/": "https://aistudiocdn.com/react@^19.2.0/",
+        "react": "https://aistudiocdn.com/react@^19.2.0",
+        "@google/genai": "https://aistudiocdn.com/@google/genai@^1.27.0",
+        "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
+      }
     }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  .animate-slide-fade-in {
-    animation: slide-fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  }
-  @keyframes wavey {
-    0%, 100% {
-      transform: scaleY(0.2);
-    }
-    50% {
-      transform: scaleY(1.0);
-    }
-  }
-  .animate-wavey {
-      animation: wavey 1s ease-in-out infinite;
-      transform-origin: bottom;
-  }
-  
-  @media print {
-    body * {
-      visibility: hidden;
-    }
-    .printable-area, .printable-area * {
-      visibility: visible;
-    }
-    .printable-area {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-    }
-    .no-print {
-      display: none !important;
-    }
-  }
-</style>
-<link rel="stylesheet" href="/index.css">
-</head>
+    </script>
+    
+    <!-- Custom Styles -->
+    <style>
+      /* Animations */
+      @keyframes slide-fade-in {
+        from {
+          opacity: 0;
+          transform: translateY(15px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-slide-fade-in {
+        animation: slide-fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
+      
+      @keyframes wavey {
+        0%, 100% {
+          transform: scaleY(0.2);
+        }
+        50% {
+          transform: scaleY(1.0);
+        }
+      }
+      .animate-wavey {
+        animation: wavey 1s ease-in-out infinite;
+        transform-origin: bottom;
+      }
+      
+      @keyframes pulse-soft {
+        0%, 100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
+        }
+      }
+      .animate-pulse-soft {
+        animation: pulse-soft 2s ease-in-out infinite;
+      }
+      
+      @keyframes skeleton-loading {
+        0% {
+          background-position: -200px 0;
+        }
+        100% {
+          background-position: calc(200px + 100%) 0;
+        }
+      }
+      .skeleton {
+        background: linear-gradient(90deg, #e5e7eb 0px, #f3f4f6 40px, #e5e7eb 80px);
+        background-size: 200px 100%;
+        animation: skeleton-loading 1.4s ease-in-out infinite;
+      }
+      
+      /* Print styles */
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+        .printable-area, .printable-area * {
+          visibility: visible;
+        }
+        .printable-area {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+        }
+        .no-print {
+          display: none !important;
+        }
+      }
+      
+      /* Focus visible styles for accessibility */
+      :focus-visible {
+        outline: 2px solid #0ea5e9;
+        outline-offset: 2px;
+      }
+      
+      /* Reduced motion preference */
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+      
+      /* Safe area insets for notched devices */
+      body {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+      }
+      
+      /* Selection color */
+      ::selection {
+        background-color: #0ea5e9;
+        color: white;
+      }
+      
+      /* Scrollbar styling */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+    </style>
+    <link rel="stylesheet" href="/index.css">
+  </head>
   <body class="bg-gray-50 text-gray-800">
-    <div id="root"></div>
+    <!-- Skip to main content link for accessibility -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 focus:px-4 focus:py-2 focus:bg-sky-500 focus:text-white">
+      Skip to main content
+    </a>
+    
+    <!-- App Root -->
+    <div id="root" role="application" aria-label="MI Practice Coach Application"></div>
+    
+    <!-- Main App Script -->
     <script type="module" src="/index.tsx"></script>
+    
+    <!-- No-JS Fallback -->
+    <noscript>
+      <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; text-align: center; font-family: system-ui, sans-serif;">
+        <div>
+          <h1 style="color: #0ea5e9; margin-bottom: 16px;">MI Practice Coach</h1>
+          <p style="color: #64748b;">JavaScript is required to run this application.</p>
+          <p style="color: #64748b; margin-top: 8px;">Please enable JavaScript in your browser settings.</p>
+        </div>
+      </div>
+    </noscript>
   </body>
 </html>

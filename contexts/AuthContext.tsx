@@ -228,11 +228,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (confirmationSent) {
                 console.log('[AuthProvider] ✅ Confirmation email was sent at:', data.user?.confirmation_sent_at);
             } else {
-                console.warn('[AuthProvider] ⚠️  Confirmation email was NOT sent. Check Supabase email settings:');
+                console.warn('[AuthProvider] ⚠️  Confirmation email was NOT sent. This usually means:');
+                console.warn('  1. Email confirmation is disabled in Supabase settings, OR');
+                console.warn('  2. SMTP is not configured in Supabase Dashboard');
+                console.warn('');
+                console.warn('To fix:');
                 console.warn('  1. Go to Supabase Dashboard > Authentication > Providers > Email');
                 console.warn('  2. Ensure "Confirm email" is enabled');
-                console.warn('  3. Check SMTP settings in Project Settings > Auth');
-                console.warn('  4. Verify email templates are configured');
+                console.warn('  3. Configure SMTP in Project Settings > Auth > SMTP Settings');
+                console.warn('  4. See EMAIL_SETUP.md for detailed instructions');
+                console.warn('');
+                console.warn('Note: In development, Supabase only sends emails to the project owner.');
+                console.warn('For production, you MUST configure custom SMTP or use Resend API.');
             }
 
             // Always show confirmation message if Supabase is configured

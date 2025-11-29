@@ -91,7 +91,9 @@ The server will run on `http://localhost:3001`
 
 ### "Failed to create checkout session"
 - Make sure backend server is running (`npm run dev:server`)
-- Check that `VITE_BACKEND_URL` in `.env.local` matches your backend URL
+- Check that `VITE_BACKEND_URL` in `.env.local` is a full URL (e.g., `http://localhost:3001`)
+  - **Note:** The code now automatically detects malformed URLs (like `.3001` or `:3001`) and falls back to `http://localhost:3001` with a console warning
+  - Check the browser console for warnings about invalid `VITE_BACKEND_URL` values
 - Verify Stripe secret key is correct
 
 ### "Price ID not found"

@@ -40,7 +40,7 @@ const calculateNextBillingDate = (plan) => {
 const isValidPlan = (plan) => Object.prototype.hasOwnProperty.call(PRICING, plan);
 
 /**
- * Create a mock subscription
+ * Create a mock subscription (idempotent - returns existing subscription if it exists)
  */
 export const createMockSubscription = (userId, plan) => {
     if (!userId || typeof userId !== 'string' || !userId.trim()) {
@@ -49,6 +49,23 @@ export const createMockSubscription = (userId, plan) => {
 
     if (!isValidPlan(plan)) {
         throw new Error(`Invalid plan "${plan}". Expected one of: ${Object.keys(PRICING).join(', ')}`);
+    }
+
+    // Check if subscription already exists - return it if it does (idempotent)
+    const existing = mockSubscriptions.get(userId);
+    if (existing) {
+        console.log('[mockSubscriptionService] Subscription already exists for user:', userId, '- returning existing subscription');
+        // Update plan if different
+        const cleanedPlan = plan.trim();
+        if (existing.plan !== cleanedPlan) {
+            const pricing = PRICING[cleanedPlan];
+            existing.plan = cleanedPlan;
+            existing.currentPrice = pricing.original;
+            existing.originalPrice = pricing.original;
+            existing.currentPeriodEnd = calculateNextBillingDate(cleanedPlan);
+            console.log('[mockSubscriptionService] Updated plan to:', cleanedPlan);
+        }
+        return existing;
     }
 
     const cleanedPlan = plan.trim();
@@ -81,6 +98,12 @@ export const getMockSubscription = (userId) => {
     const subscription = mockSubscriptions.get(userId);
     if (subscription) {
         console.log('[mockSubscriptionService] Retrieved mock subscription for user:', userId);
+        console.log('[mockSubscriptionService] Subscription details:', {
+            plan: subscription.plan,
+            originalPrice: subscription.originalPrice,
+            currentPrice: subscription.currentPrice,
+            periodLabel: subscription.plan === 'monthly' ? 'month' : 'year'
+        });
     } else {
         console.log('[mockSubscriptionService] No mock subscription found for user:', userId);
     }
@@ -88,7 +111,7 @@ export const getMockSubscription = (userId) => {
 };
 
 /**
- * Cancel mock subscription with retention offer option
+ * Cancel mock subscription with retention offer option (idempotent)
  */
 export const cancelMockSubscription = (userId, acceptOffer) => {
     const subscription = mockSubscriptions.get(userId);
@@ -97,7 +120,12 @@ export const cancelMockSubscription = (userId, acceptOffer) => {
     }
 
     if (acceptOffer) {
-        // Apply retention discount
+        // Apply retention discount (idempotent - if already applied, no change)
+        if (subscription.hasRetentionDiscount) {
+            console.log('[mockSubscriptionService] Retention discount already applied for user:', userId);
+            return subscription;
+        }
+        
         const discountPercent = 30;
         const pricing = PRICING[subscription.plan];
         subscription.currentPrice = pricing.discounted;
@@ -108,7 +136,12 @@ export const cancelMockSubscription = (userId, acceptOffer) => {
         subscription.status = 'active';
         console.log('[mockSubscriptionService] Applied retention discount to subscription for user:', userId);
     } else {
-        // Cancel at period end
+        // Cancel at period end (idempotent - if already cancelled, no change)
+        if (subscription.cancelAtPeriodEnd) {
+            console.log('[mockSubscriptionService] Subscription already scheduled for cancellation for user:', userId);
+            return subscription;
+        }
+        
         subscription.cancelAtPeriodEnd = true;
         subscription.status = 'active'; // Still active until period ends
         console.log('[mockSubscriptionService] Scheduled cancellation for user:', userId);
@@ -119,21 +152,35 @@ export const cancelMockSubscription = (userId, acceptOffer) => {
 };
 
 /**
- * Restore a cancelled mock subscription
+ * Restore a cancelled mock subscription (idempotent - creates subscription if missing)
  */
 export const restoreMockSubscription = (userId) => {
-    const subscription = mockSubscriptions.get(userId);
+    let subscription = mockSubscriptions.get(userId);
+    
     if (!subscription) {
-        throw new Error('No subscription found');
+        // No subscription found - create a default one (better restore behavior)
+        console.log('[mockSubscriptionService] No subscription found for user:', userId, '- creating default subscription');
+        subscription = createMockSubscription(userId, 'monthly');
+        console.log('[mockSubscriptionService] Created default subscription for restore');
+        return subscription;
     }
 
+    // If already active and not cancelled, return as-is (idempotent)
+    if (subscription.status === 'active' && !subscription.cancelAtPeriodEnd) {
+        console.log('[mockSubscriptionService] Subscription already active for user:', userId);
+        return subscription;
+    }
+
+    // Restore the subscription
     subscription.cancelAtPeriodEnd = false;
-    subscription.status = 'active';
     
     // If subscription was past due, reactivate it
     if (subscription.status === 'past_due') {
-        subscription.status = 'active';
+        console.log('[mockSubscriptionService] Reactivating past_due subscription for user:', userId);
     }
+    
+    // Set status to active (handles both cancelled and past_due cases)
+    subscription.status = 'active';
 
     mockSubscriptions.set(userId, subscription);
     console.log('[mockSubscriptionService] Restored subscription for user:', userId);

@@ -350,8 +350,12 @@ const ResourceDetailView: React.FC<{ resourceId: number; onBack: () => void; }> 
     return (
         <div className="p-4">
             <header className="flex items-center mb-6">
-                <button onClick={onBack} className="p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200 transition-colors">
-                    <i className="fa fa-arrow-left text-xl text-gray-600"></i>
+                <button
+                    onClick={onBack}
+                    className="p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200 transition-colors"
+                    aria-label="Go back"
+                >
+                    <i className="fa fa-arrow-left text-xl text-gray-600" aria-hidden="true"></i>
                 </button>
                 <h1 className="text-2xl font-bold text-gray-800">{resource.title}</h1>
             </header>
@@ -395,8 +399,12 @@ const ResourceLibrary: React.FC<ResourceLibraryProps> = ({ onUpgrade, userTier, 
     return (
         <div className="bg-slate-50 min-h-full flex flex-col p-4">
             <header className="flex items-center mb-4 pt-2">
-                <button onClick={onBack} className="p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200 transition-colors">
-                    <i className="fa fa-arrow-left text-xl text-gray-600"></i>
+                <button
+                    onClick={onBack}
+                    className="p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200 transition-colors"
+                    aria-label="Go back"
+                >
+                    <i className="fa fa-arrow-left text-xl text-gray-600" aria-hidden="true"></i>
                 </button>
                 <h1 className="text-2xl font-bold text-gray-800">Resource Library</h1>
             </header>
@@ -425,7 +433,7 @@ const ResourceLibrary: React.FC<ResourceLibraryProps> = ({ onUpgrade, userTier, 
                                 className={`w-full text-left font-bold p-3 rounded-lg flex justify-between items-center ${isPremium ? 'cursor-pointer' : 'cursor-default'} bg-sky-100 text-sky-700 border-l-4 border-sky-500`}
                             >
                                 <span>{category.category}</span>
-                                {isPremium && <i className={`fa fa-chevron-down transition-transform ${isCategoryOpen ? 'rotate-180' : ''}`}></i>}
+                                {isPremium && <i className={`fa fa-chevron-down transition-transform ${isCategoryOpen ? 'rotate-180' : ''}`} aria-hidden="true"></i>}
                             </button>
                             
                             {(isPremium ? isCategoryOpen : true) && (

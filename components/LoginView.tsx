@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { isSupabaseConfigured } from '../lib/supabase';
+import PasswordStrengthIndicator from './PasswordStrengthIndicator';
+import { checkPasswordStrength, validatePassword } from '../utils/validation';
 
 interface LoginViewProps {
     onLogin: () => void;
@@ -112,10 +114,20 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, onNavigate, onEmailConfi
             return;
         }
 
-        // Validate password length for sign up
-        if (isSignUp && password.length < 8) {
-            setError('Password must be at least 8 characters long.');
-            return;
+        // Enhanced password validation for sign up
+        if (isSignUp) {
+            const passwordValidation = validatePassword(password);
+            if (!passwordValidation.isValid) {
+                setError(passwordValidation.error || 'Password does not meet requirements.');
+                return;
+            }
+            
+            // Additional strength check
+            const strength = checkPasswordStrength(password);
+            if (!strength.isValid) {
+                setError('Please create a stronger password with uppercase, lowercase, numbers, and special characters.');
+                return;
+            }
         }
 
         setLoading(true);
@@ -270,26 +282,40 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, onNavigate, onEmailConfi
                         </div>
                     )}
                     <div>
+                        <label htmlFor="email" className="sr-only">Email address</label>
                         <input
+                            id="email"
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="Email"
                             required
                             disabled={loading}
+                            autoComplete="email"
+                            aria-label="Email address"
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white disabled:opacity-50"
                         />
                     </div>
                     <div>
+                        <label htmlFor="password" className="sr-only">Password</label>
                         <input
+                            id="password"
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="Password"
                             required
                             disabled={loading}
+                            autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                            aria-describedby={isSignUp ? 'password-strength' : undefined}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white disabled:opacity-50"
                         />
+                        {/* Password strength indicator for sign up */}
+                        {isSignUp && (
+                            <div id="password-strength">
+                                <PasswordStrengthIndicator password={password} showFeedback={true} />
+                            </div>
+                        )}
                     </div>
                     {!isSignUp && (
                         <div className="text-right">

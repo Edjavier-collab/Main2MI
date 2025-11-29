@@ -27,15 +27,19 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 sm:p-6">
                 <div className="absolute top-6 right-6">
-                    <button onClick={onBack} className="text-gray-500 hover:text-gray-800 transition-colors">
-                        <i className="fa fa-times text-2xl"></i>
+                    <button
+                        onClick={onBack}
+                        className="text-gray-500 hover:text-gray-800 transition-colors"
+                        aria-label="Close"
+                    >
+                        <i className="fa fa-times text-2xl" aria-hidden="true"></i>
                     </button>
                 </div>
 
                 <div className="w-full max-w-md mx-auto text-center">
                     <div className="mb-6">
                         <div className="mx-auto mb-4 bg-sky-100 h-20 w-20 rounded-full flex items-center justify-center ring-8 ring-sky-100/50">
-                            <i className="fa-solid fa-user-lock text-4xl text-sky-500"></i>
+                            <i className="fa-solid fa-user-lock text-4xl text-sky-500" aria-hidden="true"></i>
                         </div>
                         <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-2">Create an Account to Upgrade</h1>
                         <p className="text-gray-600">Sign up or log in to unlock unlimited practice sessions and premium features!</p>
@@ -107,15 +111,19 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 sm:p-6">
             <div className="absolute top-6 right-6">
-                <button onClick={onBack} className="text-gray-500 hover:text-gray-800 transition-colors">
-                    <i className="fa fa-times text-2xl"></i>
+                <button
+                    onClick={onBack}
+                    className="text-gray-500 hover:text-gray-800 transition-colors"
+                    aria-label="Close"
+                >
+                    <i className="fa fa-times text-2xl" aria-hidden="true"></i>
                 </button>
             </div>
 
             <div className="w-full max-w-md mx-auto text-center">
                 <div className="mb-6">
                      <div className="mx-auto mb-4 bg-sky-100 h-20 w-20 rounded-full flex items-center justify-center ring-8 ring-sky-100/50">
-                        <i className="fa-solid fa-rocket text-4xl text-sky-500"></i>
+                        <i className="fa-solid fa-rocket text-4xl text-sky-500" aria-hidden="true"></i>
                     </div>
                     <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-2">Unlimited Practice for Real-World Success</h1>
                     <p className="text-gray-600">You've used your 3 free practices for the month. Upgrade now for unlimited access!</p>

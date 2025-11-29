@@ -140,8 +140,8 @@ const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({ onBack, onSuccess
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col p-4">
                 <header className="flex items-center w-full max-w-sm mx-auto pt-4">
-                    <button onClick={onBack} className="p-2 -ml-2">
-                        <i className="fa fa-arrow-left text-2xl text-gray-600"></i>
+                    <button onClick={onBack} className="p-2 -ml-2" aria-label="Go back">
+                        <i className="fa fa-arrow-left text-2xl text-gray-600" aria-hidden="true"></i>
                     </button>
                     <h1 className="text-2xl font-bold text-gray-800 mx-auto -translate-x-4">
                         Reset Password
@@ -177,8 +177,8 @@ const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({ onBack, onSuccess
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col p-4">
             <header className="flex items-center w-full max-w-sm mx-auto pt-4">
-                <button onClick={onBack} className="p-2 -ml-2">
-                    <i className="fa fa-arrow-left text-2xl text-gray-600"></i>
+                <button onClick={onBack} className="p-2 -ml-2" aria-label="Go back">
+                    <i className="fa fa-arrow-left text-2xl text-gray-600" aria-hidden="true"></i>
                 </button>
                 <h1 className="text-2xl font-bold text-gray-800 mx-auto -translate-x-4">
                     Reset Password

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="384" height="384" viewBox="0 0 384 384">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0ea5e9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0284c7;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  
+  <circle cx="192" cy="192" r="180.48" fill="url(#bgGrad)"/>
+  
+  <g transform="translate(192, 192) scale(0.75)">
+    <!-- Speech bubble -->
+    <path d="M-80,-100 Q-120,-100 -120,-60 L-120,20 Q-120,60 -80,60 L-40,60 L-20,100 L0,60 L80,60 Q120,60 120,20 L120,-60 Q120,-100 80,-100 Z" 
+          fill="white" stroke="white" stroke-width="4"/>
+    
+    <!-- Heart -->
+    <path d="M0,-40 C-15,-60 -40,-50 -40,-30 C-40,-10 0,20 0,40 C0,20 40,-10 40,-30 C40,-50 15,-60 0,-40 Z" 
+          fill="#0ea5e9" opacity="0.8"/>
+  </g>
+</svg>
