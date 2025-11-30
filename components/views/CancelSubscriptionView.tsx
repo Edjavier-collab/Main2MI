@@ -59,7 +59,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
             // Check if this is a network/server error with more details
             let displayError = errorMessage;
             if (errorMessage.includes('endpoint not found') || errorMessage.includes('Failed to fetch')) {
-                displayError = 'Unable to reach the subscription server. Please ensure `npm run dev:server` is running on port 3001.';
+                displayError = 'Unable to reach the subscription server. Please ensure your Supabase Edge Functions are deployed.';
             } else if (errorMessage.includes('Mock subscription')) {
                 displayError = errorMessage; // Use the detailed backend error
             }
@@ -166,10 +166,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
     const formatMockCreationError = (err: unknown) => {
         const baseMessage = err instanceof Error ? err.message : 'Failed to create mock subscription';
         if (/Failed to fetch|NetworkError/i.test(baseMessage)) {
-            return 'Unable to reach the subscription server. Please ensure `npm run dev:server` is running on port 3001.';
-        }
-        if (baseMessage.includes('endpoint not found')) {
-            return 'Mock subscription endpoint not found. Is `npm run dev:server` running on port 3001?';
+            return 'Unable to reach the subscription server. Please ensure your Supabase Edge Functions are deployed.';
         }
         // Return the backend error message as-is for better debugging
         return baseMessage;
@@ -228,13 +225,13 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                         </div>
                         <h1 className="text-2xl font-bold text-gray-900 mb-2">Unable to Load Subscription</h1>
                         <p className="text-gray-600 mb-4">{error}</p>
-                        {error.includes('dev:server') && (
+                        {error.includes('Edge Functions') && (
                             <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-left">
                                 <p className="text-sm text-yellow-800">
-                                    <strong>Development Mode:</strong> Make sure you're running the backend server:
+                                    <strong>Setup Required:</strong> Deploy your Supabase Edge Functions:
                                 </p>
                                 <code className="block mt-2 text-xs bg-yellow-100 p-2 rounded">
-                                    npm run dev:server
+                                    supabase functions deploy
                                 </code>
                             </div>
                         )}

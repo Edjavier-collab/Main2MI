@@ -19,57 +19,91 @@ const getStripe = () => {
 };
 
 /**
- * Get and validate backend URL from environment
- * Detects malformed URLs (e.g., starting with '.' or ':') and falls back to default
- * Logs a warning if a malformed URL is detected
+ * Get the Supabase Functions URL from environment
+ * Uses VITE_SUPABASE_URL to construct the functions URL
  */
-const getBackendUrl = (): string => {
-    const envUrl = import.meta.env.VITE_BACKEND_URL;
-    const defaultUrl = 'http://localhost:3001';
-    
-    // If no env var is set, use default
-    if (!envUrl) {
-        return defaultUrl;
+const getFunctionsUrl = (): string => {
+    // First check for explicit functions URL
+    const functionsUrl = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL;
+    if (functionsUrl) {
+        return functionsUrl;
     }
-    
-    // Check if URL is malformed (starts with '.' or ':' without protocol)
-    const isMalformed = envUrl.startsWith('.') || 
-                       (envUrl.startsWith(':') && !envUrl.startsWith('://')) ||
-                       (!envUrl.startsWith('http://') && !envUrl.startsWith('https://'));
-    
-    if (isMalformed) {
-        console.warn(
-            `[stripeService] Invalid VITE_BACKEND_URL detected: "${envUrl}". ` +
-            `Expected a full URL (e.g., "http://localhost:3001"). ` +
-            `Falling back to default: "${defaultUrl}"`
-        );
-        return defaultUrl;
+
+    // Fall back to constructing from Supabase URL
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (!supabaseUrl) {
+        throw new Error('VITE_SUPABASE_URL is not set. Cannot determine Edge Functions URL.');
     }
-    
-    return envUrl;
+
+    // Convert https://xxx.supabase.co to https://xxx.supabase.co/functions/v1
+    return `${supabaseUrl}/functions/v1`;
 };
 
 /**
- * Create a Stripe Checkout Session via backend API
- * This calls a backend endpoint that creates the checkout session securely
+ * Get Supabase anon key for authorization
+ */
+const getAnonKey = (): string => {
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    if (!key) {
+        throw new Error('VITE_SUPABASE_ANON_KEY is not set');
+    }
+    return key;
+};
+
+/**
+ * Make a request to a Supabase Edge Function
+ */
+const callEdgeFunction = async (
+    functionName: string,
+    options: {
+        method?: 'GET' | 'POST';
+        body?: Record<string, unknown>;
+        params?: Record<string, string>;
+    } = {}
+): Promise<Response> => {
+    const { method = 'POST', body, params } = options;
+    const functionsUrl = getFunctionsUrl();
+    const anonKey = getAnonKey();
+
+    let url = `${functionsUrl}/${functionName}`;
+    
+    // Add query params for GET requests
+    if (params && Object.keys(params).length > 0) {
+        const searchParams = new URLSearchParams(params);
+        url += `?${searchParams.toString()}`;
+    }
+
+    const fetchOptions: RequestInit = {
+        method,
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${anonKey}`,
+        },
+    };
+
+    if (body && method === 'POST') {
+        fetchOptions.body = JSON.stringify(body);
+    }
+
+    return fetch(url, fetchOptions);
+};
+
+/**
+ * Create a Stripe Checkout Session via Supabase Edge Function
  */
 export const createCheckoutSession = async (
     userId: string,
-    plan: 'monthly' | 'annual'
+    plan: 'monthly' | 'annual',
+    email?: string
 ): Promise<{ sessionId: string; url: string }> => {
-    // Backend URL - defaults to localhost:3001 for development
-    // In production, set VITE_BACKEND_URL to your deployed server URL
-    const backendUrl = getBackendUrl();
-    
-    const response = await fetch(`${backendUrl}/api/create-checkout-session`, {
+    const body: Record<string, unknown> = { userId, plan };
+    if (email) {
+        body.email = email;
+    }
+
+    const response = await callEdgeFunction('create-checkout-session', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            userId,
-            plan,
-        }),
+        body,
     });
 
     if (!response.ok) {
@@ -84,11 +118,11 @@ export const createCheckoutSession = async (
 /**
  * Redirect user to Stripe Checkout
  */
-export const redirectToCheckout = async (userId: string, plan: 'monthly' | 'annual'): Promise<void> => {
+export const redirectToCheckout = async (userId: string, plan: 'monthly' | 'annual', email?: string): Promise<void> => {
     try {
-        console.log('[stripeService] Creating checkout session for user:', userId, 'plan:', plan);
-        
-        const { sessionId, url } = await createCheckoutSession(userId, plan);
+        console.log('[stripeService] Creating checkout session for user:', userId, 'plan:', plan, 'email:', email);
+
+        const { sessionId, url } = await createCheckoutSession(userId, plan, email);
         
         if (url) {
             // Redirect to Stripe Checkout
@@ -113,13 +147,9 @@ export const redirectToCheckout = async (userId: string, plan: 'monthly' | 'annu
  * Returns null if no subscription is found (404), throws error for other failures
  */
 export const getUserSubscription = async (userId: string): Promise<any | null> => {
-    const backendUrl = getBackendUrl();
-    
-    const response = await fetch(`${backendUrl}/api/get-subscription?userId=${userId}`, {
+    const response = await callEdgeFunction('get-subscription', {
         method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        params: { userId },
     });
 
     if (!response.ok) {
@@ -147,17 +177,12 @@ export const getUserSubscription = async (userId: string): Promise<any | null> =
  * Cancel subscription with retention offer option
  */
 export const cancelSubscription = async (userId: string, acceptOffer: boolean): Promise<any> => {
-    const backendUrl = getBackendUrl();
-    
-    const response = await fetch(`${backendUrl}/api/cancel-subscription`, {
+    const response = await callEdgeFunction('cancel-subscription', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+        body: {
             userId,
             action: acceptOffer ? 'accept_offer' : 'cancel',
-        }),
+        },
     });
 
     if (!response.ok) {
@@ -173,16 +198,9 @@ export const cancelSubscription = async (userId: string, acceptOffer: boolean): 
  * Apply retention discount to subscription
  */
 export const applyRetentionDiscount = async (userId: string): Promise<any> => {
-    const backendUrl = getBackendUrl();
-    
-    const response = await fetch(`${backendUrl}/api/apply-retention-discount`, {
+    const response = await callEdgeFunction('apply-retention-discount', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            userId,
-        }),
+        body: { userId },
     });
 
     if (!response.ok) {
@@ -198,16 +216,9 @@ export const applyRetentionDiscount = async (userId: string): Promise<any> => {
  * Restore a cancelled subscription
  */
 export const restoreSubscription = async (userId: string): Promise<any> => {
-    const backendUrl = getBackendUrl();
-    
-    const response = await fetch(`${backendUrl}/api/restore-subscription`, {
+    const response = await callEdgeFunction('restore-subscription', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            userId,
-        }),
+        body: { userId },
     });
 
     if (!response.ok) {
@@ -223,16 +234,9 @@ export const restoreSubscription = async (userId: string): Promise<any> => {
  * Upgrade subscription from monthly to annual
  */
 export const upgradeToAnnual = async (userId: string): Promise<any> => {
-    const backendUrl = getBackendUrl();
-    
-    const response = await fetch(`${backendUrl}/api/upgrade-subscription`, {
+    const response = await callEdgeFunction('upgrade-subscription', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            userId,
-        }),
+        body: { userId },
     });
 
     if (!response.ok) {
@@ -246,41 +250,12 @@ export const upgradeToAnnual = async (userId: string): Promise<any> => {
 
 /**
  * Create a mock subscription (development only)
+ * Note: This functionality is no longer supported with Edge Functions.
+ * Use real Stripe test mode instead.
  */
-export const createMockSubscription = async (userId: string, plan: 'monthly' | 'annual'): Promise<any> => {
-    const backendUrl = getBackendUrl();
-
-    let response: Response;
-    try {
-        response = await fetch(`${backendUrl}/api/create-mock-subscription`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                userId,
-                plan,
-            }),
-        });
-    } catch (networkError) {
-        console.error('[stripeService] createMockSubscription network error:', networkError);
-        throw new Error('Unable to reach the subscription server. Please run `npm run dev:server` (default http://localhost:3001).');
-    }
-
-    if (!response.ok) {
-        let errorMessage = `Failed to create mock subscription (HTTP ${response.status})`;
-
-        const contentType = response.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-            const errorData = await response.json().catch(() => ({}));
-            errorMessage = errorData.error || errorData.message || errorMessage;
-        } else if (response.status === 404) {
-            errorMessage = 'Mock subscription endpoint not found. Is `npm run dev:server` running on port 3001?';
-        }
-
-        throw new Error(errorMessage);
-    }
-
-    return await response.json();
+export const createMockSubscription = async (_userId: string, _plan: 'monthly' | 'annual'): Promise<any> => {
+    throw new Error(
+        'Mock subscriptions are not supported with Edge Functions. ' +
+        'Please use Stripe test mode with test card numbers instead.'
+    );
 };
-

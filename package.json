@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:server": "node server/stripe-server.js",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "functions:serve": "supabase functions serve --env-file .env.local",
+    "functions:deploy": "supabase functions deploy"
   },
   "dependencies": {
     "@google/genai": "^1.27.0",

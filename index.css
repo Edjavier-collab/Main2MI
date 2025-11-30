@@ -38,15 +38,25 @@
 
 /* Custom component styles */
 @layer components {
-  /* Ensure select dropdowns and options are readable */
+  /* Enhanced select dropdown styling */
   select {
-    font-size: 16px !important; /* Prevents zoom on iOS */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
   }
   
+  /* Improve select option typography on mobile */
   select option {
-    font-size: 16px;
-    padding: 12px 8px;
-    line-height: 1.5;
+    font-size: 18px !important;
+    padding: 14px 12px !important;
+    line-height: 1.6 !important;
+    font-weight: 500;
+  }
+  
+  /* Ensure select fields have proper spacing to prevent overlap */
+  select:focus {
+    position: relative;
+    z-index: 50;
   }
   
   /* Skeleton loading animation */

@@ -28,7 +28,7 @@ const Timer: React.FC<TimerProps> = ({ initialSeconds, onTimeUp }) => {
     const timeColor = seconds <= 30 ? 'text-red-500' : 'text-gray-700';
 
     return (
-        <div className={`font-mono text-lg font-bold ${timeColor}`}>
+        <div className={`font-mono text-lg font-bold transition-colors duration-300 ${timeColor}`}>
             <i className="far fa-clock mr-2"></i>
             {String(minutes).padStart(2, '0')}:{String(remainingSeconds).padStart(2, '0')}
         </div>

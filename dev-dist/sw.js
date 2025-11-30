@@ -82,7 +82,7 @@ define(['./workbox-137dedbd'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "index.html",
-    "revision": "0.snjddp6ga0g"
+    "revision": "0.2jacrvop3hc"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
@@ -108,6 +108,25 @@ define(['./workbox-137dedbd'], (function (workbox) { 'use strict';
   }), 'GET');
   workbox.registerRoute(/^https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/font-awesome\/.*/i, new workbox.CacheFirst({
     "cacheName": "fontawesome-cache",
+    plugins: [new workbox.ExpirationPlugin({
+      maxEntries: 20,
+      maxAgeSeconds: 31536000
+    }), new workbox.CacheableResponsePlugin({
+      statuses: [0, 200]
+    })]
+  }), 'GET');
+  workbox.registerRoute(/^https:\/\/cdn\.tailwindcss\.com\/.*/i, new workbox.NetworkFirst({
+    "cacheName": "tailwind-cdn-cache",
+    "networkTimeoutSeconds": 5,
+    plugins: [new workbox.ExpirationPlugin({
+      maxEntries: 5,
+      maxAgeSeconds: 2592000
+    }), new workbox.CacheableResponsePlugin({
+      statuses: [0, 200]
+    })]
+  }), 'GET');
+  workbox.registerRoute(/^https:\/\/aistudiocdn\.com\/.*/i, new workbox.CacheFirst({
+    "cacheName": "module-cdn-cache",
     plugins: [new workbox.ExpirationPlugin({
       maxEntries: 20,
       maxAgeSeconds: 31536000

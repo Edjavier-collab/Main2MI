@@ -36,16 +36,23 @@ export const useStripeCallback = ({
       // Clear URL params
       window.history.replaceState({}, '', window.location.pathname);
       
-      // First, try to update tier directly via API (works even without webhooks)
+      // First, try to update tier directly via Edge Function (works even without webhooks)
       const updateTierDirectly = async () => {
         try {
-          const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+          const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+          if (!supabaseUrl || !supabaseAnonKey) {
+            console.warn('[useStripeCallback] ⚠️ VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY not configured');
+            return false;
+          }
+
           console.log('[useStripeCallback] 🔄 Attempting to update tier directly from checkout session...');
-          
-          const response = await fetch(`${backendUrl}/api/update-tier-from-session`, {
+
+          const response = await fetch(`${supabaseUrl}/functions/v1/update-tier-from-session`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabaseAnonKey}`,
             },
             body: JSON.stringify({ sessionId }),
           });
@@ -56,7 +63,7 @@ export const useStripeCallback = ({
           }
 
           const result = await response.json();
-          console.log('[useStripeCallback] ✅ Tier updated successfully via direct API call:', result);
+          console.log('[useStripeCallback] ✅ Tier updated successfully via Edge Function:', result);
           
           // Update local state immediately
           setUserTier(UserTier.Premium);
@@ -127,16 +134,16 @@ export const useStripeCallback = ({
         if (!tierUpdated) {
           console.warn(`[useStripeCallback] ⚠️  Tier was not updated after ${maxRetries} attempts`);
           console.warn('[useStripeCallback] Possible causes:');
-          console.warn('  1. Backend server is not running (npm run dev:server)');
-          console.warn('  2. Stripe CLI is not forwarding webhooks');
+          console.warn('  1. Supabase Edge Functions not deployed');
+          console.warn('  2. Stripe webhook not configured for Edge Function');
           console.warn('  3. Supabase credentials are missing or incorrect');
           console.warn('  4. Database connection failed');
-          console.warn('[useStripeCallback] Action: Check server logs and run: curl http://localhost:3001/api/setup-check');
+          console.warn('[useStripeCallback] Action: Deploy Edge Functions with: supabase functions deploy');
           
           alert('✅ Payment received! Your subscription is being activated.\n\n' +
                 'If premium features don\'t appear after 30 seconds:\n' +
                 '1. Refresh the page\n' +
-                '2. Check that the backend server is running (npm run dev:server)\n' +
+                '2. Ensure Supabase Edge Functions are deployed\n' +
                 '3. Verify Supabase credentials in .env.local');
           setView(View.Dashboard);
           

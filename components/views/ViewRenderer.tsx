@@ -221,7 +221,9 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
 
   return (
     <Suspense fallback={<PageLoader message="Loading..." />}>
-      {renderView()}
+      <div className="animate-slide-fade-in w-full h-full">
+        {renderView()}
+      </div>
     </Suspense>
   );
 };

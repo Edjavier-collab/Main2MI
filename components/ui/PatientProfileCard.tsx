@@ -47,7 +47,7 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
     };
 
     return (
-        <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-2xl mx-auto shadow-sm overflow-hidden">
+        <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-2xl mx-auto shadow-sm overflow-hidden transition-shadow duration-300 hover:shadow-lg">
             {/* Header */}
             <header className="flex items-center justify-between p-6 border-b border-gray-200">
                 <div>

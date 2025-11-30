@@ -98,8 +98,8 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
         setError(null);
 
         try {
-            console.log('[PaywallView] Starting checkout for plan:', plan);
-            await redirectToCheckout(user.id, plan);
+            console.log('[PaywallView] Starting checkout for plan:', plan, 'email:', user.email);
+            await redirectToCheckout(user.id, plan, user.email || undefined);
             // Note: redirectToCheckout will redirect the page, so code below won't execute
         } catch (err) {
             console.error('[PaywallView] Checkout error:', err);

@@ -24,19 +24,20 @@ interface SetupCheckResult {
 }
 
 interface UseSetupCheckOptions {
-  backendUrl?: string;
   enabled?: boolean;
 }
 
 /**
  * Hook to check backend setup status
  * Useful for debugging payment and database issues
+ * Now uses Supabase Edge Functions instead of Express backend
  */
 export const useSetupCheck = (options: UseSetupCheckOptions = {}) => {
   const {
-    backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001',
     enabled = false,
   } = options;
+  
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
   const [setupCheck, setSetupCheck] = useState<SetupCheckResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -48,12 +49,18 @@ export const useSetupCheck = (options: UseSetupCheckOptions = {}) => {
       return;
     }
 
+    if (!supabaseUrl) {
+      console.warn('[useSetupCheck] VITE_SUPABASE_URL not configured');
+      setError('Supabase URL not configured');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      console.log('[useSetupCheck] Running setup check against:', backendUrl);
-      const response = await fetch(`${backendUrl}/api/setup-check`);
+      console.log('[useSetupCheck] Running setup check against Supabase Edge Functions');
+      const response = await fetch(`${supabaseUrl}/functions/v1/setup-check`);
       
       if (!response.ok) {
         throw new Error(`Backend returned ${response.status}: ${response.statusText}`);

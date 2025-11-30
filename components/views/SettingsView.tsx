@@ -194,7 +194,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
             // Improve error messages
             let displayError = errorMessage;
             if (errorMessage.includes('endpoint not found') || errorMessage.includes('Failed to fetch')) {
-                displayError = 'Unable to reach the subscription server. Please ensure `npm run dev:server` is running on port 3001.';
+                displayError = 'Unable to reach the subscription server. Please ensure your Supabase Edge Functions are deployed.';
             } else if (errorMessage.includes('No subscription found')) {
                 displayError = 'No subscription found to restore. If you had a subscription, it may have expired or been cancelled.';
             }

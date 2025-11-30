@@ -23,7 +23,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isTyping = false }) =>
     );
 
     return (
-        <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+        <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-slide-fade-in`}>
             <div className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-3 shadow-sm ${bubbleClasses}`}>
                 {isTyping ? typingIndicator : <p className="whitespace-pre-wrap">{message.text}</p>}
             </div>

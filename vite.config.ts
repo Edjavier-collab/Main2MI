@@ -145,6 +145,37 @@ export default defineConfig(({ mode }) => {
                 }
               },
               {
+                // Cache Tailwind CDN script
+                urlPattern: /^https:\/\/cdn\.tailwindcss\.com\/.*/i,
+                handler: 'NetworkFirst',
+                options: {
+                  cacheName: 'tailwind-cdn-cache',
+                  networkTimeoutSeconds: 5,
+                  expiration: {
+                    maxEntries: 5,
+                    maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+                  },
+                  cacheableResponse: {
+                    statuses: [0, 200]
+                  }
+                }
+              },
+              {
+                // Cache React + other modules loaded from CDN via import maps
+                urlPattern: /^https:\/\/aistudiocdn\.com\/.*/i,
+                handler: 'CacheFirst',
+                options: {
+                  cacheName: 'module-cdn-cache',
+                  expiration: {
+                    maxEntries: 20,
+                    maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+                  },
+                  cacheableResponse: {
+                    statuses: [0, 200]
+                  }
+                }
+              },
+              {
                 // Cache images
                 urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
                 handler: 'CacheFirst',
