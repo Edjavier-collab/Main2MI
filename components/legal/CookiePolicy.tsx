@@ -6,29 +6,32 @@ interface CookiePolicyProps {
 
 const CookiePolicy: React.FC<CookiePolicyProps> = ({ onBack }) => {
     return (
-        <div className="flex-grow p-4 sm:p-6 bg-slate-50 min-h-full">
-            <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-sm p-6 sm:p-8">
-                <button
+        <div className="min-h-screen bg-transparent pb-24">
+            <div className="max-w-3xl mx-auto px-6 py-4">
+                <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={onBack}
-                    className="mb-6 text-sky-600 hover:text-sky-700 flex items-center gap-2"
+                    icon={<i className="fa fa-arrow-left" />}
+                    className="mb-6"
                 >
-                    <i className="fa fa-arrow-left"></i>
                     Back
-                </button>
+                </Button>
 
-                <h1 className="text-3xl font-bold text-gray-900 mb-6">Cookie Policy</h1>
-                <p className="text-sm text-gray-600 mb-6">Last Updated: November 2024</p>
+                <Card variant="elevated" padding="lg">
+                    <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-6">Cookie Policy</h1>
+                    <p className="text-sm text-[var(--color-text-muted)] mb-6">Last Updated: November 2024</p>
 
-                <div className="space-y-6 text-gray-700 leading-relaxed">
+                    <div className="space-y-6 text-[var(--color-text-secondary)] leading-relaxed">
                     <section>
-                        <h2 className="text-xl font-semibold text-gray-900 mb-3">1. What Are Cookies?</h2>
+                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">1. What Are Cookies?</h2>
                         <p>
                             Cookies are small text files stored on your device (computer, tablet, or mobile) that help websites recognize you, remember preferences, and track usage patterns. We use cookies to enhance your experience with MI Practice Coach.
                         </p>
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-gray-900 mb-3">2. Types of Cookies We Use</h2>
+                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">2. Types of Cookies We Use</h2>
                         <p className="mb-3">
                             We use the following categories of cookies:
                         </p>
@@ -49,7 +52,7 @@ const CookiePolicy: React.FC<CookiePolicyProps> = ({ onBack }) => {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-gray-900 mb-3">3. Third-Party Cookies</h2>
+                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">3. Third-Party Cookies</h2>
                         <p className="mb-3">
                             We may include cookies from trusted third parties:
                         </p>
@@ -61,7 +64,7 @@ const CookiePolicy: React.FC<CookiePolicyProps> = ({ onBack }) => {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-gray-900 mb-3">4. Cookie Preferences & Consent</h2>
+                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">4. Cookie Preferences & Consent</h2>
                         <p className="mb-3">
                             When you first visit MI Practice Coach, we display a Cookie Consent banner. You can:
                         </p>
@@ -76,7 +79,7 @@ const CookiePolicy: React.FC<CookiePolicyProps> = ({ onBack }) => {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-gray-900 mb-3">5. How to Manage Cookies</h2>
+                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">5. How to Manage Cookies</h2>
                         <p className="mb-3">
                             <strong>Via Our App:</strong> Use the Cookie Consent banner or Settings to manage preferences.
                         </p>
@@ -94,14 +97,14 @@ const CookiePolicy: React.FC<CookiePolicyProps> = ({ onBack }) => {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Tracking & Do Not Track (DNT)</h2>
+                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">6. Tracking & Do Not Track (DNT)</h2>
                         <p>
                             If your browser sends a "Do Not Track" signal, we will respect non-essential tracking and refrain from setting non-essential cookies. Essential cookies will still be set.
                         </p>
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-gray-900 mb-3">7. Cookie Duration</h2>
+                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">7. Cookie Duration</h2>
                         <p className="mb-3">
                             Cookies expire based on their type:
                         </p>
@@ -113,7 +116,7 @@ const CookiePolicy: React.FC<CookiePolicyProps> = ({ onBack }) => {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-gray-900 mb-3">8. International Compliance</h2>
+                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">8. International Compliance</h2>
                         <p className="mb-3">
                             <strong>GDPR (EU/UK):</strong> We obtain explicit consent for non-essential cookies before setting them.
                         </p>
@@ -123,19 +126,20 @@ const CookiePolicy: React.FC<CookiePolicyProps> = ({ onBack }) => {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-gray-900 mb-3">9. Changes to This Policy</h2>
+                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">9. Changes to This Policy</h2>
                         <p>
                             We may update this Cookie Policy as our practices evolve. Continued use of the Service after changes constitutes acceptance.
                         </p>
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-gray-900 mb-3">10. Contact</h2>
+                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">10. Contact</h2>
                         <p>
                             For questions about our use of cookies, contact: <strong>support@mipracticecoach.com</strong>
                         </p>
                     </section>
-                </div>
+                    </div>
+                </Card>
             </div>
         </div>
     );

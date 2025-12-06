@@ -199,7 +199,7 @@ const AppContent: React.FC = () => {
         setView(View.CoachingSummary);
 
         try {
-            const premiumSessions = sessions.filter(s => s.tier === UserTier.Premium && s.feedback.constructiveFeedback);
+            const premiumSessions = sessions.filter(s => s.tier === UserTier.Premium);
             if (premiumSessions.length === 0) {
                  setCoachingSummaryError("You need to complete at least one Premium session to generate a summary.");
                  setIsGeneratingSummary(false);
@@ -316,7 +316,7 @@ const AppContent: React.FC = () => {
   const shouldShowNavBar = viewsWithNavBar.includes(view) || isPremiumFeedback;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-gray-800" id="main-content">
+    <div className="min-h-screen bg-transparent text-[var(--color-text-primary)]" id="main-content">
       {/* Offline status indicator */}
       <OfflineIndicator />
       
@@ -380,6 +380,8 @@ const AppContent: React.FC = () => {
           <ReviewPrompt onClose={handleReviewPromptClose} />
       )}
       <CookieConsent />
+      {/* Aria live region for async feedback */}
+      <div id="aria-live-region" aria-live="polite" aria-atomic="true" className="sr-only"></div>
     </div>
   );
 };

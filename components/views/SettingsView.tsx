@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { UserTier, View } from '../../types';
 import { User } from '@supabase/supabase-js';
 import { restoreSubscription, getUserSubscription } from '../../services/stripeService';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
+import { useToast } from '../ui/Toast';
 
 interface SettingsViewProps {
     userTier: UserTier;
@@ -11,19 +14,23 @@ interface SettingsViewProps {
     user: User | null;
 }
 
-const SettingsSection: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-    <div className="mb-8">
-        <h2 className="text-sm font-bold text-gray-500 uppercase px-4 mb-2">{title}</h2>
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+const SettingsSection: React.FC<{ title: string; children: React.ReactNode; prominent?: boolean }> = ({ title, children, prominent = false }) => (
+    <div className="mb-6">
+        <h2 className={`font-bold uppercase px-4 mb-3 ${
+            prominent 
+                ? 'text-base text-[var(--color-text-primary)]' 
+                : 'text-sm text-[var(--color-text-muted)]'
+        }`}>{title}</h2>
+        <Card variant="elevated" padding="none" className="overflow-hidden">
             {children}
-        </div>
+        </Card>
     </div>
 );
 
 const SettingsRow: React.FC<{ onClick?: () => void; isLast?: boolean; children: React.ReactNode }> = ({ onClick, isLast = false, children }) => (
     <div
         onClick={onClick}
-        className={`flex justify-between items-center p-4 ${onClick ? 'cursor-pointer hover:bg-gray-50' : ''} transition-colors ${!isLast ? 'border-b border-gray-200' : ''}`}
+        className={`flex justify-between items-center p-4 ${onClick ? 'cursor-pointer hover:bg-[var(--color-bg-accent)]' : ''} transition-colors ${!isLast ? 'border-b border-[var(--color-neutral-200)]' : ''}`}
     >
         {children}
     </div>
@@ -40,6 +47,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
     const [subscriptionLoading, setSubscriptionLoading] = useState(false);
     const [subscriptionCancelled, setSubscriptionCancelled] = useState(false);
     const [hasPremiumMismatch, setHasPremiumMismatch] = useState(false);
+    const { toasts, showToast, removeToast, ToastContainer } = useToast();
 
     const handlePlaceholderClick = (feature: string) => {
         alert(`${feature} feature coming soon!`);
@@ -213,7 +221,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
             await onLogout();
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Unable to log out. Please try again.';
-            setLogoutError(message);
+            showToast(message, 'error');
         } finally {
             setLogoutLoading(false);
         }
@@ -230,29 +238,32 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
     const displayName = fullName ? fullName.split(' ')[0] : user?.email?.split('@')[0];
 
     return (
-        <div className="flex-grow p-4 sm:p-6 bg-slate-50 min-h-full">
-            <header className="text-center mb-8 pt-4">
-                <h1 className="text-3xl font-bold text-gray-800">Settings</h1>
-            </header>
+        <div className="min-h-screen bg-transparent pb-24">
+            <ToastContainer toasts={toasts} onRemove={removeToast} />
+            
+            {/* Header */}
+            <div className="flex items-center px-6 py-4">
+                <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Settings</h1>
+            </div>
 
-            <main className="max-w-2xl mx-auto">
+            <main className="max-w-2xl mx-auto px-6">
                 {user && (
                     <SettingsSection title="Profile">
                         <div className="p-6 flex flex-col gap-4">
                             <div className="flex items-center gap-4">
                                 <div
-                                    className="w-16 h-16 rounded-full bg-sky-100 flex items-center justify-center text-sky-600 text-2xl font-bold"
+                                    className="w-16 h-16 rounded-full bg-[var(--color-primary-lighter)] flex items-center justify-center text-[var(--color-primary-dark)] text-2xl font-bold"
                                     aria-label={`Profile avatar for ${user.email}`}
                                 >
                                     {displayName?.charAt(0).toUpperCase() || <i className="fa fa-user" aria-hidden="true"></i>}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <h3 className="text-lg font-semibold text-gray-900 truncate" title={user.email}>
+                                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] truncate" title={user.email}>
                                         {fullName}
                                     </h3>
-                                    <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+                                    <div className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] mt-1">
                                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                            isPremium ? 'bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border border-amber-200' : 'bg-gray-100 text-gray-600 border border-gray-200'
+                                            isPremium ? 'bg-[var(--color-warning-light)] text-[var(--color-warning-dark)] border border-[var(--color-warning)]' : 'bg-[var(--color-neutral-100)] text-[var(--color-neutral-600)] border border-[var(--color-neutral-200)]'
                                         }`}>
                                             {isPremium 
                                                 ? subscriptionPlan === 'monthly' 
@@ -273,38 +284,34 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                     </SettingsSection>
                 )}
 
-                <SettingsSection title="Account">
+                <SettingsSection title="Account" prominent>
                     {isAnonymous ? (
                         <>
                             <SettingsRow onClick={() => onNavigate(View.Login)} isLast>
                                 <div>
-                                    <span className="text-sky-600 font-medium">Sign In or Create Account</span>
-                                    <p className="text-xs text-gray-500 mt-1">Access unlimited sessions and sync across devices</p>
+                                    <span className="text-[var(--color-primary)] font-medium">Sign In or Create Account</span>
+                                    <p className="text-xs text-[var(--color-text-muted)] mt-1">Access unlimited sessions and sync across devices</p>
                                 </div>
-                                <i className="fa fa-chevron-right text-gray-400"></i>
+                                <i className="fa fa-chevron-right text-[var(--color-text-muted)]" aria-hidden="true"></i>
                             </SettingsRow>
                         </>
                     ) : (
-                        <div className="p-4">
-                            <button
-                                type="button"
-                                onClick={handleLogoutClick}
-                                disabled={logoutLoading}
-                                className="w-full flex justify-center items-center rounded-xl border border-red-200 bg-white py-3 text-red-500 font-semibold hover:bg-red-50 transition disabled:opacity-60 disabled:cursor-not-allowed"
-                            >
-                                {logoutLoading ? (
-                                    <span className="flex items-center text-sm">
-                                        <i className="fa fa-spinner fa-spin mr-2"></i>
-                                        Logging Out...
-                                    </span>
-                                ) : (
-                                    'Log Out'
-                                )}
-                            </button>
-                            {logoutError && (
-                                <p className="mt-2 text-center text-sm text-red-500">{logoutError}</p>
-                            )}
-                        </div>
+                        <SettingsRow isLast>
+                            <div className="flex-1">
+                                <Button
+                                    type="button"
+                                    onClick={handleLogoutClick}
+                                    disabled={logoutLoading}
+                                    variant="secondary"
+                                    fullWidth
+                                    loading={logoutLoading}
+                                    className="border-2 border-red-500 text-red-600 hover:bg-red-50 hover:border-red-600 focus:ring-red-500"
+                                    icon={!logoutLoading ? <i className="fa-solid fa-right-from-bracket" /> : undefined}
+                                >
+                                    {logoutLoading ? 'Logging Out...' : 'Log Out'}
+                                </Button>
+                            </div>
+                        </SettingsRow>
                     )}
                 </SettingsSection>
 
@@ -314,13 +321,13 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                             {user && (
                                 <SettingsRow>
                                     <div>
-                                        <span className="text-gray-800">Current Plan</span>
+                                        <span className="text-[var(--color-text-primary)]">Current Plan</span>
                                         {subscriptionLoading ? (
-                                            <p className="text-sm text-gray-500 mt-1">
-                                                <i className="fa fa-spinner fa-spin mr-1"></i>Loading...
+                                            <p className="text-sm text-[var(--color-text-muted)] mt-1">
+                                                <i className="fa fa-spinner fa-spin mr-1" aria-hidden="true"></i>Loading...
                                             </p>
                                         ) : (
-                                            <p className="text-sm font-semibold text-gray-800 mt-1">
+                                            <p className="text-sm font-semibold text-[var(--color-text-primary)] mt-1">
                                                 Premium{subscriptionPlan === 'monthly' ? ' (Monthly)' : subscriptionPlan === 'annual' ? ' (Annual)' : ''}
                                             </p>
                                         )}
@@ -329,13 +336,13 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                             )}
                             {!user && (
                                 <SettingsRow>
-                                    <span className="text-gray-800">Current Plan</span>
-                                    <span className="font-semibold text-gray-800">Premium</span>
+                                    <span className="text-[var(--color-text-primary)]">Current Plan</span>
+                                    <span className="font-semibold text-[var(--color-text-primary)]">Premium</span>
                                 </SettingsRow>
                             )}
                             <SettingsRow onClick={() => onNavigate(View.CancelSubscription)}>
-                                <span className="text-sky-600">Manage Subscription</span>
-                                <i className="fa fa-chevron-right text-gray-400"></i>
+                                <span className="text-[var(--color-primary)]">Manage Subscription</span>
+                                <i className="fa fa-chevron-right text-[var(--color-text-muted)]" aria-hidden="true"></i>
                             </SettingsRow>
                             {/* Only show Restore Purchase if subscription exists, is cancelled, and period hasn't ended */}
                             {subscriptionCancelled && (
@@ -366,15 +373,19 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                         <>
                             <SettingsRow onClick={onNavigateToPaywall} isLast={!subscriptionCancelled}>
                                 <div>
-                                    <p className="text-gray-800">Current Plan</p>
-                                    <p className="text-sky-600 text-sm font-semibold">Free Tier</p>
+                                    <p className="text-[var(--color-text-primary)]">Current Plan</p>
+                                    <p className="text-[var(--color-primary)] text-sm font-semibold">Free Tier</p>
                                 </div>
                                 {user ? (
-                                    <button className="px-4 py-1.5 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 transition shadow-sm">
+                                    <Button
+                                        variant="primary"
+                                        size="sm"
+                                        onClick={onNavigateToPaywall}
+                                    >
                                         Upgrade
-                                    </button>
+                                    </Button>
                                 ) : (
-                                    <i className="fa fa-chevron-right text-gray-400"></i>
+                                    <i className="fa fa-chevron-right text-[var(--color-text-muted)]" aria-hidden="true"></i>
                                 )}
                             </SettingsRow>
                             {/* Free tier users can restore if a cancelled subscription still exists */}
@@ -407,31 +418,31 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
 
                 <SettingsSection title="Legal">
                     <SettingsRow onClick={() => onNavigate(View.PrivacyPolicy)}>
-                        <span className="text-gray-800">Privacy Policy</span>
-                        <i className="fa fa-chevron-right text-gray-400"></i>
+                        <span className="text-[var(--color-text-primary)]">Privacy Policy</span>
+                        <i className="fa fa-chevron-right text-[var(--color-text-muted)]" aria-hidden="true"></i>
                     </SettingsRow>
                     <SettingsRow onClick={() => onNavigate(View.TermsOfService)}>
-                        <span className="text-gray-800">Terms of Service</span>
-                        <i className="fa fa-chevron-right text-gray-400"></i>
+                        <span className="text-[var(--color-text-primary)]">Terms of Service</span>
+                        <i className="fa fa-chevron-right text-[var(--color-text-muted)]" aria-hidden="true"></i>
                     </SettingsRow>
                     <SettingsRow onClick={() => onNavigate(View.SubscriptionTerms)}>
-                        <span className="text-gray-800">Subscription & Billing</span>
-                        <i className="fa fa-chevron-right text-gray-400"></i>
+                        <span className="text-[var(--color-text-primary)]">Subscription & Billing</span>
+                        <i className="fa fa-chevron-right text-[var(--color-text-muted)]" aria-hidden="true"></i>
                     </SettingsRow>
                     <SettingsRow onClick={() => onNavigate(View.CookiePolicy)}>
-                        <span className="text-gray-800">Cookie Policy</span>
-                        <i className="fa fa-chevron-right text-gray-400"></i>
+                        <span className="text-[var(--color-text-primary)]">Cookie Policy</span>
+                        <i className="fa fa-chevron-right text-[var(--color-text-muted)]" aria-hidden="true"></i>
                     </SettingsRow>
                     <SettingsRow onClick={() => onNavigate(View.Disclaimer)} isLast>
-                        <span className="text-gray-800">Medical & Education Disclaimer</span>
-                        <i className="fa fa-chevron-right text-gray-400"></i>
+                        <span className="text-[var(--color-text-primary)]">Medical & Education Disclaimer</span>
+                        <i className="fa fa-chevron-right text-[var(--color-text-muted)]" aria-hidden="true"></i>
                     </SettingsRow>
                 </SettingsSection>
 
                 <SettingsSection title="Support">
                     <SettingsRow onClick={() => onNavigate(View.Support)} isLast>
-                        <span className="text-gray-800">Contact Us / Help Center</span>
-                        <i className="fa fa-chevron-right text-gray-400"></i>
+                        <span className="text-[var(--color-text-primary)]">Contact Us / Help Center</span>
+                        <i className="fa fa-chevron-right text-[var(--color-text-muted)]" aria-hidden="true"></i>
                     </SettingsRow>
                 </SettingsSection>
             </main>

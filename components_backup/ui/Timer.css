@@ -1,0 +1,38 @@
+.timer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  transition: color var(--transition-normal);
+}
+
+.timer__icon {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+
+.timer__time {
+  letter-spacing: 0.5px;
+}
+
+.timer--low {
+  color: var(--color-accent-error);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.timer--low .timer__icon {
+  color: var(--color-accent-error);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+

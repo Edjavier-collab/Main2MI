@@ -757,6 +757,43 @@ const coachingSummarySchema = {
         summaryAndNextSteps: { 
             type: Type.STRING, 
             description: "A brief, encouraging summary and a concrete, actionable next step for their next practice session. Use markdown for lists if needed." 
+        },
+        skillProgression: {
+            type: Type.ARRAY,
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    skillName: {
+                        type: Type.STRING,
+                        description: "The name of the MI skill (e.g., 'Reflections', 'Open Questions', 'Affirmations')"
+                    },
+                    totalCount: {
+                        type: Type.INTEGER,
+                        description: "The total number of times this skill was used across all sessions"
+                    },
+                    averagePerSession: {
+                        type: Type.NUMBER,
+                        description: "The average number of times this skill was used per session"
+                    },
+                    trend: {
+                        type: Type.STRING,
+                        enum: ['increasing', 'stable', 'decreasing'],
+                        description: "Whether the skill usage is increasing, stable, or decreasing across sessions"
+                    }
+                },
+                required: ["skillName", "totalCount", "averagePerSession", "trend"]
+            },
+            description: "An array of skill progression data showing usage counts and trends for each MI skill detected across sessions"
+        },
+        topSkillsToImprove: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: "An array of 1-2 skill names that need the most focus and improvement (e.g., ['Reflections', 'Open Questions'])"
+        },
+        specificNextSteps: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: "An array of 2-3 specific, measurable action steps for the next practice session (e.g., ['Use at least 5 reflections in your next session', 'Ask 3 open-ended questions that explore patient values'])"
         }
     },
     required: ["totalSessions", "dateRange", "strengthsAndTrends", "areasForFocus", "summaryAndNextSteps"]
@@ -772,6 +809,7 @@ export const generateCoachingSummary = async (sessions: Session[]): Promise<Coac
         constructiveFeedback: session.feedback.constructiveFeedback || "Not specified.",
         empathyScore: session.feedback.empathyScore,
         keySkillsUsed: session.feedback.keySkillsUsed,
+        skillCounts: session.feedback.skillCounts || {},
     }));
 
     if (sessionSummaries.length === 0) {
@@ -809,11 +847,29 @@ export const generateCoachingSummary = async (sessions: Session[]): Promise<Coac
       * Provide a brief, encouraging summary that acknowledges the ${sessionSummaries.length} session${sessionSummaries.length === 1 ? '' : 's'} analyzed.
       * Suggest a concrete, actionable next step for their next practice session that builds on the identified themes.
       * Make the recommendation specific and measurable.
+    - skillProgression:
+      * Analyze the "skillCounts" objects from each session to calculate skill usage progression.
+      * For each MI skill that appears in the skillCounts across sessions, calculate:
+        - skillName: The name of the skill (e.g., "Reflections", "Open Questions", "Affirmations", "Summaries", "Developing Discrepancy", "Eliciting Change Talk", "Rolling with Resistance", "Supporting Self-Efficacy")
+        - totalCount: Sum of all uses of this skill across all sessions
+        - averagePerSession: Total count divided by number of sessions
+        - trend: "increasing" if the skill is used more in later sessions, "decreasing" if less in later sessions, "stable" if usage is consistent
+      * Include ALL skills that appear in any session's skillCounts. If a skill appears in some sessions but not others, include it with counts from sessions where it was used.
+      * Order skills by totalCount (highest first) to highlight most-used skills.
+    - topSkillsToImprove:
+      * Identify 1-2 skills that appear least frequently in skillCounts OR skills where the trend is "decreasing"
+      * These should be skills that, if improved, would have the biggest impact on their MI practice
+      * Return as an array of skill names (e.g., ["Reflections", "Open Questions"])
+    - specificNextSteps:
+      * Generate 2-3 specific, measurable action steps based on the skillProgression analysis
+      * Each step should be concrete and actionable (e.g., "Use at least 5 reflections in your next practice session", "Ask 3 open-ended questions that explore patient values")
+      * Focus on the topSkillsToImprove but also reference skills that are strengths
+      * Make each step specific and measurable so the user knows exactly what to do
 
     Here is the aggregated data from ${sessionSummaries.length} session${sessionSummaries.length === 1 ? '' : 's'}:
     - Total Sessions Analyzed: ${sessionSummaries.length}
     - Date Range: ${firstSessionDate} to ${lastSessionDate}
-    - Session Summaries:
+    - Session Summaries (including skillCounts for trend analysis):
     ${JSON.stringify(sessionSummaries, null, 2)}
     `;
 
@@ -831,7 +887,21 @@ export const generateCoachingSummary = async (sessions: Session[]): Promise<Coac
 * Your empathy scores have remained stable across ${sessionSummaries.length === 1 ? 'this session' : 'these sessions'}, indicating you maintain a genuine, non-judgmental stance across conversations
 * You're successfully creating safe spaces where patients feel comfortable opening up about their concerns`,
                 areasForFocus: `A recurring theme across your ${sessionSummaries.length} session${sessionSummaries.length === 1 ? '' : 's'} is the opportunity to use more complex reflections that name both sides of patient ambivalence—moving beyond simple reflections to ones that deepen understanding and build discrepancy. Focusing on this will help you explore patients' ambivalence and motivations more effectively, which is crucial for facilitating movement through the stages of change.`,
-                summaryAndNextSteps: `You're demonstrating real growth in your Motivational Interviewing practice! Based on the analysis of your ${sessionSummaries.length} session${sessionSummaries.length === 1 ? '' : 's'}, your consistent engagement and genuine curiosity are creating meaningful connections with patients. The next level of your development is to deepen your reflections and become more intentional about using specific MI skills to help patients move toward behavior change. For your next practice session, pick one specific skill to focus on—whether it's complex reflections, exploring ambivalence, or eliciting change talk—and practice it with intention. Quality over quantity will accelerate your growth.`
+                summaryAndNextSteps: `You're demonstrating real growth in your Motivational Interviewing practice! Based on the analysis of your ${sessionSummaries.length} session${sessionSummaries.length === 1 ? '' : 's'}, your consistent engagement and genuine curiosity are creating meaningful connections with patients. The next level of your development is to deepen your reflections and become more intentional about using specific MI skills to help patients move toward behavior change. For your next practice session, pick one specific skill to focus on—whether it's complex reflections, exploring ambivalence, or eliciting change talk—and practice it with intention. Quality over quantity will accelerate your growth.`,
+                skillProgression: [
+                    { skillName: 'Reflections', totalCount: 12, averagePerSession: 4.0, trend: 'increasing' },
+                    { skillName: 'Open Questions', totalCount: 9, averagePerSession: 3.0, trend: 'stable' },
+                    { skillName: 'Affirmations', totalCount: 6, averagePerSession: 2.0, trend: 'increasing' },
+                    { skillName: 'Summaries', totalCount: 3, averagePerSession: 1.0, trend: 'stable' },
+                    { skillName: 'Eliciting Change Talk', totalCount: 2, averagePerSession: 0.67, trend: 'decreasing' },
+                    { skillName: 'Developing Discrepancy', totalCount: 1, averagePerSession: 0.33, trend: 'stable' }
+                ],
+                topSkillsToImprove: ['Eliciting Change Talk', 'Developing Discrepancy'],
+                specificNextSteps: [
+                    'Use at least 5 reflections in your next practice session, focusing on complex reflections that name both sides of patient ambivalence',
+                    'Practice eliciting change talk by asking 3 open-ended questions that explore what the patient wants, why it matters to them, and how they envision success',
+                    'Build in at least one summary that ties together key points the patient has shared, showing you\'ve been listening and helping them see their own motivations'
+                ]
             };
         }
         

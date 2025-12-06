@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
+import { useToast } from '../ui/Toast';
 
 interface ResetPasswordViewProps {
     onBack: () => void;
@@ -14,6 +17,7 @@ const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({ onBack, onSuccess
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
+    const { toasts, showToast, removeToast, ToastContainer } = useToast();
 
     // Check if we have a valid reset token from URL
     useEffect(() => {
@@ -117,7 +121,7 @@ const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({ onBack, onSuccess
             onSuccess();
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to reset password. Please try again.';
-            setError(errorMessage);
+            showToast(errorMessage, 'error');
         } finally {
             setLoading(false);
         }
@@ -125,11 +129,11 @@ const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({ onBack, onSuccess
 
     if (isValidToken === null) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col p-4">
+            <div className="min-h-screen bg-transparent flex flex-col p-4">
                 <div className="flex-grow flex flex-col justify-center items-center w-full max-w-sm mx-auto">
                     <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4"></div>
-                        <p className="text-gray-600">Validating reset link...</p>
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)] mx-auto mb-4"></div>
+                        <p className="text-[var(--color-text-secondary)]">Validating reset link...</p>
                     </div>
                 </div>
             </div>
@@ -138,104 +142,112 @@ const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({ onBack, onSuccess
 
     if (isValidToken === false) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col p-4">
+            <div className="min-h-screen bg-transparent flex flex-col p-4 pb-24">
+                <ToastContainer toasts={toasts} onRemove={removeToast} />
                 <header className="flex items-center w-full max-w-sm mx-auto pt-4">
-                    <button onClick={onBack} className="p-2 -ml-2" aria-label="Go back">
-                        <i className="fa fa-arrow-left text-2xl text-gray-600" aria-hidden="true"></i>
-                    </button>
-                    <h1 className="text-2xl font-bold text-gray-800 mx-auto -translate-x-4">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onBack}
+                        icon={<i className="fa fa-arrow-left" />}
+                        aria-label="Go back"
+                        className="mr-3"
+                    />
+                    <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
                         Reset Password
                     </h1>
                 </header>
 
                 <div className="flex-grow flex flex-col justify-center items-center w-full max-w-sm mx-auto">
-                    <div className="text-center">
-                        <div className="mx-auto mb-6 bg-red-100 h-20 w-20 rounded-full flex items-center justify-center">
-                            <i className="fa-solid fa-exclamation-triangle text-4xl text-red-500"></i>
+                    <Card variant="elevated" padding="lg" className="text-center w-full">
+                        <div className="mx-auto mb-6 bg-[var(--color-error-light)] h-20 w-20 rounded-full flex items-center justify-center">
+                            <i className="fa-solid fa-exclamation-triangle text-4xl text-[var(--color-error)]" aria-hidden="true"></i>
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-800 mb-4">Invalid Reset Link</h2>
-                        {error && (
-                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-6">
-                                {error}
-                            </div>
-                        )}
-                        <p className="text-gray-600 mb-6">
+                        <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-4">Invalid Reset Link</h2>
+                        <p className="text-[var(--color-text-secondary)] mb-6">
                             This password reset link is invalid or has expired. Please request a new one.
                         </p>
-                        <button
+                        <Button
                             onClick={onBack}
-                            className="w-full bg-sky-500 text-white font-bold py-3 rounded-lg hover:bg-sky-600 transition-colors"
+                            variant="primary"
+                            fullWidth
                         >
                             Back to Login
-                        </button>
-                    </div>
+                        </Button>
+                    </Card>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col p-4">
+        <div className="min-h-screen bg-transparent flex flex-col p-4 pb-24">
+            <ToastContainer toasts={toasts} onRemove={removeToast} />
             <header className="flex items-center w-full max-w-sm mx-auto pt-4">
-                <button onClick={onBack} className="p-2 -ml-2" aria-label="Go back">
-                    <i className="fa fa-arrow-left text-2xl text-gray-600" aria-hidden="true"></i>
-                </button>
-                <h1 className="text-2xl font-bold text-gray-800 mx-auto -translate-x-4">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onBack}
+                    icon={<i className="fa fa-arrow-left" />}
+                    aria-label="Go back"
+                    className="mr-3"
+                />
+                <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
                     Reset Password
                 </h1>
             </header>
 
             <div className="flex-grow flex flex-col justify-center items-center w-full max-w-sm mx-auto">
-                <form onSubmit={handleSubmit} className="w-full">
-                    <p className="text-gray-600 mb-6 text-center">
-                        Enter your new password below.
-                    </p>
-                    {error && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
-                            {error}
-                        </div>
-                    )}
-                    <div className="mb-4">
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                            New Password
-                        </label>
-                        <input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Enter new password"
-                            required
-                            disabled={loading}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50"
-                        />
-                        <p className="text-xs text-gray-500 mt-2">
-                            Must be at least 8 characters with uppercase, lowercase, and a number.
+                <Card variant="elevated" padding="lg" className="w-full">
+                    <form onSubmit={handleSubmit}>
+                        <p className="text-[var(--color-text-secondary)] mb-6 text-center">
+                            Enter your new password below.
                         </p>
-                    </div>
-                    <div className="mb-6">
-                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                            Confirm Password
-                        </label>
-                        <input
-                            id="confirmPassword"
-                            type="password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            placeholder="Confirm new password"
-                            required
-                            disabled={loading}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50"
-                        />
-                    </div>
-                    <button
-                        type="submit"
-                        className="w-full bg-sky-500 text-white font-bold py-3 px-6 rounded-full text-lg shadow-md hover:bg-sky-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                        disabled={!password || !confirmPassword || loading}
-                    >
-                        {loading ? 'Resetting Password...' : 'Reset Password'}
-                    </button>
-                </form>
+                        <div className="mb-4">
+                            <label htmlFor="password" className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+                                New Password
+                            </label>
+                            <input
+                                id="password"
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="Enter new password"
+                                required
+                                disabled={loading}
+                                className="w-full px-4 py-3 border border-[var(--color-neutral-300)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:opacity-50 bg-white text-[var(--color-text-primary)]"
+                            />
+                            <p className="text-xs text-[var(--color-text-muted)] mt-2">
+                                Must be at least 8 characters with uppercase, lowercase, and a number.
+                            </p>
+                        </div>
+                        <div className="mb-6">
+                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+                                Confirm Password
+                            </label>
+                            <input
+                                id="confirmPassword"
+                                type="password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                placeholder="Confirm new password"
+                                required
+                                disabled={loading}
+                                className="w-full px-4 py-3 border border-[var(--color-neutral-300)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:opacity-50 bg-white text-[var(--color-text-primary)]"
+                            />
+                        </div>
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            size="lg"
+                            fullWidth
+                            disabled={!password || !confirmPassword || loading}
+                            loading={loading}
+                        >
+                            Reset Password
+                        </Button>
+                    </form>
+                </Card>
             </div>
         </div>
     );

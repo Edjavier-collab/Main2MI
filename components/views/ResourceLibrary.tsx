@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { UserTier } from '../../types';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
 
 interface ResourceLibraryProps {
     onUpgrade: () => void;
@@ -319,27 +321,27 @@ const ResourceDetailView: React.FC<{ resourceId: number; onBack: () => void; }> 
         return resource.content.map((item: any, index: number) => {
             switch (item.type) {
                 case 'heading':
-                    return <h3 key={index} className="text-xl font-bold text-slate-700 mt-6 mb-2">{item.text}</h3>;
+                    return <h3 key={index} className="text-xl font-bold text-[var(--color-text-primary)] mt-6 mb-2">{item.text}</h3>;
                 case 'subheading':
-                    return <h4 key={index} className="text-lg font-semibold text-slate-600 mt-4 mb-1">{item.text}</h4>;
+                    return <h4 key={index} className="text-lg font-semibold text-[var(--color-text-primary)] mt-4 mb-1">{item.text}</h4>;
                 case 'paragraph':
-                    return <p key={index} className="text-slate-600 leading-relaxed mb-4">{item.text}</p>;
+                    return <p key={index} className="text-[var(--color-text-secondary)] leading-relaxed mb-4">{item.text}</p>;
                 case 'list':
                     return (
-                        <ul key={index} className="list-disc list-inside space-y-2 pl-4 text-slate-600">
+                        <ul key={index} className="list-disc list-inside space-y-2 pl-4 text-[var(--color-text-secondary)]">
                             {item.items.map((li: string, i: number) => <li key={i}>{li}</li>)}
                         </ul>
                     );
                 case 'dialogue':
                     return (
-                        <div key={index} className="border-l-4 border-slate-300 pl-4 py-2 my-4 bg-slate-50 rounded-r-lg">
+                        <Card key={index} variant="accent" padding="sm" className="border-l-4 border-[var(--color-primary)] my-4">
                             {item.lines.map((line: {speaker: string, text: string}, i: number) => (
                                 <p key={i} className="mb-1">
-                                    <span className={`font-bold ${line.speaker.includes('Patient') ? 'text-rose-600' : 'text-sky-600'}`}>{line.speaker}: </span>
-                                    <span className="text-slate-700 italic">"{line.text}"</span>
+                                    <span className={`font-bold ${line.speaker.includes('Patient') ? 'text-[var(--color-error)]' : 'text-[var(--color-primary)]'}`}>{line.speaker}: </span>
+                                    <span className="text-[var(--color-text-secondary)] italic">"{line.text}"</span>
                                 </p>
                             ))}
-                        </div>
+                        </Card>
                     );
                 default:
                     return null;
@@ -348,19 +350,22 @@ const ResourceDetailView: React.FC<{ resourceId: number; onBack: () => void; }> 
     };
 
     return (
-        <div className="p-4">
-            <header className="flex items-center mb-6">
-                <button
+        <div className="min-h-screen bg-transparent pb-24 px-6">
+            <header className="flex items-center mb-6 pt-4">
+                <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={onBack}
-                    className="p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200 transition-colors"
+                    icon={<i className="fa fa-arrow-left" />}
                     aria-label="Go back"
-                >
-                    <i className="fa fa-arrow-left text-xl text-gray-600" aria-hidden="true"></i>
-                </button>
-                <h1 className="text-2xl font-bold text-gray-800">{resource.title}</h1>
+                    className="mr-3"
+                />
+                <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">{resource.title}</h1>
             </header>
             <main className="pb-8">
-                {renderContent()}
+                <Card variant="elevated" padding="lg">
+                    {renderContent()}
+                </Card>
             </main>
         </div>
     );
@@ -397,30 +402,31 @@ const ResourceLibrary: React.FC<ResourceLibraryProps> = ({ onUpgrade, userTier, 
     }
 
     return (
-        <div className="bg-slate-50 min-h-full flex flex-col p-4">
-            <header className="flex items-center mb-4 pt-2">
-                <button
+        <div className="min-h-screen bg-transparent pb-24 flex flex-col">
+            <header className="flex items-center mb-4 pt-4 px-6">
+                <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={onBack}
-                    className="p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200 transition-colors"
+                    icon={<i className="fa fa-arrow-left" />}
                     aria-label="Go back"
-                >
-                    <i className="fa fa-arrow-left text-xl text-gray-600" aria-hidden="true"></i>
-                </button>
-                <h1 className="text-2xl font-bold text-gray-800">Resource Library</h1>
+                    className="mr-3"
+                />
+                <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Resource Library</h1>
             </header>
 
-            <div className="relative mb-6">
-                <i className="fa fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            <div className="relative mb-6 px-6">
+                <i className="fa fa-search absolute left-10 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" aria-hidden="true"></i>
                 <input
                     type="text"
                     placeholder="Search resources"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-[var(--color-neutral-300)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-[var(--color-text-primary)]"
                 />
             </div>
 
-            <main className="space-y-4">
+            <main className="space-y-4 px-6">
                 {filteredData.map(category => {
                     const isCategoryOpen = openCategory === category.category;
                     const premiumItems = category.items.filter(i => i.premiumOnly);
@@ -428,42 +434,76 @@ const ResourceLibrary: React.FC<ResourceLibraryProps> = ({ onUpgrade, userTier, 
                     
                     return (
                         <div key={category.category}>
-                            <button
+                            <Card
+                                variant="accent"
+                                padding="md"
+                                hoverable={isPremium}
                                 onClick={() => isPremium ? setOpenCategory(isCategoryOpen ? null : category.category) : undefined}
-                                className={`w-full text-left font-bold p-3 rounded-lg flex justify-between items-center ${isPremium ? 'cursor-pointer' : 'cursor-default'} bg-sky-100 text-sky-700 border-l-4 border-sky-500`}
+                                className={`border-l-4 border-[var(--color-primary)] ${!isPremium ? 'cursor-default' : ''}`}
                             >
-                                <span>{category.category}</span>
-                                {isPremium && <i className={`fa fa-chevron-down transition-transform ${isCategoryOpen ? 'rotate-180' : ''}`} aria-hidden="true"></i>}
-                            </button>
+                                <div className="flex justify-between items-center">
+                                    <span className="font-bold text-[var(--color-text-primary)]">{category.category}</span>
+                                    {isPremium && <i className={`fa fa-chevron-down transition-transform ${isCategoryOpen ? 'rotate-180' : ''}`} aria-hidden="true"></i>}
+                                </div>
+                            </Card>
                             
                             {(isPremium ? isCategoryOpen : true) && (
                                 <div className="mt-1 space-y-1">
                                     {freeItems.map(item => (
-                                        <div key={item.id} onClick={() => handleItemClick(item)} className="p-4 text-gray-800 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors">
+                                        <Card
+                                            key={item.id}
+                                            variant="elevated"
+                                            padding="sm"
+                                            hoverable
+                                            onClick={() => handleItemClick(item)}
+                                            className="cursor-pointer"
+                                        >
                                             {item.title}
-                                        </div>
+                                        </Card>
                                     ))}
                                     {isPremium ? (
                                         premiumItems.map(item => (
-                                            <div key={item.id} onClick={() => handleItemClick(item)} className="p-4 text-gray-800 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors">
+                                            <Card
+                                                key={item.id}
+                                                variant="elevated"
+                                                padding="sm"
+                                                hoverable
+                                                onClick={() => handleItemClick(item)}
+                                                className="cursor-pointer"
+                                            >
                                                 {item.title}
-                                            </div>
+                                            </Card>
                                         ))
                                     ) : (
                                         <>
                                             {premiumItems.slice(0, 3).map(item => (
-                                                <div key={item.id} onClick={onUpgrade} className="p-4 flex justify-between items-center text-gray-500 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors">
-                                                    <span>{item.title}</span>
-                                                    <i className="fa fa-lock text-slate-400"></i>
-                                                </div>
+                                                <Card
+                                                    key={item.id}
+                                                    variant="elevated"
+                                                    padding="sm"
+                                                    hoverable
+                                                    onClick={onUpgrade}
+                                                    className="cursor-pointer"
+                                                >
+                                                    <div className="flex justify-between items-center text-[var(--color-text-muted)]">
+                                                        <span>{item.title}</span>
+                                                        <i className="fa fa-lock" aria-hidden="true"></i>
+                                                    </div>
+                                                </Card>
                                             ))}
                                             {premiumItems.length > 3 && (
-                                                <div onClick={onUpgrade} className="mt-2 bg-sky-50 border-2 border-sky-300 border-dashed rounded-lg p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-sky-100 transition-colors">
-                                                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-sky-200 mb-2">
-                                                        <i className="fa fa-unlock text-xl text-sky-600"></i>
+                                                <Card
+                                                    variant="accent"
+                                                    padding="md"
+                                                    hoverable
+                                                    onClick={onUpgrade}
+                                                    className="mt-2 border-2 border-[var(--color-primary)] border-dashed cursor-pointer text-center"
+                                                >
+                                                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--color-primary-lighter)] mb-2 mx-auto">
+                                                        <i className="fa fa-unlock text-xl text-[var(--color-primary)]" aria-hidden="true"></i>
                                                     </div>
-                                                    <p className="font-bold text-sky-700">Unlock All Advanced Techniques</p>
-                                                </div>
+                                                    <p className="font-bold text-[var(--color-primary-dark)]">Unlock All Advanced Techniques</p>
+                                                </Card>
                                             )}
                                         </>
                                     )}

@@ -1,7 +1,9 @@
-
 import React, { useState } from 'react';
 import { Session, UserTier } from '../../types';
 import FeedbackView from './FeedbackView';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
+import { useToast } from '../ui/Toast';
 
 interface CalendarViewProps {
     sessions: Session[];
@@ -14,6 +16,7 @@ interface CalendarViewProps {
 
 const CalendarView: React.FC<CalendarViewProps> = ({ sessions, onBack, userTier, onGenerateCoachingSummary, isGeneratingSummary, hasCoachingSummary }) => {
     const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+    const { toasts, showToast, removeToast, ToastContainer } = useToast();
 
     const isPremium = userTier === UserTier.Premium;
 
@@ -25,7 +28,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ sessions, onBack, userTier,
         
         const premiumSessions = sessions.filter(s => s.tier === UserTier.Premium && s.feedback.constructiveFeedback);
         if (premiumSessions.length === 0 && !hasCoachingSummary) {
-             alert("You need to complete at least one Premium session to generate a summary.");
+             showToast("You need to complete at least one Premium session to generate a summary.", 'warning');
              return;
         }
         
@@ -46,86 +49,138 @@ const CalendarView: React.FC<CalendarViewProps> = ({ sessions, onBack, userTier,
     const sortedSessions = [...sessions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return (
-        <div className="flex-grow p-4 sm:p-6 bg-slate-50 min-h-full">
-            <header className="flex items-center mb-6 pt-2">
-                <button
-                    onClick={onBack}
-                    className="p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200 transition-colors"
-                    aria-label="Go back"
-                >
-                    <i className="fa fa-arrow-left text-xl text-gray-600" aria-hidden="true"></i>
-                </button>
-                <h1 className="text-2xl font-bold text-gray-800">My Calendar</h1>
-            </header>
+        <div className="min-h-screen bg-transparent pb-24">
+            <ToastContainer toasts={toasts} onRemove={removeToast} />
             
-            <main>
+            {/* Header */}
+            <div className="flex items-center px-6 py-4">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onBack}
+                    icon={<i className="fa fa-arrow-left" />}
+                    aria-label="Go back"
+                    className="mr-3"
+                />
+                <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">My Calendar</h1>
+            </div>
+            
+            <main className="px-6">
                 {sortedSessions.length === 0 ? (
-                    <div className="text-center py-16">
-                        <i className="fa-regular fa-calendar-times text-6xl text-slate-300 mb-6"></i>
-                        <h2 className="text-xl font-bold text-slate-700">No Sessions Yet</h2>
-                        <p className="text-slate-500 mt-2 max-w-sm mx-auto">
+                    <Card variant="accent" padding="lg" className="mt-6 text-center">
+                        <div className="mb-6">
+                            <i className="fa-regular fa-calendar-times text-6xl text-[var(--color-text-muted)]" aria-hidden="true"></i>
+                        </div>
+                        <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">No Sessions Yet</h2>
+                        <p className="text-[var(--color-text-secondary)] max-w-sm mx-auto">
                             Your completed practice sessions will appear here once you finish one.
                         </p>
-                    </div>
+                    </Card>
                 ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-3 mt-6">
                         {sortedSessions.map(session => (
-                            <div 
-                                key={session.id} 
-                                onClick={() => setSelectedSession(session)} 
-                                className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 hover:shadow-md transition-all duration-200"
+                            <Card
+                                key={session.id}
+                                variant="elevated"
+                                padding="md"
+                                hoverable
+                                onClick={() => setSelectedSession(session)}
+                                className="min-h-[60px]"
                             >
                                 <div className="flex justify-between items-center">
-                                    <div>
-                                        <p className="font-bold text-sky-600 text-lg">
+                                    <div className="flex-1">
+                                        <p className="font-bold text-[var(--color-primary-dark)] text-lg mb-1">
                                             {new Date(session.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                                         </p>
-                                        <p className="text-sm text-gray-600 mt-1 capitalize">
+                                        <p className="text-sm text-[var(--color-text-secondary)] capitalize">
                                             {`${session.patient.age} y/o ${session.patient.sex.toLowerCase()}, ${session.patient.topic}, ${session.patient.stageOfChange}`}
                                         </p>
                                     </div>
-                                    <i className="fa fa-chevron-right text-gray-400" aria-hidden="true"></i>
+                                    <i className="fa fa-chevron-right text-[var(--color-text-muted)] ml-4" aria-hidden="true"></i>
                                 </div>
-                            </div>
+                            </Card>
                         ))}
                     </div>
                 )}
-            </main>
 
-            {/* Progress Report Section */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-                 <button
-                    onClick={handleGenerateClick}
-                    disabled={isGeneratingSummary || (isPremium && !hasCoachingSummary && sessions.filter(s => s.tier === UserTier.Premium).length === 0)}
-                    className={`w-full flex items-center justify-center gap-3 text-white font-bold py-4 px-6 rounded-full text-lg shadow-lg transition-all transform ${
-                        isPremium 
-                        ? 'bg-green-600 hover:bg-green-700 hover:scale-105 disabled:bg-green-300 disabled:cursor-not-allowed' 
-                        : 'bg-slate-400'
-                    }`}
-                >
-                    {isGeneratingSummary ? (
-                        <>
-                            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            <span>Generating Summary...</span>
-                        </>
-                    ) : (
-                        <>
-                            <i className={`fa-solid ${hasCoachingSummary ? 'fa-eye' : (isPremium ? 'fa-wand-magic-sparkles' : 'fa-lock')}`}></i>
-                            <span>{hasCoachingSummary ? 'View Coaching Summary' : 'Generate Coaching Summary'}</span>
-                        </>
-                    )}
-                </button>
-                {!isPremium && (
-                     <p className="text-center text-sm text-slate-600 mt-2">
-                        Upgrade to Premium to unlock your AI-powered Coaching Summary.
-                    </p>
+                {/* Progress Report Section */}
+                {sortedSessions.length > 0 && (
+                    <div className="mt-10">
+                        <Card
+                            variant="accent"
+                            padding="lg"
+                            className="border-4 border-black shadow-2xl bg-white"
+                        >
+                            <div className="flex items-start gap-4 mb-4">
+                                <span className="inline-flex h-16 w-16 items-center justify-center rounded-none border-4 border-black bg-gradient-to-br from-amber-400 via-orange-500 to-pink-500 text-white shadow-xl">
+                                    <i className="fa-solid fa-wand-magic-sparkles text-3xl text-white drop-shadow-2xl font-bold" style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.5))' }} aria-hidden="true"></i>
+                                </span>
+                                <div className="flex-1">
+                                    <p className="text-xs font-semibold text-[var(--color-primary-dark)] uppercase tracking-wide">
+                                        AI Progress Report
+                                    </p>
+                                    <h3 className="text-2xl font-bold text-[var(--color-text-primary)] leading-tight">
+                                        Coaching Summary
+                                    </h3>
+                                    <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+                                        Compile a clear, AI-powered snapshot of your recent sessions.
+                                    </p>
+                                </div>
+                                {hasCoachingSummary && (
+                                    <span className="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary-lighter)] px-3 py-1 text-xs font-semibold text-[var(--color-primary-dark)]">
+                                        <i className="fa-solid fa-check-circle" aria-hidden="true"></i>
+                                        Ready
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="space-y-3">
+                                <div className="flex flex-wrap gap-3">
+                                    <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[var(--color-primary-dark)] border border-[var(--color-primary-light)]">
+                                        <i className="fa-solid fa-brain" aria-hidden="true"></i>
+                                        Personalized insights
+                                    </span>
+                                    <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[var(--color-primary-dark)] border border-[var(--color-primary-light)]">
+                                        <i className="fa-solid fa-chart-line" aria-hidden="true"></i>
+                                        Progress trends
+                                    </span>
+                                    <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[var(--color-primary-dark)] border border-[var(--color-primary-light)]">
+                                        <i className="fa-solid fa-bullseye" aria-hidden="true"></i>
+                                        Next-step focus
+                                    </span>
+                                </div>
+
+                                <Button
+                                    onClick={handleGenerateClick}
+                                    disabled={isGeneratingSummary || (isPremium && !hasCoachingSummary && sessions.filter(s => s.tier === UserTier.Premium).length === 0)}
+                                    variant={isPremium ? 'primary' : 'secondary'}
+                                    size="lg"
+                                    fullWidth
+                                    loading={isGeneratingSummary}
+                                    icon={
+                                        !isGeneratingSummary && (
+                                            <i className={`fa-solid ${hasCoachingSummary ? 'fa-eye' : (isPremium ? 'fa-wand-magic-sparkles' : 'fa-lock')}`} />
+                                        )
+                                    }
+                                >
+                                    {hasCoachingSummary ? 'View Summary' : 'Generate Summary'}
+                                </Button>
+
+                                {!isPremium && (
+                                    <p className="text-center text-sm text-[var(--color-text-muted)]">
+                                        Upgrade to Premium to unlock your AI-powered Coaching Summary.
+                                    </p>
+                                )}
+                                {(isPremium && sessions.filter(s => s.tier === UserTier.Premium).length === 0 && sessions.length > 0) && (
+                                    <p className="text-center text-sm text-[var(--color-text-muted)]">
+                                        Complete a premium session to generate your first summary.
+                                    </p>
+                                )}
+                            </div>
+                        </Card>
+                    </div>
                 )}
-                {(isPremium && sessions.filter(s => s.tier === UserTier.Premium).length === 0 && sessions.length > 0) && (
-                     <p className="text-center text-sm text-slate-600 mt-2">
-                        Complete a premium session to generate your first summary.
-                    </p>
-                )}
-            </div>
+            </main>
         </div>
     );
 };

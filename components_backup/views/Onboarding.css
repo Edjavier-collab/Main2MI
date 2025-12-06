@@ -1,0 +1,121 @@
+.onboarding {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-main);
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-xl);
+}
+
+/* Background decorations */
+.onboarding__bg-top {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 200px;
+  height: 200px;
+  background: var(--color-primary-lighter);
+  border-radius: 50%;
+  opacity: 0.4;
+}
+
+.onboarding__bg-bottom {
+  position: absolute;
+  bottom: -80px;
+  left: -60px;
+  width: 250px;
+  height: 250px;
+  background: var(--color-primary-lighter);
+  border-radius: 50%;
+  opacity: 0.3;
+}
+
+.onboarding__skip {
+  position: absolute;
+  top: var(--space-xl);
+  right: var(--space-xl);
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  cursor: pointer;
+  z-index: 10;
+  padding: var(--space-sm);
+}
+
+.onboarding__skip:hover {
+  color: var(--color-text-secondary);
+}
+
+.onboarding__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.onboarding__illustration-container {
+  margin-bottom: var(--space-2xl);
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.onboarding__logo,
+.onboarding__illustration {
+  filter: drop-shadow(0 8px 16px rgba(123, 163, 144, 0.2));
+}
+
+.onboarding__title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-md);
+  line-height: 1.2;
+}
+
+.onboarding__subtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  max-width: 320px;
+  line-height: 1.6;
+}
+
+.onboarding__dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xl);
+}
+
+.onboarding__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-lighter);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.onboarding__dot--active {
+  width: 24px;
+  background: var(--color-primary);
+}
+
+.onboarding__actions {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+}
+

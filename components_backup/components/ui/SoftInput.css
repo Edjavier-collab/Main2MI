@@ -1,0 +1,34 @@
+.soft-input {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: var(--color-bg-accent);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  transition: all var(--transition-fast);
+}
+
+.soft-input:focus-within {
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.soft-input__icon {
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+}
+
+.soft-input__field {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  outline: none;
+}
+
+.soft-input__field::placeholder {
+  color: var(--color-text-muted);
+}
+

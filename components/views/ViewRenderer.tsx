@@ -214,6 +214,7 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
             sessions={sessions}
             remainingFreeSessions={remainingFreeSessions}
             onNavigateToPaywall={() => onNavigate(View.Paywall)}
+            onNavigate={onNavigate}
           />
         );
     }

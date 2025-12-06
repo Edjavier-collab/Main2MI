@@ -1,8 +1,9 @@
 
-
 import React, { useState } from 'react';
 import { Session, UserTier } from '../../types';
 import FeedbackView from './FeedbackView';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
 
 interface HistoryViewProps {
     sessions: Session[];
@@ -21,45 +22,65 @@ const HistoryView: React.FC<HistoryViewProps> = ({ sessions, onBack, onNavigateT
     const sortedSessions = sessions.slice().reverse();
 
     return (
-        <div className="p-4 sm:p-6 bg-slate-50 min-h-full">
-            <header className="flex items-center mb-6 pt-2">
-                <button
+        <div className="min-h-screen bg-transparent pb-24">
+            <div className="flex items-center px-6 py-4">
+                <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={onBack}
-                    className="p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200 transition-colors"
+                    icon={<i className="fa fa-arrow-left" />}
                     aria-label="Go back"
-                >
-                    <i className="fa fa-arrow-left text-xl text-gray-600" aria-hidden="true"></i>
-                </button>
-                <h1 className="text-2xl font-bold text-gray-800">Session History</h1>
-            </header>
+                    className="mr-3"
+                />
+                <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Session History</h1>
+            </div>
             
-            {sortedSessions.length === 0 ? (
-                <div className="text-center py-16">
-                    <p className="text-gray-500">You haven't completed any sessions yet.</p>
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    {sortedSessions.map(session => (
-                        <div key={session.id} onClick={() => setSelectedSession(session)} className="bg-white p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 hover:shadow-md transition-all">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <p className="font-bold text-lg text-blue-700">{session.patient.name}, {session.patient.age}</p>
-                                    <p className="text-sm text-gray-600">{session.patient.topic}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-sm font-medium text-gray-800">{new Date(session.date).toLocaleDateString()}</p>
-                                    <p className="text-xs text-gray-500">{new Date(session.date).toLocaleTimeString()}</p>
-                                    {session.tier === UserTier.Premium && (
-                                        <span className="mt-1 inline-block bg-yellow-200 text-yellow-800 text-xs font-bold px-2 py-0.5 rounded-full">
-                                            Premium
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
+            <main className="px-6">
+                {sortedSessions.length === 0 ? (
+                    <Card variant="accent" padding="lg" className="mt-6 text-center">
+                        <div className="mb-6">
+                            <i className="fa-regular fa-clock text-6xl text-[var(--color-text-muted)]" aria-hidden="true"></i>
                         </div>
-                    ))}
-                </div>
-            )}
+                        <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">No Sessions Yet</h2>
+                        <p className="text-[var(--color-text-secondary)]">You haven't completed any sessions yet.</p>
+                    </Card>
+                ) : (
+                    <div className="space-y-3 mt-6">
+                        {sortedSessions.map(session => (
+                            <Card
+                                key={session.id}
+                                variant="elevated"
+                                padding="md"
+                                hoverable
+                                onClick={() => setSelectedSession(session)}
+                                className="min-h-[60px]"
+                            >
+                                <div className="flex justify-between items-center">
+                                    <div className="flex-1">
+                                        <p className="font-bold text-lg text-[var(--color-primary-dark)] mb-1">
+                                            {session.patient.name}, {session.patient.age}
+                                        </p>
+                                        <p className="text-sm text-[var(--color-text-secondary)]">{session.patient.topic}</p>
+                                    </div>
+                                    <div className="text-right ml-4">
+                                        <p className="text-sm font-medium text-[var(--color-text-primary)]">
+                                            {new Date(session.date).toLocaleDateString()}
+                                        </p>
+                                        <p className="text-xs text-[var(--color-text-muted)]">
+                                            {new Date(session.date).toLocaleTimeString()}
+                                        </p>
+                                        {session.tier === UserTier.Premium && (
+                                            <span className="mt-1 inline-block bg-[var(--color-warning-light)] text-[var(--color-warning-dark)] text-xs font-bold px-2 py-0.5 rounded-full">
+                                                Premium
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+                )}
+            </main>
         </div>
     );
 };

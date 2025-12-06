@@ -61,6 +61,12 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
 
             <main className="py-6 px-6 space-y-6">
                 {!isFreeTier && (
+                    <InfoSection icon="fa-user" title="Background" colorClassName="text-teal-600">
+                        <p>{patient.background}</p>
+                    </InfoSection>
+                )}
+
+                {!isFreeTier && (
                     <InfoSection icon="fa-clipboard-question" title="Presenting Problem" colorClassName="text-amber-600">
                          <p>{patient.presentingProblem}</p>
                     </InfoSection>
@@ -69,12 +75,6 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
                 <InfoSection icon="fa-file-waveform" title="Relevant History" colorClassName="text-sky-600">
                     <p>{isFreeTier ? abbreviate(patient.history) : patient.history}</p>
                 </InfoSection>
-
-                {!isFreeTier && (
-                    <InfoSection icon="fa-user" title="Background" colorClassName="text-teal-600">
-                        <p>{patient.background}</p>
-                    </InfoSection>
-                )}
 
                  <div>
                     <h3 className="text-sm font-semibold text-indigo-600 uppercase flex items-center mb-2">

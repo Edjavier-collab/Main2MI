@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { PatientProfileFilters, StageOfChange, DifficultyLevel } from '../../types';
 import { PATIENT_PROFILE_TEMPLATES, STAGE_DESCRIPTIONS } from '../../constants';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
 
 interface ScenarioSelectionViewProps {
     onBack: () => void;
@@ -14,9 +16,10 @@ interface CustomSelectProps {
     value: string;
     onChange: (value: string) => void;
     options: Array<{ value: string; label: string }>;
+    helperText?: string;
 }
 
-const CustomSelect: React.FC<CustomSelectProps> = ({ id, label, icon, value, onChange, options }) => {
+const CustomSelect: React.FC<CustomSelectProps> = ({ id, label, icon, value, onChange, options, helperText }) => {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     
@@ -65,10 +68,13 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ id, label, icon, value, onC
     
     return (
         <div ref={containerRef} className="relative">
-            <label id={`${id}-label`} className="block text-2xl font-bold text-gray-800 mb-4">
-                <i className={`${icon} mr-3 text-sky-600`}></i>
+            <label id={`${id}-label`} className="block text-lg font-bold text-[var(--color-text-primary)] mb-2">
+                <i className={`${icon} mr-2 text-[var(--color-primary)]`} aria-hidden="true"></i>
                 {label}
             </label>
+            {helperText && (
+                <p className="text-sm text-[var(--color-text-muted)] mb-3">{helperText}</p>
+            )}
             
             {/* Trigger Button */}
             <button
@@ -78,12 +84,14 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ id, label, icon, value, onC
                 aria-expanded={isOpen}
                 aria-labelledby={`${id}-label`}
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full p-5 pr-14 text-left text-2xl border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium cursor-pointer transition-all"
-                style={{ fontSize: '24px', lineHeight: '1.5', minHeight: '72px' }}
+                className="w-full p-4 pr-12 text-left text-lg border-2 border-black bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] font-medium cursor-pointer transition-all text-[var(--color-text-primary)] hover:bg-[var(--color-bg-accent)]"
+                style={{ minHeight: '56px' }}
             >
-                {selectedOption?.label || 'Select...'}
-                <div className="absolute inset-y-0 right-0 flex items-center pr-6 pointer-events-none" style={{ top: '50%', transform: 'translateY(-50%)', height: 'auto', bottom: 'auto', marginTop: '14px' }}>
-                    <i className={`fa-solid fa-chevron-down text-gray-500 text-2xl transition-transform ${isOpen ? 'rotate-180' : ''}`}></i>
+                <span className={selectedOption?.value !== 'any' ? 'text-[var(--color-primary-dark)] font-semibold' : ''}>
+                    {selectedOption?.label || 'Select...'}
+                </span>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                    <i className={`fa-solid fa-chevron-down text-[var(--color-text-muted)] text-lg transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true"></i>
                 </div>
             </button>
             
@@ -101,7 +109,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ id, label, icon, value, onC
                     <ul
                         role="listbox"
                         aria-labelledby={`${id}-label`}
-                        className="absolute left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-80 overflow-y-auto"
+                        className="absolute left-0 right-0 mt-1 bg-white border-2 border-black shadow-lg z-50 max-h-72 overflow-y-auto"
                     >
                         {options.map((option, index) => (
                             <li
@@ -110,21 +118,20 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ id, label, icon, value, onC
                                 aria-selected={option.value === value}
                                 onClick={() => handleSelect(option.value)}
                                 className={`
-                                    px-6 py-5 cursor-pointer transition-colors
+                                    px-4 py-3 cursor-pointer transition-colors text-base
                                     ${option.value === value 
-                                        ? 'bg-sky-50 text-sky-700 font-bold' 
-                                        : 'text-gray-800 hover:bg-gray-50'
+                                        ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)] font-bold' 
+                                        : 'text-[var(--color-text-primary)] hover:bg-[var(--color-bg-accent)]'
                                     }
-                                    ${index === 0 ? 'rounded-t-xl' : ''}
-                                    ${index === options.length - 1 ? 'rounded-b-xl' : ''}
-                                    ${index !== options.length - 1 ? 'border-b border-gray-100' : ''}
+                                    ${index !== options.length - 1 ? 'border-b border-[var(--color-neutral-200)]' : ''}
                                 `}
-                                style={{ fontSize: '22px', lineHeight: '1.5' }}
                             >
-                                {option.value === value && (
-                                    <i className="fa-solid fa-check mr-3 text-sky-600"></i>
-                                )}
-                                {option.label}
+                                <span className="flex items-center">
+                                    {option.value === value && (
+                                        <i className="fa-solid fa-check mr-2 text-[var(--color-primary)]" aria-hidden="true"></i>
+                                    )}
+                                    {option.label}
+                                </span>
                             </li>
                         ))}
                     </ul>
@@ -135,9 +142,9 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ id, label, icon, value, onC
 };
 
 const DIFFICULTY_DESCRIPTIONS: Record<DifficultyLevel, string> = {
-    [DifficultyLevel.Beginner]: "Patient is generally collaborative and open to the idea of change (e.g., Preparation, Action stages).",
-    [DifficultyLevel.Intermediate]: "Patient is ambivalent, weighing the pros and cons of changing their behavior (Contemplation stage).",
-    [DifficultyLevel.Advanced]: "Patient does not yet see their behavior as a problem and may be resistant to discussing change (Precontemplation stage).",
+    [DifficultyLevel.Beginner]: "Patient is collaborative and open to change (Preparation/Action stages).",
+    [DifficultyLevel.Intermediate]: "Patient is ambivalent about changing (Contemplation stage).",
+    [DifficultyLevel.Advanced]: "Patient is resistant and doesn't see behavior as a problem (Precontemplation stage).",
 };
 
 export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ onBack, onStartPractice }) => {
@@ -173,83 +180,142 @@ export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ on
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 p-4 sm:p-6">
+        <div className="min-h-screen bg-transparent pb-24 p-4 sm:p-6">
             <header className="flex items-center mb-6 pt-2 max-w-2xl mx-auto">
-                <button
+                <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={onBack}
-                    className="p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200 transition-colors"
+                    icon={<i className="fa fa-arrow-left" />}
                     aria-label="Go back"
-                >
-                    <i className="fa fa-arrow-left text-xl text-gray-600" aria-hidden="true"></i>
-                </button>
-                <h1 className="text-2xl font-bold text-gray-800">Choose a Scenario</h1>
+                    className="mr-3"
+                />
+                <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Scenario Selection</h1>
             </header>
 
-            <main className="max-w-2xl mx-auto">
-                <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 space-y-8">
-                    <CustomSelect
-                            id="topic-select"
-                        label="Topic of Conversation"
-                        icon="fa-solid fa-list-check"
-                            value={selectedTopic}
-                        onChange={setSelectedTopic}
-                        options={[
-                            { value: 'any', label: 'Any Topic' },
-                            ...uniqueTopics.map(topic => ({ value: topic, label: topic }))
-                        ]}
-                    />
+            <main className="max-w-2xl mx-auto space-y-6">
+                {/* Form Card */}
+                <Card variant="elevated" padding="lg" className="border-2 border-black shadow-lg">
+                    <div className="space-y-6">
+                        {/* Section: Topic */}
+                        <div>
+                            <h2 className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-4">
+                                What would you like to practice?
+                            </h2>
+                            <CustomSelect
+                                id="topic-select"
+                                label="Topic of Conversation"
+                                icon="fa-solid fa-comments"
+                                value={selectedTopic}
+                                onChange={setSelectedTopic}
+                                helperText="Choose a specific behavioral health topic or leave as 'Any' for variety."
+                                options={[
+                                    { value: 'any', label: 'Any Topic' },
+                                    ...uniqueTopics.map(topic => ({ value: topic, label: topic }))
+                                ]}
+                            />
+                        </div>
 
-                    <div>
-                        <CustomSelect
-                            id="difficulty-select"
-                            label="Difficulty Level"
-                            icon="fa-solid fa-gauge-high"
-                            value={selectedDifficulty}
-                            onChange={setSelectedDifficulty}
-                            options={[
-                                { value: 'any', label: 'Any Difficulty' },
-                                ...allDifficulties.map(level => ({ value: level, label: level }))
-                            ]}
-                        />
-                         {selectedDifficulty !== 'any' && (
-                            <p className="text-base text-gray-600 mt-3 pl-1 leading-relaxed">{DIFFICULTY_DESCRIPTIONS[selectedDifficulty as DifficultyLevel]}</p>
-                        )}
+                        <hr className="border-[var(--color-neutral-200)]" />
+
+                        {/* Section: Difficulty */}
+                        <div>
+                            <h2 className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-4">
+                                Choose your challenge level
+                            </h2>
+                            <CustomSelect
+                                id="difficulty-select"
+                                label="Difficulty Level"
+                                icon="fa-solid fa-gauge-high"
+                                value={selectedDifficulty}
+                                onChange={setSelectedDifficulty}
+                                helperText="Higher difficulty means more resistant patients."
+                                options={[
+                                    { value: 'any', label: 'Any Difficulty' },
+                                    ...allDifficulties.map(level => ({ value: level, label: level }))
+                                ]}
+                            />
+                            {selectedDifficulty !== 'any' && (
+                                <div className="mt-3 p-3 bg-amber-50 border border-amber-200 text-amber-800 text-sm">
+                                    <i className="fa-solid fa-circle-info mr-2" aria-hidden="true"></i>
+                                    {DIFFICULTY_DESCRIPTIONS[selectedDifficulty as DifficultyLevel]}
+                                </div>
+                            )}
+                        </div>
+
+                        <hr className="border-[var(--color-neutral-200)]" />
+
+                        {/* Section: Stage of Change (Advanced) */}
+                        <div>
+                            <h2 className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-4">
+                                Advanced: Target a specific stage
+                            </h2>
+                            <CustomSelect
+                                id="stage-select"
+                                label="Stage of Change"
+                                icon="fa-solid fa-stairs"
+                                value={selectedStage}
+                                onChange={setSelectedStage}
+                                helperText="Optional. Overrides difficulty setting if selected."
+                                options={[
+                                    { value: 'any', label: 'Any Stage' },
+                                    ...allStages.map(stage => ({ value: stage, label: stage }))
+                                ]}
+                            />
+                            {selectedStage !== 'any' && (
+                                <div className="mt-3 p-3 bg-purple-50 border border-purple-200 text-purple-800 text-sm">
+                                    <i className="fa-solid fa-circle-info mr-2" aria-hidden="true"></i>
+                                    {STAGE_DESCRIPTIONS[selectedStage as StageOfChange]}
+                                </div>
+                            )}
+                            {selectedStage !== 'any' && selectedDifficulty !== 'any' && (
+                                <div className="mt-2 p-2 bg-[var(--color-bg-accent)] border border-[var(--color-primary-light)] text-[var(--color-text-secondary)] text-xs">
+                                    <i className="fa-solid fa-triangle-exclamation mr-1 text-amber-500" aria-hidden="true"></i>
+                                    Stage selection will override your difficulty choice.
+                                </div>
+                            )}
+                        </div>
                     </div>
+                </Card>
 
-                    <div>
-                        <CustomSelect
-                            id="stage-select"
-                            label="Stage of Change (Optional)"
-                            icon="fa-solid fa-stairs"
-                            value={selectedStage}
-                            onChange={setSelectedStage}
-                            options={[
-                                { value: 'any', label: 'Any Stage' },
-                                ...allStages.map(stage => ({ value: stage, label: stage }))
-                            ]}
-                        />
-                        {selectedStage !== 'any' && (
-                            <p className="text-base text-gray-600 mt-3 pl-1 leading-relaxed">{STAGE_DESCRIPTIONS[selectedStage as StageOfChange]}</p>
-                        )}
-                        <p className="text-sm text-gray-500 mt-3 pl-1 leading-relaxed">Selecting a specific stage will override the difficulty setting.</p>
+                {/* CTA Buttons */}
+                <Card variant="elevated" padding="lg" className="border-2 border-black shadow-lg">
+                    <div className="text-center mb-6">
+                        <div className="inline-flex items-center justify-center w-16 h-16 bg-[var(--color-primary-lighter)] border-2 border-black mb-3">
+                            <i className="fa-solid fa-rocket text-3xl text-[var(--color-primary-dark)]" aria-hidden="true"></i>
+                        </div>
+                        <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Ready to Start?</h2>
+                        <p className="text-sm text-[var(--color-text-secondary)] mt-1">Choose how you'd like to begin your practice session</p>
                     </div>
-                </div>
-
-                <div className="mt-8 space-y-4">
-                     <button
-                        onClick={handleStart}
-                        className="w-full bg-sky-500 text-white font-bold py-4 px-6 rounded-full text-lg shadow-lg hover:bg-sky-600 transition-transform transform hover:scale-105"
-                    >
-                        Start Selected Scenario
-                    </button>
-                     <button
-                        onClick={handleRandomStart}
-                        className="w-full bg-slate-600 text-white font-bold py-3 px-6 rounded-full text-md hover:bg-slate-700 transition"
-                    >
-                        <i className="fa-solid fa-shuffle mr-2"></i>
-                        Start a Random Scenario
-                    </button>
-                </div>
+                    
+                    <div className="space-y-3">
+                        <Button
+                            onClick={handleStart}
+                            variant="primary"
+                            size="lg"
+                            fullWidth
+                            icon={<i className="fa-solid fa-play" />}
+                        >
+                            Start Selected Scenario
+                        </Button>
+                        <Button
+                            onClick={handleRandomStart}
+                            variant="secondary"
+                            size="lg"
+                            fullWidth
+                            icon={<i className="fa-solid fa-shuffle" />}
+                        >
+                            Start a Random Scenario
+                        </Button>
+                        
+                        <div className="mt-4 p-3 bg-[var(--color-bg-accent)] border border-[var(--color-primary-light)] text-center">
+                            <i className="fa-solid fa-circle-info mr-2 text-[var(--color-primary)]" aria-hidden="true"></i>
+                            <span className="text-xs text-[var(--color-text-secondary)]">
+                                Random scenario will ignore all selections above
+                            </span>
+                        </div>
+                    </div>
+                </Card>
             </main>
         </div>
     );
