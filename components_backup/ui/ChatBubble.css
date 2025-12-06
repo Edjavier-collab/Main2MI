@@ -1,0 +1,89 @@
+.chat-bubble {
+  display: flex;
+  animation: slideFadeIn 0.3s ease;
+  max-width: 100%;
+}
+
+.chat-bubble--user {
+  justify-content: flex-end;
+}
+
+.chat-bubble--patient {
+  justify-content: flex-start;
+}
+
+.chat-bubble__content {
+  max-width: 75%;
+  padding: var(--space-md) var(--space-lg);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-md);
+  word-wrap: break-word;
+}
+
+.chat-bubble__content--user {
+  background: var(--color-primary);
+  color: white;
+  border-bottom-right-radius: var(--radius-xs);
+}
+
+.chat-bubble__content--patient {
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-bg-accent);
+  border-bottom-left-radius: var(--radius-xs);
+}
+
+.chat-bubble__text {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  font-size: var(--font-size-base);
+}
+
+.chat-bubble__typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chat-bubble__typing-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--color-text-muted);
+  border-radius: var(--radius-full);
+  animation: typingBounce 1.4s ease-in-out infinite;
+}
+
+.chat-bubble__content--user .chat-bubble__typing-dot {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+@keyframes typingBounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+  30% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}
+
+@keyframes slideFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .chat-bubble__content {
+    max-width: 85%;
+  }
+}
+

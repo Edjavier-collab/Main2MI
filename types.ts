@@ -98,6 +98,14 @@ export interface CoachingSummary {
     strengthsAndTrends: string;
     areasForFocus: string;
     summaryAndNextSteps: string;
+    skillProgression?: Array<{
+        skillName: string;
+        totalCount: number;
+        averagePerSession: number;
+        trend: 'increasing' | 'stable' | 'decreasing';
+    }>;
+    topSkillsToImprove?: string[];
+    specificNextSteps?: string[];
 }
 
 export interface SubscriptionDetails {

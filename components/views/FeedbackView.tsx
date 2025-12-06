@@ -1,5 +1,7 @@
 import React from 'react';
 import { Session, UserTier } from '../../types';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
 
 interface FeedbackViewProps {
     session: Session;
@@ -105,13 +107,13 @@ const SkillsChecklist: React.FC<{ skillsUsed: string[] }> = ({ skillsUsed }) => 
 );
 
 const FeedbackSectionCard: React.FC<{ title: string; icon: string; children: React.ReactNode }> = ({ title, icon, children }) => (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-        <h3 className="text-lg font-bold text-slate-700 mb-3 flex items-center">
-            <i className={`fa-solid ${icon} mr-3 text-sky-500`}></i>
+    <Card variant="elevated" padding="md">
+        <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-3 flex items-center">
+            <i className={`fa-solid ${icon} mr-3 text-[var(--color-primary)]`} aria-hidden="true"></i>
             {title}
         </h3>
-        <p className="text-gray-700 leading-relaxed pl-8 whitespace-pre-wrap">{children}</p>
-    </div>
+        <p className="text-[var(--color-text-secondary)] leading-relaxed pl-8 whitespace-pre-wrap">{children}</p>
+    </Card>
 );
 
 const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade, onStartPractice }) => {
@@ -121,41 +123,45 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
     
     if (isInsufficientData) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-full max-w-md bg-white rounded-3xl shadow-lg p-8 border border-gray-100">
+            <div className="min-h-screen bg-transparent flex flex-col items-center justify-center p-6 text-center pb-24">
+                <Card variant="elevated" padding="lg" className="w-full max-w-md">
                     <div className="mb-6 flex justify-center">
-                        <div className="h-20 w-20 rounded-full bg-yellow-100 flex items-center justify-center">
-                            <i className="fa-solid fa-circle-exclamation text-4xl text-yellow-500"></i>
+                        <div className="h-20 w-20 rounded-full bg-[var(--color-warning-light)] flex items-center justify-center">
+                            <i className="fa-solid fa-circle-exclamation text-4xl text-[var(--color-warning)]" aria-hidden="true"></i>
                         </div>
                     </div>
-                    <h1 className="text-2xl font-extrabold text-gray-900 mb-3">Not Enough Data</h1>
-                    <p className="text-gray-600 leading-relaxed">{insufficientMessage}</p>
+                    <h1 className="text-2xl font-extrabold text-[var(--color-text-primary)] mb-3">Not Enough Data</h1>
+                    <p className="text-[var(--color-text-secondary)] leading-relaxed">{insufficientMessage}</p>
                     <div className="mt-8 space-y-3">
                         {tier === UserTier.Free && (
-                            <button
+                            <Button
                                 onClick={onUpgrade}
-                                className="w-full flex items-center justify-center gap-3 bg-sky-500 text-white font-bold py-4 rounded-full shadow-md hover:bg-sky-600 transition-transform transform hover:scale-105"
+                                variant="primary"
+                                size="lg"
+                                fullWidth
+                                icon={<i className="fa fa-award" />}
                             >
-                                <i className="fa fa-award text-yellow-300"></i>
-                                <span>Upgrade to Premium</span>
-                            </button>
+                                Upgrade to Premium
+                            </Button>
                         )}
                         {onStartPractice && (
-                            <button
+                            <Button
                                 onClick={onStartPractice}
-                                className="w-full bg-sky-500 text-white font-bold py-3 rounded-full hover:bg-sky-600 transition"
+                                variant="primary"
+                                fullWidth
                             >
                                 Start a New Practice
-                            </button>
+                            </Button>
                         )}
-                        <button
+                        <Button
                             onClick={onDone}
-                            className="w-full bg-gray-100 text-gray-700 font-semibold py-3 rounded-full hover:bg-gray-200 transition"
+                            variant="secondary"
+                            fullWidth
                         >
                             Back to Dashboard
-                        </button>
+                        </Button>
                     </div>
-                </div>
+                </Card>
             </div>
         );
     }
@@ -179,49 +185,51 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                                  feedback.whatWentRight?.includes('technical issues');
         
         return (
-            <div className="bg-slate-50 min-h-screen">
+            <div className="bg-transparent min-h-screen pb-24">
                 <div className="p-4 sm:p-6 max-w-2xl mx-auto">
                     <header className="flex items-center justify-between mb-6">
                         <div className="flex items-center">
-                            <button
+                            <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={onDone}
-                                className="p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200 transition-colors"
+                                icon={<i className="fa fa-arrow-left" />}
                                 aria-label="Go back"
-                            >
-                                <i className="fa fa-arrow-left text-xl text-gray-600" aria-hidden="true"></i>
-                            </button>
-                            <h1 className="text-2xl font-bold text-gray-800">Encounter Summary</h1>
+                                className="mr-3"
+                            />
+                            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Encounter Summary</h1>
                         </div>
                     </header>
 
                     {/* Empathy Score Section - Show score with locked breakdown */}
-                    <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
+                    <Card variant="elevated" padding="md" className="mb-6">
                         <div className="flex justify-center mb-4">
                             <div className="flex flex-col items-center">
-                                <h3 className="text-lg font-bold text-slate-700 mb-2">Empathy Score</h3>
+                                <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">Empathy Score</h3>
                                 <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-4xl font-bold text-slate-800">{empathyScore}</span>
-                                    <span className="text-xl font-medium text-slate-500">/ 5</span>
+                                    <span className="text-4xl font-bold text-[var(--color-text-primary)]">{empathyScore}</span>
+                                    <span className="text-xl font-medium text-[var(--color-text-muted)]">/ 5</span>
                                 </div>
                                 {/* Progress bar */}
-                                <div className="w-48 h-3 bg-slate-200 rounded-full overflow-hidden">
+                                <div className="w-48 h-3 bg-[var(--color-neutral-200)] rounded-full overflow-hidden">
                                     <div 
-                                        className="h-full bg-sky-500 transition-all duration-500"
+                                        className="h-full bg-[var(--color-primary)] transition-all duration-500"
                                         style={{ width: `${(empathyScore / 5) * 100}%` }}
                                     ></div>
                                 </div>
                             </div>
                         </div>
                         <div className="text-center mt-4">
-                            <button
+                            <Button
                                 onClick={onUpgrade}
-                                className="text-sky-600 font-semibold text-sm hover:text-sky-700 transition-colors flex items-center justify-center gap-2 mx-auto"
+                                variant="ghost"
+                                size="sm"
+                                icon={<i className="fa-solid fa-lock" />}
                             >
-                                <i className="fa-solid fa-lock"></i>
-                                <span>Upgrade to see score breakdown</span>
-                            </button>
+                                Upgrade to see score breakdown
+                            </Button>
                         </div>
-                    </section>
+                    </Card>
 
                     {/* What Went Right - Fully visible */}
                     <section className="mb-6">
@@ -246,8 +254,8 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                     )}
 
                     {/* Issue 2: MI Skills Checklist - Show first 2 skills, lock the rest */}
-                    <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
-                        <h3 className="text-lg font-bold text-slate-700 mb-3">MI Skills Checklist</h3>
+                    <Card variant="elevated" padding="md" className="mb-6">
+                        <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-3">MI Skills Checklist</h3>
                         {/* Free tier: Only show first 2 detected skills, never show all 8 */}
                         {isFeedbackError ? (
                             // Show error message when feedback generation failed
@@ -261,61 +269,69 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                             <div className="space-y-3">
                                 {visibleSkills.slice(0, 2).map((skill, index) => (
                                     <div key={`${skill}-${index}`} className="flex items-center gap-3">
-                                        <i className="fa-solid fa-check text-green-500 text-lg"></i>
-                                        <span className="text-gray-700 font-medium">{skill}</span>
+                                        <i className="fa-solid fa-check text-[var(--color-success)] text-lg" aria-hidden="true"></i>
+                                        <span className="text-[var(--color-text-secondary)] font-medium">{skill}</span>
                                     </div>
                                 ))}
                                 {lockedCount > 0 && (
-                                    <div 
-                                        className="flex items-center gap-3 text-gray-400 mt-3 pt-3 border-t border-gray-200 cursor-pointer hover:text-gray-500 transition-colors"
+                                    <Button
                                         onClick={onUpgrade}
+                                        variant="ghost"
+                                        size="sm"
+                                        className="mt-3 pt-3 border-t border-[var(--color-neutral-200)]"
+                                        icon={<i className="fa-solid fa-lock" />}
                                     >
-                                        <i className="fa-solid fa-lock"></i>
-                                        <span className="text-sm font-medium">+ {lockedCount} more skill{lockedCount !== 1 ? 's' : ''} analyzed in Premium</span>
-                                    </div>
+                                        + {lockedCount} more skill{lockedCount !== 1 ? 's' : ''} analyzed in Premium
+                                    </Button>
                                 )}
                             </div>
                         ) : (
-                            <div 
-                                className="flex items-center gap-3 text-gray-400 cursor-pointer hover:text-gray-500 transition-colors"
+                            <Button
                                 onClick={onUpgrade}
+                                variant="ghost"
+                                size="sm"
+                                icon={<i className="fa-solid fa-lock" />}
                             >
-                                <i className="fa-solid fa-lock"></i>
-                                <span className="text-sm font-medium">Upgrade to see skills analysis</span>
-                            </div>
+                                Upgrade to see skills analysis
+                            </Button>
                         )}
-                    </section>
+                    </Card>
 
                     {/* Issue 3: Next Practice Focus - Show as locked card (not blurred) */}
-                    <section className="mb-6">
-                        <div 
-                            className="bg-gray-50 rounded-2xl p-5 border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors"
-                            onClick={onUpgrade}
-                        >
-                            <div className="flex items-center gap-4 text-gray-400">
-                                <i className="fa-solid fa-lock text-2xl"></i>
-                                <div>
-                                    <h3 className="font-bold text-gray-600 text-lg">Next Practice Focus</h3>
-                                    <p className="text-sm text-gray-500">Upgrade to get personalized practice recommendations</p>
-                                </div>
+                    <Card 
+                        variant="accent" 
+                        padding="md" 
+                        hoverable
+                        onClick={onUpgrade}
+                        className="mb-6"
+                    >
+                        <div className="flex items-center gap-4 text-[var(--color-text-muted)]">
+                            <i className="fa-solid fa-lock text-2xl" aria-hidden="true"></i>
+                            <div>
+                                <h3 className="font-bold text-[var(--color-text-primary)] text-lg">Next Practice Focus</h3>
+                                <p className="text-sm text-[var(--color-text-secondary)]">Upgrade to get personalized practice recommendations</p>
                             </div>
                         </div>
-                    </section>
+                    </Card>
 
                     <footer className="mt-6 space-y-3">
-                        <button 
-                            onClick={onUpgrade} 
-                            className="w-full flex items-center justify-center gap-3 bg-sky-500 text-white font-bold py-4 rounded-full shadow-md hover:bg-sky-600 transition-transform transform hover:scale-105"
+                        <Button 
+                            onClick={onUpgrade}
+                            variant="primary"
+                            size="lg"
+                            fullWidth
+                            icon={<i className="fa fa-award" />}
                         >
-                            <i className="fa fa-award text-yellow-300"></i>
-                            <span>Upgrade to Premium</span>
-                        </button>
-                        <button 
-                            onClick={onDone} 
-                            className="w-full bg-sky-100 text-sky-600 font-bold py-4 rounded-full hover:bg-sky-200 transition"
+                            Upgrade to Premium
+                        </Button>
+                        <Button 
+                            onClick={onDone}
+                            variant="secondary"
+                            size="lg"
+                            fullWidth
                         >
                             Done
-                        </button>
+                        </Button>
                     </footer>
                 </div>
             </div>
@@ -333,43 +349,44 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                                     feedback.whatWentRight?.includes('technical issues');
     
     return (
-        <div className="bg-slate-50">
+        <div className="bg-transparent pb-24">
              <div className="p-4 sm:p-6 max-w-2xl mx-auto">
                 <header className="flex items-center justify-between mb-6">
                     <div className="flex items-center">
-                        <button
+                        <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={onDone}
-                            className="p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200 transition-colors"
+                            icon={<i className="fa fa-arrow-left" />}
                             aria-label="Go back"
-                        >
-                            <i className="fa fa-arrow-left text-xl text-gray-600" aria-hidden="true"></i>
-                        </button>
-                        <h1 className="text-2xl font-bold text-gray-800">Encounter Summary</h1>
+                            className="mr-3"
+                        />
+                        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Encounter Summary</h1>
                     </div>
                 </header>
                 
                 {/* At a Glance Section */}
-                <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6 animate-slide-fade-in">
+                <Card variant="elevated" padding="md" className="mb-6 animate-slide-fade-in">
                     <div className="flex justify-center mb-6 text-center">
                         <div className="flex flex-col items-center">
-                            <h3 className="text-lg font-bold text-slate-700 mb-2">Empathy Score</h3>
+                            <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">Empathy Score</h3>
                             <EmpathyGauge score={feedback.empathyScore ?? 0} />
                             {/* Premium: Show empathy breakdown */}
                             {feedback.empathyBreakdown && (
-                                <p className="text-gray-600 text-sm mt-3 max-w-md text-center">{feedback.empathyBreakdown}</p>
+                                <p className="text-[var(--color-text-secondary)] text-sm mt-3 max-w-md text-center">{feedback.empathyBreakdown}</p>
                             )}
                         </div>
                     </div>
-                    <div className="border-t border-gray-200 pt-6">
-                        <h3 className="text-lg font-bold text-slate-700 mb-2 flex items-center">
-                             <i className="fa-solid fa-star text-yellow-400 mr-2"></i>
+                    <div className="border-t border-[var(--color-neutral-200)] pt-6">
+                        <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2 flex items-center">
+                             <i className="fa-solid fa-star text-[var(--color-warning)] mr-2" aria-hidden="true"></i>
                              Key Takeaway
                         </h3>
-                        <p className="text-gray-700 text-lg leading-relaxed pl-8">
+                        <p className="text-[var(--color-text-secondary)] text-lg leading-relaxed pl-8">
                             "{feedback.keyTakeaway ?? 'Great job completing the session!'}"
                         </p>
                     </div>
-                </section>
+                </Card>
 
                 <main className="space-y-4 mb-6">
                     <FeedbackSectionCard title="What Went Right" icon="fa-thumbs-up">
@@ -383,38 +400,40 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                     )}
                 </main>
 
-                <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
+                <Card variant="elevated" padding="md" className="mb-6">
                     {isPremiumFeedbackError ? (
                         // Show error message when feedback generation failed
                         <div className="flex flex-col items-center gap-3 text-center py-4">
-                            <i className="fa-solid fa-circle-exclamation text-yellow-500 text-2xl"></i>
-                            <h3 className="text-lg font-bold text-slate-700 mb-2">MI Skills Checklist</h3>
-                            <p className="text-gray-600 text-sm">
+                            <i className="fa-solid fa-circle-exclamation text-[var(--color-warning)] text-2xl" aria-hidden="true"></i>
+                            <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">MI Skills Checklist</h3>
+                            <p className="text-[var(--color-text-secondary)] text-sm">
                                 Skills analysis couldn't be completed due to a technical issue. Please try another practice session.
                             </p>
                         </div>
                     ) : (
                         <SkillsChecklist skillsUsed={premiumSkills} />
                     )}
-                </section>
+                </Card>
 
                 {premiumNextFocus && (
-                    <section className="bg-sky-700 text-white rounded-2xl p-6 shadow-lg mb-6 text-center">
-                        <i className="fa-solid fa-bullseye text-3xl mb-3"></i>
+                    <Card variant="accent" padding="lg" className="mb-6 text-center bg-[var(--color-primary-dark)] text-white">
+                        <i className="fa-solid fa-bullseye text-3xl mb-3" aria-hidden="true"></i>
                         <h3 className="text-xl font-bold mb-2">Your Next Practice Focus</h3>
-                        <p className="text-sky-100 text-lg">
+                        <p className="text-white/90 text-lg">
                            {premiumNextFocus}
                         </p>
-                    </section>
+                    </Card>
                 )}
 
                 <footer className="mt-4 pb-4">
-                    <button 
+                    <Button 
                         onClick={onStartPractice}
-                        className="w-full bg-sky-500 text-white font-bold py-4 px-6 rounded-full text-lg shadow-lg hover:bg-sky-600 transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-sky-300"
+                        variant="primary"
+                        size="lg"
+                        fullWidth
                     >
                         Start a New Practice
-                    </button>
+                    </Button>
                 </footer>
             </div>
         </div>

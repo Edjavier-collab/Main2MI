@@ -1,6 +1,8 @@
 import React from 'react';
-import { Session, UserTier } from '../../types';
+import { Session, UserTier, View } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
 
 interface DashboardProps {
     onStartPractice: () => void;
@@ -8,70 +10,264 @@ interface DashboardProps {
     sessions: Session[];
     remainingFreeSessions: number | null;
     onNavigateToPaywall: () => void;
+    onNavigate?: (view: View) => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ onStartPractice, userTier, sessions, remainingFreeSessions, onNavigateToPaywall }) => {
+const Dashboard: React.FC<DashboardProps> = ({ 
+    onStartPractice, 
+    userTier, 
+    sessions, 
+    remainingFreeSessions, 
+    onNavigateToPaywall,
+    onNavigate 
+}) => {
     const { user } = useAuth();
-    const firstName = user?.user_metadata?.full_name?.split(' ')[0] || 'Back';
+    const firstName = user?.user_metadata?.full_name?.split(' ')[0] || 'there';
+    const isPremium = userTier === UserTier.Premium;
+    
+    // Calculate sessions this month
+    const now = new Date();
+    const sessionsThisMonth = sessions.filter(s => {
+        const sessionDate = new Date(s.date);
+        return sessionDate.getMonth() === now.getMonth() && sessionDate.getFullYear() === now.getFullYear();
+    }).length;
+
+    // Calculate average feedback score (empathy score if available)
+    const sessionsWithScore = sessions.filter(s => s.feedback?.empathyScore !== undefined);
+    const avgScore = sessionsWithScore.length > 0 
+        ? Math.round(sessionsWithScore.reduce((sum, s) => sum + (s.feedback.empathyScore || 0), 0) / sessionsWithScore.length)
+        : null;
+
+    // Calculate streak (consecutive days with sessions)
+    const calculateStreak = () => {
+        if (sessions.length === 0) return 0;
+        const sortedDates = [...new Set(sessions.map(s => new Date(s.date).toDateString()))]
+            .map(d => new Date(d))
+            .sort((a, b) => b.getTime() - a.getTime());
+        
+        let streak = 0;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        for (let i = 0; i < sortedDates.length; i++) {
+            const checkDate = new Date(today);
+            checkDate.setDate(today.getDate() - i);
+            checkDate.setHours(0, 0, 0, 0);
+            
+            const sessionDate = new Date(sortedDates[i]);
+            sessionDate.setHours(0, 0, 0, 0);
+            
+            if (sessionDate.getTime() === checkDate.getTime()) {
+                streak++;
+            } else if (i === 0 && sessionDate.getTime() < checkDate.getTime()) {
+                // Allow starting from yesterday if no session today
+                const yesterday = new Date(today);
+                yesterday.setDate(today.getDate() - 1);
+                if (sessionDate.getTime() === yesterday.getTime()) {
+                    streak++;
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+        return streak;
+    };
+    const streak = calculateStreak();
+
     const displayRemaining = remainingFreeSessions !== null 
         ? remainingFreeSessions 
         : (() => {
             const freeSessionsThisMonth = sessions.filter(s => {
                 const sessionDate = new Date(s.date);
-                const now = new Date();
                 return s.tier === UserTier.Free && sessionDate.getMonth() === now.getMonth() && sessionDate.getFullYear() === now.getFullYear();
             }).length;
             return Math.max(0, 3 - freeSessionsThisMonth);
         })();
 
-    return (
-        <div className="flex flex-col items-center justify-center text-center p-4 h-full animate-slide-fade-in">
-            <div className="mb-8 animate-slide-fade-in" style={{ animationDelay: '0.1s' }}>
-                <svg width="84" height="64" viewBox="0 0 84 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M57.75 4C67.2721 4 75 11.7279 75 21.25V31.5C75 41.0221 67.2721 48.75 57.75 48.75H42V21.25C42 11.7279 49.7279 4 59.25 4H57.75Z" stroke="#0ea5e9" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M26.25 60C16.7279 60 9 52.2721 9 42.75V32.5C9 22.9779 16.7279 15.25 26.25 15.25H42V42.75C42 52.2721 34.2721 60 24.75 60H26.25Z" stroke="#22c55e" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round"/>
-                    <circle cx="42" cy="32" r="9" fill="#f59e0b"/>
-                </svg>
-            </div>
-            
-            <h1 className="text-3xl font-bold text-slate-800 mb-2 animate-slide-fade-in" style={{ animationDelay: '0.2s' }}>Welcome {firstName}!</h1>
-            <p className="text-slate-600 mb-12 animate-slide-fade-in" style={{ animationDelay: '0.3s' }}>Ready to sharpen your MI skills?</p>
+    // Get recent sessions (last 3)
+    const recentSessions = [...sessions]
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 3);
 
-            <div className="flex flex-col gap-4 w-full max-w-sm animate-slide-fade-in" style={{ animationDelay: '0.4s' }}>
-                <button
-                    onClick={onStartPractice}
-                    disabled={userTier === UserTier.Free && displayRemaining === 0}
-                    className={`font-bold py-3 px-6 rounded-2xl shadow-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 ${
-                        userTier === UserTier.Free && displayRemaining === 0
-                            ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                            : 'bg-sky-500 text-white hover:bg-sky-600 focus:ring-sky-300'
-                    }`}
-                >
-                    <span className="block text-lg">Start a New Practice</span>
-                    {userTier === UserTier.Free && (
-                        <span className={`block text-sm font-semibold mt-1 ${displayRemaining === 0 ? 'text-red-300' : 'text-yellow-300'}`}>
-                            {displayRemaining} of 3 Remaining
-                        </span>
-                    )}
-                </button>
-                
-                {userTier === UserTier.Free && displayRemaining === 0 && (
-                    <button
+    const hasSessions = sessions.length > 0;
+
+    return (
+        <div className="min-h-screen bg-transparent pb-24">
+            {/* Header */}
+            <div className="px-6 py-4 flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+                        Welcome, {firstName}!
+                    </h1>
+                    <p className="text-sm text-[var(--color-text-secondary)]">
+                        Ready to sharpen your MI skills?
+                    </p>
+                </div>
+                <span className={`px-3 py-1 text-xs font-semibold rounded-none border-2 border-black ${
+                    isPremium 
+                        ? 'bg-[var(--color-warning-light)] text-[var(--color-warning-dark)]' 
+                        : 'bg-[var(--color-neutral-100)] text-[var(--color-neutral-600)]'
+                }`}>
+                    {isPremium ? 'Premium' : 'Free'}
+                </span>
+            </div>
+
+            <main className="px-6 max-w-lg mx-auto">
+                {/* Hero CTA Block */}
+                <Card variant="elevated" padding="lg" className="mb-6 border-2 border-black">
+                    <div className="text-center">
+                        <div className="mb-4">
+                            <i className="fa-solid fa-user-doctor text-4xl text-[var(--color-primary)]" aria-hidden="true"></i>
+                        </div>
+                        <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">
+                            Start Practicing
+                        </h2>
+                        <p className="text-sm text-[var(--color-text-secondary)] mb-6">
+                            Kick off a new MI scenario now
+                        </p>
+                        
+                        <Button
+                            onClick={onStartPractice}
+                            disabled={!isPremium && displayRemaining === 0}
+                            variant="primary"
+                            size="lg"
+                            fullWidth
+                            icon={<i className="fa-solid fa-play" aria-hidden="true"></i>}
+                            aria-label="Start a new practice session"
+                        >
+                            Start a New Practice
+                        </Button>
+                        
+                        {!isPremium && (
+                            <p className={`text-center text-xs font-semibold mt-3 ${displayRemaining === 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-text-muted)]'}`}>
+                                {displayRemaining} of 3 free sessions remaining this month
+                            </p>
+                        )}
+
+                        {hasSessions && onNavigate && (
+                            <Button
+                                onClick={() => onNavigate(View.Calendar)}
+                                variant="ghost"
+                                size="sm"
+                                className="mt-3"
+                                icon={<i className="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>}
+                            >
+                                View history
+                            </Button>
+                        )}
+                    </div>
+                </Card>
+
+                {/* Free tier limit reached warning */}
+                {!isPremium && displayRemaining === 0 && (
+                    <Card 
+                        variant="accent" 
+                        padding="md" 
+                        hoverable 
                         onClick={onNavigateToPaywall}
-                        className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg text-left w-full hover:bg-red-100 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                        className="mb-6 border-2 border-[var(--color-error)] bg-gradient-to-r from-red-50 to-orange-50"
                     >
                         <div className="flex items-center justify-between">
                             <div className="flex-1">
-                                <p className="text-red-800 font-semibold text-sm mb-1">Free practices limit reached for this month</p>
-                                <p className="text-red-700 text-xs">Upgrade to Premium for unlimited access</p>
+                                <p className="text-[var(--color-error-dark)] font-semibold text-sm mb-1">
+                                    Free practices limit reached
+                                </p>
+                                <p className="text-[var(--color-text-secondary)] text-xs">
+                                    Upgrade to Premium for unlimited access
+                                </p>
                             </div>
-                            <svg className="w-5 h-5 text-red-600 ml-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
+                            <i className="fa-solid fa-arrow-right text-[var(--color-error)] ml-3 flex-shrink-0" aria-hidden="true"></i>
                         </div>
-                    </button>
+                    </Card>
                 )}
-            </div>
+
+                {/* Quick Stats */}
+                {hasSessions && (
+                    <div className="grid grid-cols-3 gap-3 mb-6">
+                        <Card variant="default" padding="sm" className="text-center">
+                            <p className="text-2xl font-bold text-[var(--color-primary-dark)]">{sessionsThisMonth}</p>
+                            <p className="text-xs text-[var(--color-text-muted)]">This Month</p>
+                        </Card>
+                        <Card variant="default" padding="sm" className="text-center">
+                            <p className="text-2xl font-bold text-[var(--color-primary-dark)]">
+                                {avgScore !== null ? `${avgScore}%` : '—'}
+                            </p>
+                            <p className="text-xs text-[var(--color-text-muted)]">Avg Score</p>
+                        </Card>
+                        <Card variant="default" padding="sm" className="text-center">
+                            <p className="text-2xl font-bold text-[var(--color-primary-dark)]">
+                                {streak > 0 ? streak : '—'}
+                            </p>
+                            <p className="text-xs text-[var(--color-text-muted)]">Day Streak</p>
+                        </Card>
+                    </div>
+                )}
+
+                {/* Recent Sessions Preview */}
+                {hasSessions && recentSessions.length > 0 && (
+                    <div className="mb-6">
+                        <h3 className="text-sm font-bold text-[var(--color-text-muted)] uppercase mb-3 px-1">
+                            Recent Sessions
+                        </h3>
+                        <div className="space-y-2">
+                            {recentSessions.map(session => (
+                                <Card
+                                    key={session.id}
+                                    variant="default"
+                                    padding="sm"
+                                    hoverable
+                                    onClick={() => onNavigate?.(View.Calendar)}
+                                    className="text-left"
+                                >
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-semibold text-[var(--color-text-primary)] text-sm truncate">
+                                                {session.patient.topic}
+                                            </p>
+                                            <p className="text-xs text-[var(--color-text-muted)]">
+                                                {new Date(session.date).toLocaleDateString('en-US', { 
+                                                    month: 'short', 
+                                                    day: 'numeric' 
+                                                })} • {session.patient.stageOfChange}
+                                            </p>
+                                        </div>
+                                        <i className="fa-solid fa-chevron-right text-[var(--color-text-muted)] ml-3" aria-hidden="true"></i>
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                        
+                        {sessions.length > 3 && onNavigate && (
+                            <div className="text-center mt-3">
+                                <Button
+                                    onClick={() => onNavigate(View.Calendar)}
+                                    variant="ghost"
+                                    size="sm"
+                                >
+                                    View all {sessions.length} sessions
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Empty State */}
+                {!hasSessions && (
+                    <Card variant="accent" padding="lg" className="text-center">
+                        <div className="mb-4">
+                            <i className="fa-regular fa-lightbulb text-5xl text-[var(--color-text-muted)]" aria-hidden="true"></i>
+                        </div>
+                        <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">
+                            No sessions yet
+                        </h3>
+                        <p className="text-sm text-[var(--color-text-secondary)]">
+                            Start your first practice to begin building your MI skills!
+                        </p>
+                    </Card>
+                )}
+            </main>
         </div>
     );
 };

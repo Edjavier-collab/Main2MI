@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
+import { useToast } from '../ui/Toast';
 
 interface ForgotPasswordViewProps {
     onBack: () => void;
@@ -13,6 +16,7 @@ const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({ onBack }) => {
     const [error, setError] = useState<string | null>(null);
     const [resendCooldown, setResendCooldown] = useState(0);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const { toasts, showToast, removeToast, ToastContainer } = useToast();
 
     // Handle countdown timer for resend email
     useEffect(() => {
@@ -57,7 +61,7 @@ const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({ onBack }) => {
             setResendCooldown(60); // Start 60-second countdown
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to send password reset email. Please try again.';
-            setError(errorMessage);
+            showToast(errorMessage, 'error');
             setIsSent(false);
         } finally {
             setLoading(false);
@@ -72,84 +76,95 @@ const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({ onBack }) => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col p-4">
+        <div className="min-h-screen bg-transparent flex flex-col p-4 pb-24">
+            <ToastContainer toasts={toasts} onRemove={removeToast} />
             <header className="flex items-center w-full max-w-sm mx-auto pt-4">
-                <button onClick={onBack} className="p-2 -ml-2" aria-label="Go back">
-                    <i className="fa fa-arrow-left text-2xl text-gray-600" aria-hidden="true"></i>
-                </button>
-                <h1 className="text-2xl font-bold text-gray-800 mx-auto -translate-x-4">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onBack}
+                    icon={<i className="fa fa-arrow-left" />}
+                    aria-label="Go back"
+                    className="mr-3"
+                />
+                <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
                     Forgot Password
                 </h1>
             </header>
 
             <div className="flex-grow flex flex-col justify-center items-center w-full max-w-sm mx-auto">
                 {isSent ? (
-                    <div className="text-center animate-slide-fade-in">
-                        <div className="mx-auto mb-6 bg-green-100 h-20 w-20 rounded-full flex items-center justify-center">
-                            <i className="fa-solid fa-check text-4xl text-green-500"></i>
+                    <div className="text-center animate-slide-fade-in w-full">
+                        <div className="mx-auto mb-6 bg-[var(--color-success-light)] h-20 w-20 rounded-full flex items-center justify-center">
+                            <i className="fa-solid fa-check text-4xl text-[var(--color-success)]" aria-hidden="true"></i>
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-800">Check Your Email</h2>
-                        <p className="text-gray-600 mt-2 mb-4">
-                            We've sent a password reset link to <span className="font-semibold text-gray-800">{email}</span>. Please follow the instructions in the email to reset your password.
+                        <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">Check Your Email</h2>
+                        <p className="text-[var(--color-text-secondary)] mt-2 mb-4">
+                            We've sent a password reset link to <span className="font-semibold text-[var(--color-text-primary)]">{email}</span>. Please follow the instructions in the email to reset your password.
                         </p>
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
-                            <p className="text-sm text-gray-700">
-                                <i className="fa-solid fa-info-circle text-blue-500 mr-2"></i>
+                        <Card variant="accent" padding="md" className="mb-6 text-left">
+                            <p className="text-sm text-[var(--color-text-primary)]">
+                                <i className="fa-solid fa-info-circle text-[var(--color-info)] mr-2" aria-hidden="true"></i>
                                 <strong>Didn't receive the email?</strong>
                             </p>
-                            <ul className="text-sm text-gray-600 mt-2 ml-6 list-disc space-y-1">
+                            <ul className="text-sm text-[var(--color-text-secondary)] mt-2 ml-6 list-disc space-y-1">
                                 <li>Check your spam or junk folder</li>
                                 <li>Make sure you entered the correct email address</li>
                                 <li>Wait a few minutes and try again</li>
                             </ul>
-                        </div>
+                        </Card>
                         {resendCooldown > 0 ? (
-                            <p className="text-sm text-gray-500 mb-4">
+                            <p className="text-sm text-[var(--color-text-muted)] mb-4">
                                 You can request another email in {resendCooldown} second{resendCooldown !== 1 ? 's' : ''}.
                             </p>
                         ) : (
-                            <button
+                            <Button
                                 onClick={handleResendEmail}
                                 disabled={loading}
-                                className="mb-4 w-full text-sm text-sky-600 hover:text-sky-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                variant="ghost"
+                                size="sm"
+                                fullWidth
+                                className="mb-4"
+                                loading={loading}
                             >
-                                {loading ? 'Sending...' : 'Resend Email'}
-                            </button>
+                                Resend Email
+                            </Button>
                         )}
-                        <button
+                        <Button
                             onClick={onBack}
-                            className="w-full bg-sky-500 text-white font-bold py-3 rounded-lg hover:bg-sky-600 transition-colors"
+                            variant="primary"
+                            fullWidth
                         >
                             Back to Log In
-                        </button>
+                        </Button>
                     </div>
                 ) : (
-                    <form onSubmit={handleSendResetLink} className="w-full text-center">
-                        <p className="text-gray-600 mb-8">
-                            Enter your email address below, and we'll send you a link to reset your password.
-                        </p>
-                        {error && (
-                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
-                                {error}
-                            </div>
-                        )}
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="Email"
-                            required
-                            disabled={loading}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 mb-8 disabled:opacity-50"
-                        />
-                        <button
-                            type="submit"
-                            className="w-full bg-sky-500 text-white font-bold py-3 px-6 rounded-full text-lg shadow-md hover:bg-sky-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                            disabled={!email || loading}
-                        >
-                            {loading ? 'Sending...' : 'Send Reset Link'}
-                        </button>
-                    </form>
+                    <Card variant="elevated" padding="lg" className="w-full">
+                        <form onSubmit={handleSendResetLink} className="text-center">
+                            <p className="text-[var(--color-text-secondary)] mb-8">
+                                Enter your email address below, and we'll send you a link to reset your password.
+                            </p>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Email"
+                                required
+                                disabled={loading}
+                                className="w-full px-4 py-3 border border-[var(--color-neutral-300)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] mb-8 disabled:opacity-50 bg-white text-[var(--color-text-primary)]"
+                            />
+                            <Button
+                                type="submit"
+                                variant="primary"
+                                size="lg"
+                                fullWidth
+                                disabled={!email || loading}
+                                loading={loading}
+                            >
+                                Send Reset Link
+                            </Button>
+                        </form>
+                    </Card>
                 )}
             </div>
         </div>

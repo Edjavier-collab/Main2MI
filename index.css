@@ -3,16 +3,33 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Design System */
+@import './styles/theme.css';
+@import './styles/design-tokens.css';
+
 /* Base styles */
 @layer base {
   /* Focus visible styles for accessibility */
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-sky-500;
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+  
+  /* Ensure all interactive elements have proper focus styles */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
   }
   
   /* Selection color */
   ::selection {
-    @apply bg-sky-500 text-white;
+    background-color: var(--color-primary);
+    color: white;
   }
   
   /* Smooth scrolling */
@@ -27,17 +44,54 @@
   
   /* Body defaults */
   body {
-    @apply bg-gray-50 text-gray-800 antialiased;
+    font-family: var(--font-family);
+    background: linear-gradient(180deg, #E8F5F2 0%, #D4F0EB 50%, #C5E8E0 100%);
+    background-attachment: fixed;
+    color: var(--color-text-primary);
+    line-height: var(--line-height-normal);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
     /* Safe area insets for notched devices */
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
   }
+  
+  /* Ensure all SVGs have transparent backgrounds */
+  svg {
+    background: transparent !important;
+  }
+  
+  /* Remove default button styles */
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    background: none;
+  }
 }
 
 /* Custom component styles */
 @layer components {
+  /* Global transitions for interactive elements */
+  button,
+  a,
+  [role="button"],
+  .card,
+  .soft-card {
+    transition: all var(--transition-normal) var(--ease-in-out);
+  }
+  
+  /* Touch feedback for mobile */
+  button:active,
+  [role="button"]:active,
+  .card:active,
+  .soft-card:active {
+    transform: scale(0.98);
+  }
+  
   /* Enhanced select dropdown styling */
   select {
     -webkit-appearance: none;
@@ -133,6 +187,22 @@
   /* Text balance for better typography */
   .text-balance {
     text-wrap: balance;
+  }
+  
+  /* Toast animation */
+  @keyframes slide-in-right {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  .animate-slide-in-right {
+    animation: slide-in-right var(--transition-normal) var(--ease-out);
   }
 }
 

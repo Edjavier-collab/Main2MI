@@ -1,0 +1,159 @@
+.patient-profile-card {
+  width: 100%;
+  max-width: 600px;
+  overflow: hidden;
+}
+
+.patient-profile-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--color-bg-accent);
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.patient-profile-card__header-info {
+  flex: 1;
+}
+
+.patient-profile-card__name {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.patient-profile-card__demographics {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+
+.patient-profile-card__badge {
+  padding: var(--space-xs) var(--space-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.patient-profile-card__badge--precontemplation {
+  background: rgba(217, 139, 139, 0.2);
+  color: var(--color-accent-error);
+}
+
+.patient-profile-card__badge--contemplation {
+  background: rgba(229, 192, 123, 0.2);
+  color: var(--color-accent-warning);
+}
+
+.patient-profile-card__badge--preparation {
+  background: rgba(123, 163, 144, 0.2);
+  color: var(--color-primary);
+}
+
+.patient-profile-card__badge--action {
+  background: rgba(123, 163, 144, 0.3);
+  color: var(--color-primary-dark);
+}
+
+.patient-profile-card__badge--maintenance {
+  background: rgba(123, 163, 144, 0.4);
+  color: var(--color-primary-darker);
+}
+
+.patient-profile-card__main {
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.patient-profile-card__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.patient-profile-card__section-title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-xs);
+}
+
+.patient-profile-card__section-icon {
+  width: 24px;
+  text-align: center;
+  margin-right: var(--space-sm);
+}
+
+.patient-profile-card__title--primary {
+  color: var(--color-primary-dark);
+}
+
+.patient-profile-card__title--accent {
+  color: var(--color-accent-warm);
+}
+
+.patient-profile-card__title--secondary {
+  color: var(--color-primary);
+}
+
+.patient-profile-card__title--quote {
+  color: var(--color-primary-dark);
+}
+
+.patient-profile-card__section-content {
+  padding-left: var(--space-xl);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+}
+
+.patient-profile-card__section-content p {
+  margin: 0;
+  font-size: var(--font-size-base);
+}
+
+.patient-profile-card__quote {
+  margin: 0;
+  padding: var(--space-md);
+  padding-left: var(--space-xl);
+  border-left: 4px solid var(--color-primary);
+  background: var(--color-bg-accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.patient-profile-card__quote-text {
+  color: var(--color-text-primary);
+  font-style: italic;
+  line-height: 1.8;
+  margin: 0;
+}
+
+.patient-profile-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--color-bg-warm);
+  border-top: 1px solid var(--color-bg-accent);
+}
+
+.patient-profile-card__lock-icon {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+}
+
+.patient-profile-card__footer-text {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+

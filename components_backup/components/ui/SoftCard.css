@@ -1,0 +1,35 @@
+.soft-card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-normal);
+}
+
+.soft-card--default {
+  box-shadow: var(--shadow-sm);
+}
+
+.soft-card--accent {
+  background: var(--color-bg-accent);
+  box-shadow: none;
+}
+
+.soft-card--elevated {
+  box-shadow: var(--shadow-md);
+}
+
+.soft-card--hoverable {
+  cursor: pointer;
+}
+
+.soft-card--hoverable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.soft-card--hoverable:active {
+  transform: translateY(0);
+}
+

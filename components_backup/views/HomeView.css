@@ -1,0 +1,137 @@
+.home-view {
+  min-height: 100vh;
+  background: var(--color-bg-main);
+  padding-bottom: 100px; /* Space for bottom nav */
+  position: relative;
+  overflow: hidden;
+}
+
+/* Header */
+.home-view__header {
+  position: relative;
+  height: 200px;
+}
+
+.home-view__wave {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.home-view__header-content {
+  position: relative;
+  z-index: 1;
+  padding: var(--space-xl);
+  padding-top: var(--space-2xl);
+  text-align: center;
+}
+
+.home-view__logo {
+  margin-bottom: var(--space-md);
+}
+
+.home-view__greeting {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.home-view__subtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+
+/* Content */
+.home-view__content {
+  padding: var(--space-lg);
+  margin-top: -20px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Practice Card */
+.home-view__practice-card {
+  margin-bottom: var(--space-lg);
+}
+
+.home-view__practice-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.home-view__practice-text h2 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.home-view__practice-text p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* Stats */
+.home-view__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.home-view__stat-card {
+  text-align: center;
+  padding: var(--space-md);
+}
+
+.home-view__stat-icon {
+  font-size: 24px;
+  display: block;
+  margin-bottom: var(--space-xs);
+}
+
+.home-view__stat-value {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  display: block;
+}
+
+.home-view__stat-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* Tips Card */
+.home-view__tips-card h3 {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  margin-bottom: var(--space-sm);
+}
+
+.home-view__tips-card p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+/* Decorations */
+.home-view__decoration-left {
+  position: absolute;
+  bottom: 100px;
+  left: -20px;
+  opacity: 0.3;
+}
+
+.home-view__decoration-right {
+  position: absolute;
+  bottom: 150px;
+  right: -20px;
+  opacity: 0.3;
+}
+

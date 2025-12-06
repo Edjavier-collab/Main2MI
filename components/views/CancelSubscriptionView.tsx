@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { SubscriptionDetails, UserTier } from '../../types';
 import { getUserSubscription, cancelSubscription, restoreSubscription, createMockSubscription, upgradeToAnnual } from '../../services/stripeService';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
+import { useToast } from '../ui/Toast';
+import { HeaderWave } from '../illustrations/SeafoamIllustrations';
 
 interface CancelSubscriptionViewProps {
     user: User;
@@ -19,6 +23,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
     const [premiumTierMismatch, setPremiumTierMismatch] = useState(false);
     const [upgradeLoading, setUpgradeLoading] = useState(false);
     const [showCancellationFlow, setShowCancellationFlow] = useState(false);
+    const { toasts, showToast, removeToast, ToastContainer } = useToast();
 
     useEffect(() => {
         loadSubscription();
@@ -77,7 +82,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
         
         try {
             await cancelSubscription(user.id, true);
-            setSuccess('Great! Your 30% discount has been applied. You\'ll continue to enjoy premium features at the discounted rate.');
+            showToast('Great! Your 30% discount has been applied. You\'ll continue to enjoy premium features at the discounted rate.', 'success');
             // Reload subscription to show updated discount
             await loadSubscription();
             // Refresh tier if callback provided
@@ -86,7 +91,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
             }
         } catch (err) {
             console.error('[CancelSubscriptionView] Error accepting offer:', err);
-            setError(err instanceof Error ? err.message : 'Failed to apply discount. Please try again.');
+            showToast(err instanceof Error ? err.message : 'Failed to apply discount. Please try again.', 'error');
         } finally {
             setActionLoading(null);
         }
@@ -103,7 +108,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
         
         try {
             const result = await cancelSubscription(user.id, false);
-            setSuccess(`Your subscription has been cancelled. You'll continue to have access until ${new Date(result.currentPeriodEnd).toLocaleDateString()}.`);
+            showToast(`Your subscription has been cancelled. You'll continue to have access until ${new Date(result.currentPeriodEnd).toLocaleDateString()}.`, 'info');
             // Reload subscription to show cancellation status
             await loadSubscription();
             // Refresh tier if callback provided
@@ -112,7 +117,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
             }
         } catch (err) {
             console.error('[CancelSubscriptionView] Error cancelling:', err);
-            setError(err instanceof Error ? err.message : 'Failed to cancel subscription. Please try again.');
+            showToast(err instanceof Error ? err.message : 'Failed to cancel subscription. Please try again.', 'error');
         } finally {
             setActionLoading(null);
         }
@@ -125,7 +130,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
         
         try {
             const result = await restoreSubscription(user.id);
-            setSuccess('Your subscription has been restored! You\'ll continue to have access to premium features.');
+            showToast('Your subscription has been restored! You\'ll continue to have access to premium features.', 'success');
             // Reload subscription to show restored status
             await loadSubscription();
             // Refresh tier if callback provided
@@ -134,7 +139,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
             }
         } catch (err) {
             console.error('[CancelSubscriptionView] Error restoring:', err);
-            setError(err instanceof Error ? err.message : 'Failed to restore subscription. Please try again.');
+            showToast(err instanceof Error ? err.message : 'Failed to restore subscription. Please try again.', 'error');
         } finally {
             setActionLoading(null);
         }
@@ -148,7 +153,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
         try {
             const result = await upgradeToAnnual(user.id);
             const message = result?.message || 'Your subscription will be upgraded to Annual at the end of your current billing period.';
-            setSuccess(message);
+            showToast(message, 'success');
             // Reload subscription to show updated plan
             await loadSubscription();
             // Refresh tier if callback provided
@@ -157,7 +162,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
             }
         } catch (err) {
             console.error('[CancelSubscriptionView] Error upgrading:', err);
-            setError(err instanceof Error ? err.message : 'Failed to upgrade subscription. Please try again.');
+            showToast(err instanceof Error ? err.message : 'Failed to upgrade subscription. Please try again.', 'error');
         } finally {
             setUpgradeLoading(false);
         }
@@ -206,10 +211,10 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+            <div className="min-h-screen bg-transparent flex flex-col items-center justify-center p-4">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading subscription details...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)] mx-auto mb-4"></div>
+                    <p className="text-[var(--color-text-secondary)]">Loading subscription details...</p>
                 </div>
             </div>
         );
@@ -217,32 +222,29 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
 
     if (error && !subscription) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-                <div className="w-full max-w-md mx-auto text-center">
+            <div className="min-h-screen bg-transparent flex flex-col items-center justify-center p-4">
+                <Card variant="elevated" padding="lg" className="w-full max-w-md text-center">
                     <div className="mb-6">
-                        <div className="mx-auto mb-4 bg-red-100 h-20 w-20 rounded-full flex items-center justify-center">
-                            <i className="fa-solid fa-exclamation-triangle text-4xl text-red-500"></i>
-                        </div>
-                        <h1 className="text-2xl font-bold text-gray-900 mb-2">Unable to Load Subscription</h1>
-                        <p className="text-gray-600 mb-4">{error}</p>
-                        {error.includes('Edge Functions') && (
-                            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-left">
-                                <p className="text-sm text-yellow-800">
-                                    <strong>Setup Required:</strong> Deploy your Supabase Edge Functions:
-                                </p>
-                                <code className="block mt-2 text-xs bg-yellow-100 p-2 rounded">
+                        <div className="mx-auto mb-4 bg-[var(--color-error-light)] h-20 w-20 rounded-full flex items-center justify-center">
+                            <i className="fa-solid fa-exclamation-triangle text-4xl text-[var(--color-error)]" aria-hidden="true"></i>
+                    </div>
+                        <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">Unable to Load Subscription</h1>
+                        <p className="text-[var(--color-text-secondary)] mb-4">{error}</p>
+                    {error.includes('Edge Functions') && (
+                            <Card variant="accent" padding="md" className="mt-4 text-left">
+                                <p className="text-sm text-[var(--color-text-primary)] mb-2">
+                                <strong>Setup Required:</strong> Deploy your Supabase Edge Functions:
+                            </p>
+                                <code className="block mt-2 text-xs bg-white p-2 rounded font-mono">
                                     supabase functions deploy
                                 </code>
-                            </div>
+                            </Card>
                         )}
-                    </div>
-                    <button
-                        onClick={onBack}
-                        className="w-full bg-sky-500 text-white font-bold py-3 rounded-lg hover:bg-sky-600 transition"
-                    >
+                        </div>
+                    <Button onClick={onBack} fullWidth>
                         Go Back
-                    </button>
-                </div>
+                    </Button>
+                </Card>
             </div>
         );
     }
@@ -251,61 +253,57 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
         // Show special message if user is premium but no subscription found
         if (premiumTierMismatch || userTier === UserTier.Premium) {
             return (
-                <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-                    <div className="w-full max-w-md mx-auto text-center">
+                <div className="min-h-screen bg-transparent flex flex-col items-center justify-center p-4">
+                    <Card variant="elevated" padding="lg" className="w-full max-w-md text-center">
                         <div className="mb-6">
-                            <div className="mx-auto mb-4 bg-yellow-100 h-20 w-20 rounded-full flex items-center justify-center">
-                                <i className="fa-solid fa-exclamation-triangle text-4xl text-yellow-600"></i>
-                            </div>
-                            <h1 className="text-2xl font-bold text-gray-900 mb-2">Subscription Not Found</h1>
-                            <p className="text-gray-600 mb-4">
-                                Your account shows as premium, but no active Stripe subscription was found. 
-                                This may happen if your subscription was cancelled or there's a mismatch between 
-                                your account status and Stripe records.
-                            </p>
-                            {error && (
-                                <p className="text-sm text-gray-500 mb-4">{error}</p>
-                            )}
-                            <p className="text-gray-600 mb-4">
-                                Please contact support if you believe this is an error, or if you'd like to 
-                                reactivate your subscription.
-                            </p>
-                            <button
-                                onClick={handleCreateMockSubscription}
-                                className="text-sky-600 hover:text-sky-700 text-sm font-medium underline mb-4"
-                            >
-                                Fix Subscription (Dev)
-                            </button>
+                            <div className="mx-auto mb-4 bg-[var(--color-warning-light)] h-20 w-20 rounded-full flex items-center justify-center">
+                                <i className="fa-solid fa-exclamation-triangle text-4xl text-[var(--color-warning)]" aria-hidden="true"></i>
                         </div>
-                        <button
-                            onClick={onBack}
-                            className="w-full bg-sky-500 text-white font-bold py-3 rounded-lg hover:bg-sky-600 transition"
+                            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">Subscription Not Found</h1>
+                            <p className="text-[var(--color-text-secondary)] mb-4">
+                            Your account shows as premium, but no active Stripe subscription was found. 
+                            This may happen if your subscription was cancelled or there's a mismatch between 
+                            your account status and Stripe records.
+                        </p>
+                        {error && (
+                                <p className="text-sm text-[var(--color-text-muted)] mb-4">{error}</p>
+                        )}
+                            <p className="text-[var(--color-text-secondary)] mb-4">
+                            Please contact support if you believe this is an error, or if you'd like to 
+                            reactivate your subscription.
+                        </p>
+                            <Button
+                            onClick={handleCreateMockSubscription}
+                                variant="ghost"
+                                size="sm"
+                                className="mb-4"
                         >
+                            Fix Subscription (Dev)
+                            </Button>
+                        </div>
+                        <Button onClick={onBack} fullWidth>
                             Go Back to Settings
-                        </button>
-                    </div>
+                        </Button>
+                    </Card>
                 </div>
             );
         }
         
         // Regular "no subscription" message for free tier users
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-                <div className="w-full max-w-md mx-auto text-center">
+            <div className="min-h-screen bg-transparent flex flex-col items-center justify-center p-4">
+                <Card variant="elevated" padding="lg" className="w-full max-w-md text-center">
                     <div className="mb-6">
-                        <div className="mx-auto mb-4 bg-gray-100 h-20 w-20 rounded-full flex items-center justify-center">
-                            <i className="fa-solid fa-info-circle text-4xl text-gray-400"></i>
+                        <div className="mx-auto mb-4 bg-[var(--color-bg-accent)] h-20 w-20 rounded-full flex items-center justify-center">
+                            <i className="fa-solid fa-info-circle text-4xl text-[var(--color-text-muted)]" aria-hidden="true"></i>
                         </div>
-                        <h1 className="text-2xl font-bold text-gray-900 mb-2">No Active Subscription</h1>
-                        <p className="text-gray-600">You don't have an active subscription to cancel.</p>
+                        <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">No Active Subscription</h1>
+                        <p className="text-[var(--color-text-secondary)]">You don't have an active subscription to cancel.</p>
                     </div>
-                    <button
-                        onClick={onBack}
-                        className="w-full bg-sky-500 text-white font-bold py-3 rounded-lg hover:bg-sky-600 transition"
-                    >
+                    <Button onClick={onBack} fullWidth>
                         Go Back
-                    </button>
-                </div>
+                    </Button>
+                </Card>
             </div>
         );
     }
@@ -342,104 +340,97 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 sm:p-6">
-            <div className="absolute top-6 left-6">
-                <button
-                    onClick={onBack}
-                    className="text-gray-500 hover:text-gray-800 transition-colors"
-                    aria-label="Go back"
-                >
-                    <i className="fa fa-arrow-left text-2xl" aria-hidden="true"></i>
-                </button>
+        <div className="min-h-screen bg-transparent pb-24">
+            <ToastContainer toasts={toasts} onRemove={removeToast} />
+            
+            {/* Header */}
+            <div className="relative h-32 overflow-hidden">
+                <HeaderWave className="absolute top-0 left-0 right-0" />
+                <div className="relative z-10 flex items-center h-full px-6">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onBack}
+                        icon={<i className="fa fa-arrow-left" />}
+                        aria-label="Go back"
+                        className="mr-3"
+                    />
+                </div>
             </div>
 
-            <div className="w-full max-w-md mx-auto">
+            <div className="w-full max-w-md mx-auto px-6">
                 <div className="mb-6 text-center">
-                    <div className="mx-auto mb-4 bg-sky-100 h-20 w-20 rounded-full flex items-center justify-center ring-8 ring-sky-100/50">
-                        <i className="fa-solid fa-credit-card text-4xl text-sky-500"></i>
+                    <div className="mx-auto mb-4 bg-[var(--color-primary-lighter)] h-20 w-20 rounded-full flex items-center justify-center ring-8 ring-[var(--color-primary-lighter)]/50">
+                        <i className="fa-solid fa-credit-card text-4xl text-[var(--color-primary-dark)]" aria-hidden="true"></i>
                     </div>
-                    <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-2">
+                    <h1 className="text-3xl sm:text-4xl font-extrabold text-[var(--color-text-primary)] mb-2">
                         {showCancellationFlow ? 'Cancel Subscription' : 'Manage Subscription'}
                     </h1>
-                    <p className="text-gray-600">
+                    <p className="text-[var(--color-text-secondary)]">
                         {showCancellationFlow ? "We're sorry to see you go" : 'View and manage your subscription details'}
                     </p>
                 </div>
 
                 {/* Current Subscription Details */}
-                <div className="bg-white rounded-2xl shadow-md p-6 mb-6">
-                    <h2 className="text-lg font-bold text-gray-900 mb-4">Current Subscription</h2>
+                <Card variant="elevated" padding="md" className="mb-6">
+                    <h2 className="text-lg font-bold text-[var(--color-text-primary)] mb-4">Current Subscription</h2>
                     <div className="space-y-3">
                         <div className="flex justify-between">
-                            <span className="text-gray-600">Plan</span>
-                            <span className="font-semibold text-gray-900">{planName} Plan</span>
+                            <span className="text-[var(--color-text-secondary)]">Plan</span>
+                            <span className="font-semibold text-[var(--color-text-primary)]">{planName} Plan</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-gray-600">Current Price</span>
-                            <span className="font-semibold text-gray-900">
+                            <span className="text-[var(--color-text-secondary)]">Current Price</span>
+                            <span className="font-semibold text-[var(--color-text-primary)]">
                                 {formatPrice(subscription.currentPrice)}/{periodLabel}
                                 {subscription.hasRetentionDiscount && (
-                                    <span className="text-green-600 text-sm ml-2">(30% off)</span>
+                                    <span className="text-[var(--color-success)] text-sm ml-2">(30% off)</span>
                                 )}
                             </span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-gray-600">Next Billing Date</span>
-                            <span className="font-semibold text-gray-900">{formatDate(subscription.currentPeriodEnd)}</span>
+                            <span className="text-[var(--color-text-secondary)]">Next Billing Date</span>
+                            <span className="font-semibold text-[var(--color-text-primary)]">{formatDate(subscription.currentPeriodEnd)}</span>
                         </div>
                         {subscription.cancelAtPeriodEnd && (
-                            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
-                                <p className="text-yellow-800 text-sm">
-                                    <i className="fa-solid fa-exclamation-triangle mr-2"></i>
+                            <Card variant="accent" padding="sm" className="border-l-4 border-[var(--color-warning)]">
+                                <p className="text-[var(--color-text-primary)] text-sm">
+                                    <i className="fa-solid fa-exclamation-triangle mr-2" aria-hidden="true"></i>
                                     Your subscription will end on {formatDate(subscription.currentPeriodEnd)}
                                 </p>
-                            </div>
+                            </Card>
                         )}
                     </div>
-                </div>
+                </Card>
 
                 {/* Retention Offer - Only show when user clicks Cancel */}
                 {showCancellationFlow && !subscription.hasRetentionDiscount && !subscription.cancelAtPeriodEnd && (
-                    <div className="bg-gradient-to-r from-sky-50 to-blue-50 border-2 border-sky-300 rounded-2xl p-6 mb-6">
+                    <Card variant="accent" padding="lg" className="mb-6 border-2 border-[var(--color-primary-light)]">
                         <div className="text-center mb-4">
-                            <div className="inline-block bg-sky-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase mb-2">
+                            <div className="inline-block bg-[var(--color-primary)] text-white text-xs font-bold px-3 py-1 rounded-full uppercase mb-2">
                                 Special Offer
                             </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">Stay with us for 30% off!</h3>
-                            <p className="text-gray-700 mb-4">
+                            <h3 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">Stay with us for 30% off!</h3>
+                            <p className="text-[var(--color-text-secondary)] mb-4">
                                 We'd love to keep you as a member. Accept this offer and pay only{' '}
-                                <span className="font-bold text-sky-600">{formatPrice(discountedPrice!)}</span> per {periodLabel} instead of{' '}
-                                <span className="line-through text-gray-500">{formatPrice(subscription.originalPrice)}</span>.
+                                <span className="font-bold text-[var(--color-primary-dark)]">{formatPrice(discountedPrice!)}</span> per {periodLabel} instead of{' '}
+                                <span className="line-through text-[var(--color-text-muted)]">{formatPrice(subscription.originalPrice)}</span>.
                             </p>
-                            <div className="bg-white rounded-lg p-4 mb-4">
+                            <Card variant="default" padding="md" className="mb-4">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-gray-600">Original Price</span>
-                                    <span className="text-lg font-bold text-gray-900">{formatPrice(subscription.originalPrice)}/{periodLabel}</span>
+                                    <span className="text-[var(--color-text-secondary)]">Original Price</span>
+                                    <span className="text-lg font-bold text-[var(--color-text-primary)]">{formatPrice(subscription.originalPrice)}/{periodLabel}</span>
                                 </div>
                                 <div className="flex justify-between items-center mt-2">
-                                    <span className="text-gray-600">Your New Price</span>
-                                    <span className="text-2xl font-extrabold text-sky-600">{formatPrice(discountedPrice!)}/{periodLabel}</span>
+                                    <span className="text-[var(--color-text-secondary)]">Your New Price</span>
+                                    <span className="text-2xl font-extrabold text-[var(--color-primary-dark)]">{formatPrice(discountedPrice!)}/{periodLabel}</span>
                                 </div>
-                                <div className="text-center mt-3 text-sm text-gray-600">
+                                <div className="text-center mt-3 text-sm text-[var(--color-text-muted)]">
                                     Save {formatPrice(subscription.originalPrice - discountedPrice!)} per {periodLabel}
                                 </div>
-                            </div>
+                            </Card>
                         </div>
-                    </div>
-                )}
-
-                {/* Success Message */}
-                {success && (
-                    <div className="mb-6 bg-green-50 border-l-4 border-green-400 p-4 rounded">
-                        <p className="text-green-700">{success}</p>
-                    </div>
-                )}
-
-                {/* Error Message */}
-                {error && (
-                    <div className="mb-6 bg-red-50 border-l-4 border-red-400 p-4 rounded">
-                        <p className="text-red-700">{error}</p>
-                    </div>
+                    </Card>
                 )}
 
                 {/* Action Buttons */}
@@ -450,77 +441,76 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                             <>
                                 {/* Upgrade to Annual button - only show for monthly subscribers */}
                                 {detectedPlan === 'monthly' && (
-                                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6 mb-4">
+                                    <Card variant="accent" padding="lg" className="mb-4 border-2 border-[var(--color-success-light)]">
                                         <div className="text-center mb-4">
-                                            <h3 className="text-lg font-bold text-gray-900 mb-2">Upgrade to Annual</h3>
-                                            <p className="text-gray-700 text-sm mb-3">
-                                                Save money by switching to annual billing. Your upgrade will take effect at the end of your current billing period.
-                                            </p>
-                                            <div className="bg-white rounded-lg p-3 mb-3">
+                                            <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">Upgrade to Annual</h3>
+                                            <p className="text-[var(--color-text-secondary)] text-sm mb-3">
+                                            Save money by switching to annual billing. Your upgrade will take effect at the end of your current billing period.
+                                        </p>
+                                            <Card variant="default" padding="sm" className="mb-3">
                                                 <div className="flex justify-between items-center text-sm">
-                                                    <span className="text-gray-600">Monthly (current)</span>
-                                                    <span className="font-semibold text-gray-900">{formatPrice(subscription.originalPrice)}/month</span>
-                                                </div>
-                                                <div className="flex justify-between items-center mt-2 text-sm">
-                                                    <span className="text-gray-600">Annual (upgrade)</span>
-                                                    <span className="font-semibold text-green-600">$99.99/year</span>
-                                                </div>
-                                                <div className="text-center mt-2 text-xs text-gray-600">
-                                                    Save ${(subscription.originalPrice * 12 - 99.99).toFixed(2)} per year
-                                                </div>
+                                                    <span className="text-[var(--color-text-secondary)]">Monthly (current)</span>
+                                                    <span className="font-semibold text-[var(--color-text-primary)]">{formatPrice(subscription.originalPrice)}/month</span>
                                             </div>
-                                            <button
-                                                onClick={handleUpgradeToAnnual}
-                                                disabled={upgradeLoading || actionLoading !== null}
-                                                className="w-full bg-green-500 text-white font-bold py-3 rounded-lg hover:bg-green-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                                <div className="flex justify-between items-center mt-2 text-sm">
+                                                    <span className="text-[var(--color-text-secondary)]">Annual (upgrade)</span>
+                                                    <span className="font-semibold text-[var(--color-success)]">$99.99/year</span>
+                                            </div>
+                                                <div className="text-center mt-2 text-xs text-[var(--color-text-muted)]">
+                                                Save ${(subscription.originalPrice * 12 - 99.99).toFixed(2)} per year
+                                            </div>
+                                            </Card>
+                                            <Button
+                                            onClick={handleUpgradeToAnnual}
+                                            disabled={upgradeLoading || actionLoading !== null}
+                                                variant="success"
+                                            fullWidth
+                                                loading={upgradeLoading}
                                             >
-                                                {upgradeLoading ? (
-                                                    <span><i className="fa fa-spinner fa-spin mr-2"></i>Upgrading...</span>
-                                                ) : (
-                                                    <span>Upgrade to Annual Plan</span>
-                                                )}
-                                            </button>
+                                                Upgrade to Annual Plan
+                                            </Button>
                                         </div>
-                                    </div>
+                                    </Card>
                                 )}
-                                <button
+                                <Button
                                     onClick={() => setShowCancellationFlow(true)}
-                                    className="w-full bg-red-500 text-white font-bold py-4 rounded-lg hover:bg-red-600 transition text-lg"
+                                    variant="danger"
+                                    size="lg"
+                                    fullWidth
                                 >
                                     Cancel Subscription
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     onClick={onBack}
-                                    className="w-full bg-gray-200 text-gray-800 font-bold py-3 rounded-lg hover:bg-gray-300 transition"
+                                    variant="secondary"
+                                    fullWidth
                                 >
                                     Go Back to Settings
-                                </button>
+                                </Button>
                             </>
                         ) : (
                             // Cancellation flow - Show retention offer buttons
                             <>
-                                <button
+                                <Button
                                     onClick={handleAcceptOffer}
                                     disabled={actionLoading !== null}
-                                    className="w-full bg-sky-500 text-white font-bold py-4 rounded-lg hover:bg-sky-600 transition disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                                    variant="primary"
+                                    size="lg"
+                                    fullWidth
+                                    loading={actionLoading === 'accept'}
                                 >
-                                    {actionLoading === 'accept' ? (
-                                        <span><i className="fa fa-spinner fa-spin mr-2"></i>Applying Discount...</span>
-                                    ) : (
-                                        <span>Keep My Subscription (30% Off)</span>
-                                    )}
-                                </button>
-                                <button
+                                    Keep My Subscription (30% Off)
+                                </Button>
+                                <Button
                                     onClick={handleCancel}
                                     disabled={actionLoading !== null}
-                                    className="w-full bg-gray-200 text-gray-800 font-bold py-4 rounded-lg hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                    variant="secondary"
+                                    size="lg"
+                                    fullWidth
+                                    loading={actionLoading === 'cancel'}
                                 >
-                                    {actionLoading === 'cancel' ? (
-                                        <span><i className="fa fa-spinner fa-spin mr-2"></i>Cancelling...</span>
-                                    ) : (
-                                        <span>Cancel Anyway</span>
-                                    )}
-                                </button>
+                                    Cancel Anyway
+                                </Button>
                             </>
                         )}
                     </div>
@@ -529,54 +519,55 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                 {subscription.cancelAtPeriodEnd && (
                     <div className="space-y-4">
                         <div className="text-center">
-                            <p className="text-gray-600 mb-4">
-                                Your subscription is scheduled to cancel on {formatDate(subscription.currentPeriodEnd)}.
-                            </p>
+                            <p className="text-[var(--color-text-secondary)] mb-4">
+                            Your subscription is scheduled to cancel on {formatDate(subscription.currentPeriodEnd)}.
+                        </p>
                         </div>
-                        <button
+                        <Button
                             onClick={handleRestore}
                             disabled={actionLoading !== null}
-                            className="w-full bg-green-500 text-white font-bold py-4 rounded-lg hover:bg-green-600 transition disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                            variant="success"
+                            size="lg"
+                            fullWidth
+                            loading={actionLoading === 'restore'}
+                            icon={<i className="fa-solid fa-rotate-left" />}
                         >
-                            {actionLoading === 'restore' ? (
-                                <span><i className="fa fa-spinner fa-spin mr-2"></i>Restoring...</span>
-                            ) : (
-                                <span><i className="fa-solid fa-rotate-left mr-2"></i>Restore Purchase</span>
-                            )}
-                        </button>
-                        <button
+                                    Restore Purchase
+                        </Button>
+                        <Button
                             onClick={onBack}
-                            className="w-full bg-gray-200 text-gray-800 font-bold py-3 rounded-lg hover:bg-gray-300 transition"
+                            variant="secondary"
+                            fullWidth
                         >
                             Go Back to Settings
-                        </button>
+                        </Button>
                     </div>
                 )}
 
                 {subscription.hasRetentionDiscount && !subscription.cancelAtPeriodEnd && (
                     <div className="space-y-4">
                         <div className="text-center">
-                            <p className="text-gray-600 mb-4">
-                                You're already enjoying the 30% discount! Your subscription will continue at the discounted rate.
-                            </p>
+                            <p className="text-[var(--color-text-secondary)] mb-4">
+                            You're already enjoying the 30% discount! Your subscription will continue at the discounted rate.
+                        </p>
                         </div>
-                        <button
+                        <Button
                             onClick={handleCancel}
                             disabled={actionLoading !== null}
-                            className="w-full bg-gray-200 text-gray-800 font-bold py-4 rounded-lg hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            variant="secondary"
+                            size="lg"
+                            fullWidth
+                            loading={actionLoading === 'cancel'}
                         >
-                            {actionLoading === 'cancel' ? (
-                                <span><i className="fa fa-spinner fa-spin mr-2"></i>Cancelling...</span>
-                            ) : (
-                                <span>Cancel Subscription</span>
-                            )}
-                        </button>
-                        <button
+                            Cancel Subscription
+                        </Button>
+                        <Button
                             onClick={onBack}
-                            className="w-full bg-sky-500 text-white font-bold py-3 rounded-lg hover:bg-sky-600 transition"
+                            variant="primary"
+                            fullWidth
                         >
                             Go Back to Settings
-                        </button>
+                        </Button>
                     </div>
                 )}
             </div>
