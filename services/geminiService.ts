@@ -488,7 +488,7 @@ export const getPatientResponse = async (chat: Chat, message: string, patient?: 
     }
 };
 
-const premiumFeedbackSchema = {
+const feedbackSchema = {
     type: Type.OBJECT,
     properties: {
         keyTakeaway: {
@@ -497,7 +497,11 @@ const premiumFeedbackSchema = {
         },
         empathyScore: {
             type: Type.INTEGER,
-            description: "A score from 1-5 on how empathetic the user's responses were. 1 is low, 5 is high.",
+            description: "A score from 1-5 on how empathetic the user's responses were. 1 is low, 5 is high. Always provide a score.",
+        },
+        empathyBreakdown: {
+            type: Type.STRING,
+            description: "A 2-3 sentence explanation of why the empathy score was given. Reference specific examples from the transcript that demonstrate the level of empathy shown.",
         },
         whatWentRight: {
             type: Type.STRING,
@@ -507,6 +511,10 @@ const premiumFeedbackSchema = {
             type: Type.STRING,
             description: "A paragraph (2-3 sentences) identifying a key area for growth and a specific 'Missed Opportunity'. MUST quote the clinician and then provide a concrete example of what they could have said instead. e.g., 'A key area is deepening reflections. For instance, when you said [quote], a missed opportunity was to reflect the underlying emotion. You could have tried: [example reflection].'",
         },
+        areasForGrowth: {
+            type: Type.STRING,
+            description: "Specific suggestions for growth with actionable recommendations. Should be 2-3 sentences with concrete examples of what to practice next.",
+        },
         keySkillsUsed: {
             type: Type.ARRAY,
             items: { 
@@ -515,24 +523,31 @@ const premiumFeedbackSchema = {
             },
             description: "An array of MI skills the user employed effectively. Only include skills from the provided enum list.",
         },
+        skillsDetected: {
+            type: Type.ARRAY,
+            items: { 
+                type: Type.STRING,
+                enum: ['Open Questions', 'Affirmations', 'Reflections', 'Summaries', 'Developing Discrepancy', 'Eliciting Change Talk', 'Rolling with Resistance', 'Supporting Self-Efficacy']
+            },
+            description: "An array of all MI skills detected in the transcript, including both effective uses and opportunities. Only include skills from the provided enum list.",
+        },
+        skillCounts: {
+            type: Type.STRING,
+            description: "A JSON string representation of an object mapping each detected skill to the number of times it was used. Format as a JSON string, e.g., '{\"Reflections\": 4, \"Open Questions\": 2, \"Affirmations\": 1}'. Only include skills that were actually used.",
+        },
         nextPracticeFocus: {
             type: Type.STRING,
             description: "A single, actionable goal for the user's next practice session. Frame it as a clear instruction, like 'For your next session, focus on asking at least three open-ended questions that explore the patient's values.'",
+        },
+        nextFocus: {
+            type: Type.STRING,
+            description: "A concise next practice recommendation (1-2 sentences) with a specific, actionable focus area for improvement.",
         }
     },
-    required: ["keyTakeaway", "empathyScore", "whatWentRight", "constructiveFeedback", "keySkillsUsed", "nextPracticeFocus"],
+    required: ["empathyScore", "empathyBreakdown", "whatWentRight", "areasForGrowth", "skillsDetected", "nextFocus"],
 };
 
-const freeFeedbackSchema = {
-    type: Type.OBJECT,
-    properties: {
-        whatWentRight: {
-            type: Type.STRING,
-            description: "A brief, encouraging summary of one thing the user did well in the motivational interview.",
-        },
-    },
-    required: ["whatWentRight"],
-};
+// Removed freeFeedbackSchema - we now always generate all feedback fields regardless of tier
 
 
 export const getFeedbackForTranscript = async (transcript: ChatMessage[], patient: PatientProfile, userTier: UserTier): Promise<Feedback> => {
@@ -542,9 +557,15 @@ export const getFeedbackForTranscript = async (transcript: ChatMessage[], patien
     if (!hasClinicianInput) {
         console.warn('[getFeedbackForTranscript] No clinician input detected. Returning insufficient data feedback.');
         return {
+            empathyScore: 0,
+            empathyBreakdown: "No clinician responses were captured in this session, so empathy cannot be assessed.",
             whatWentRight: "There's not enough clinician input from this session to generate feedback.",
+            areasForGrowth: "No clinician responses were captured. Please try another session when you're ready to practice.",
+            skillsDetected: [],
+            skillCounts: {},
+            nextFocus: "Try another practice session and engage with the patient to receive detailed feedback.",
             analysisStatus: 'insufficient-data',
-            analysisMessage: "We didn’t receive any clinician responses, so there isn’t enough information to interpret this encounter. Try another session when you’re ready to practice."
+            analysisMessage: "We didn't receive any clinician responses, so there isn't enough information to interpret this encounter. Try another session when you're ready to practice."
         };
     }
     
@@ -553,47 +574,59 @@ export const getFeedbackForTranscript = async (transcript: ChatMessage[], patien
     Analyze the clinician's performance in the following transcript.
 
     Patient Profile: ${JSON.stringify(patient)}
-    User Tier: ${userTier}
     
     Transcript:
     ${formattedTranscript}
     
     Crucially, you MUST ground your feedback in the transcript. When you mention something the clinician did well or could improve, quote the specific phrase they used to illustrate your point.
 
-    Based on your analysis, provide a detailed report in the requested JSON format.
-    - For 'constructiveFeedback', identify a key area for growth. Then, pinpoint a specific "Missed Opportunity" in the transcript. Quote the clinician's words and provide a concrete example of what they could have said instead to better use an MI skill (e.g., "Instead of asking 'Why did you do that?', you could have offered a complex reflection like 'It sounds like you were feeling overwhelmed in that moment.'").`;
-
-    const isPremium = userTier === UserTier.Premium;
+    Based on your analysis, provide a detailed report in the requested JSON format with ALL required fields:
+    
+    - empathyScore: A number from 1-5 rating the clinician's overall empathy level
+    - empathyBreakdown: Explain WHY you gave that score, referencing 2-3 specific examples from the transcript
+    - whatWentRight: What the clinician did well, with direct quotes from the transcript
+    - constructiveFeedback: A key area for growth with a specific "Missed Opportunity". Quote the clinician's words and provide a concrete example of what they could have said instead
+    - areasForGrowth: Specific, actionable suggestions for improvement (2-3 sentences)
+    - skillsDetected: An array of ALL MI skills you detected in the transcript (from: Open Questions, Affirmations, Reflections, Summaries, Developing Discrepancy, Eliciting Change Talk, Rolling with Resistance, Supporting Self-Efficacy)
+    - skillCounts: A JSON string representation of an object counting how many times each skill was used. Count all instances in the transcript. Format as a JSON string: "{\"Reflections\": 4, \"Open Questions\": 2, \"Affirmations\": 1}"
+    - nextFocus: A concise, actionable recommendation for the next practice session (1-2 sentences)
+    
+    IMPORTANT: Count every instance of each skill in the transcript. For example, if the clinician used 4 reflections, 2 open questions, and 1 affirmation, skillCounts should be: {"Reflections": 4, "Open Questions": 2, "Affirmations": 1}`;
 
     try {
-        // If Gemini not configured, return mock feedback
+        // If Gemini not configured, return mock feedback with all fields
         if (!isGeminiConfigured()) {
-            console.log('[getFeedbackForTranscript] Gemini API not configured. Returning mock feedback.');
-            if (isPremium) {
-                return {
-                    keyTakeaway: "You created a safe, non-judgmental space for the patient to explore their ambivalence about change. Your genuine curiosity and validation helped build rapport, which is the foundation of effective MI.",
-                    empathyScore: 7,
-                    whatWentRight: "Your reflective listening was solid—you consistently fed back what you heard in a way that helped the patient feel understood. You also showed genuine interest by asking follow-up questions that built on what the patient shared, which demonstrates real engagement rather than just going through a script.",
-                    constructiveFeedback: "You have an excellent opportunity to deepen your work by using more complex reflections. For example, when the patient said they were worried about failure, you could have offered a more nuanced reflection like 'It sounds like part of you really wants to make this change, but there's another part that's protecting you from the disappointment of trying and not succeeding.' This kind of reflection helps patients feel deeply understood and can strengthen their resolve.",
-                    keySkillsUsed: ["Open Questions", "Reflections", "Affirmations"],
-                    nextPracticeFocus: "For your next session, focus on using at least three complex reflections that name both sides of the patient's ambivalence. A complex reflection acknowledges and normalizes the internal conflict the patient is experiencing, which can actually help move them toward change."
-                };
-            } else {
-                return {
-                    whatWentRight: "You did a wonderful job creating a space where the patient felt safe to open up. Your open-ended questions encouraged them to share more deeply, and your reflections showed that you were truly listening. The patient seemed to feel heard and respected, which is exactly what makes Motivational Interviewing effective."
-                };
-            }
+            console.log('[getFeedbackForTranscript] Gemini API not configured. Returning mock feedback with all fields.');
+            return {
+                keyTakeaway: "You created a safe, non-judgmental space for the patient to explore their ambivalence about change. Your genuine curiosity and validation helped build rapport, which is the foundation of effective MI.",
+                empathyScore: 4,
+                empathyBreakdown: "Your responses showed good empathy through reflective listening and validation. You acknowledged the patient's feelings and demonstrated understanding. However, there were opportunities to reflect deeper emotions and explore the patient's internal ambivalence more fully.",
+                whatWentRight: "Your reflective listening was solid—you consistently fed back what you heard in a way that helped the patient feel understood. You also showed genuine interest by asking follow-up questions that built on what the patient shared, which demonstrates real engagement rather than just going through a script.",
+                constructiveFeedback: "You have an excellent opportunity to deepen your work by using more complex reflections. For example, when the patient said they were worried about failure, you could have offered a more nuanced reflection like 'It sounds like part of you really wants to make this change, but there's another part that's protecting you from the disappointment of trying and not succeeding.' This kind of reflection helps patients feel deeply understood and can strengthen their resolve.",
+                areasForGrowth: "Focus on developing more complex reflections that capture both sides of ambivalence. Practice identifying underlying emotions and reflecting them back. Also, work on asking more open-ended questions that explore values and motivations rather than closed questions that can feel interrogative.",
+                keySkillsUsed: ["Open Questions", "Reflections", "Affirmations"],
+                skillsDetected: ["Open Questions", "Reflections", "Affirmations", "Summaries"],
+                skillCounts: {
+                    "Reflections": 4,
+                    "Open Questions": 2,
+                    "Affirmations": 1,
+                    "Summaries": 1
+                },
+                nextPracticeFocus: "For your next session, focus on using at least three complex reflections that name both sides of the patient's ambivalence. A complex reflection acknowledges and normalizes the internal conflict the patient is experiencing, which can actually help move them toward change.",
+                nextFocus: "Practice using complex reflections that acknowledge both sides of the patient's ambivalence. Aim for at least three reflections that capture conflicting feelings or motivations."
+            };
         }
         
         // Validate API key before making API call
         validateApiKey();
         
+        // Always use the full feedback schema regardless of tier
         const response: GenerateContentResponse = await getAI().models.generateContent({
             model: 'gemini-2.0-flash',
             contents: prompt,
             config: {
                 responseMimeType: 'application/json',
-                responseSchema: isPremium ? premiumFeedbackSchema : freeFeedbackSchema,
+                responseSchema: feedbackSchema,
             },
         });
         
@@ -602,8 +635,31 @@ export const getFeedbackForTranscript = async (transcript: ChatMessage[], patien
         }
         
         const feedbackJson = JSON.parse(response.text);
+        
+        // Parse skillCounts from JSON string if it exists
+        let skillCounts: Record<string, number> = {};
+        if (feedbackJson.skillCounts) {
+            try {
+                skillCounts = typeof feedbackJson.skillCounts === 'string' 
+                    ? JSON.parse(feedbackJson.skillCounts) 
+                    : feedbackJson.skillCounts;
+            } catch (e) {
+                console.warn('[getFeedbackForTranscript] Failed to parse skillCounts, using empty object');
+                skillCounts = {};
+            }
+        }
+        
+        // Ensure backward compatibility by mapping new fields to old field names if needed
+        const feedback: Feedback = {
+            ...feedbackJson,
+            skillCounts,
+            // Map new field names to old ones for backward compatibility
+            constructiveFeedback: feedbackJson.constructiveFeedback || feedbackJson.areasForGrowth,
+            keySkillsUsed: feedbackJson.keySkillsUsed || feedbackJson.skillsDetected,
+            nextPracticeFocus: feedbackJson.nextPracticeFocus || feedbackJson.nextFocus,
+        };
 
-        return feedbackJson as Feedback;
+        return feedback;
 
     } catch (error) {
         // Use standardized error handler
@@ -611,16 +667,23 @@ export const getFeedbackForTranscript = async (transcript: ChatMessage[], patien
         
         // Handle missing API key error specifically
         if (error instanceof Error && error.message.includes('GEMINI_API_KEY')) {
+            const errorMessage = ErrorHandler.getUserFriendlyMessage(
+                ErrorHandler.createError(
+                    "We're having trouble connecting to our feedback service right now. Your practice session was valuable regardless, and you can try again once the service is properly configured.",
+                    'MISSING_API_KEY',
+                    error,
+                    undefined,
+                    'getFeedbackForTranscript'
+                )
+            );
             return {
-                whatWentRight: ErrorHandler.getUserFriendlyMessage(
-                    ErrorHandler.createError(
-                        "We're having trouble connecting to our feedback service right now. Your practice session was valuable regardless, and you can try again once the service is properly configured.",
-                        'MISSING_API_KEY',
-                        error,
-                        undefined,
-                        'getFeedbackForTranscript'
-                    )
-                ),
+                empathyScore: 3,
+                empathyBreakdown: "Unable to analyze empathy score. Please try again once the service is configured.",
+                whatWentRight: errorMessage,
+                areasForGrowth: "Unable to generate growth areas. Please try again once the service is configured.",
+                skillsDetected: [],
+                skillCounts: {},
+                nextFocus: "Please try another practice session once the service is configured.",
             };
         }
         
@@ -628,31 +691,46 @@ export const getFeedbackForTranscript = async (transcript: ChatMessage[], patien
         if (error && typeof error === 'object' && 'error' in error) {
             const apiError = error as { error?: { code?: number; message?: string } };
             if (apiError.error?.code === 400 && apiError.error?.message?.includes('API key')) {
+                const errorMessage = ErrorHandler.getUserFriendlyMessage(
+                    ErrorHandler.createError(
+                        "We're having trouble connecting to our feedback service right now. Your practice session was valuable regardless, and you can try again once the service is properly configured.",
+                        'INVALID_API_KEY',
+                        apiError.error,
+                        undefined,
+                        'getFeedbackForTranscript'
+                    )
+                );
                 return {
-                    whatWentRight: ErrorHandler.getUserFriendlyMessage(
-                        ErrorHandler.createError(
-                            "We're having trouble connecting to our feedback service right now. Your practice session was valuable regardless, and you can try again once the service is properly configured.",
-                            'INVALID_API_KEY',
-                            apiError.error,
-                            undefined,
-                            'getFeedbackForTranscript'
-                        )
-                    ),
+                    empathyScore: 3,
+                    empathyBreakdown: "Unable to analyze empathy score. Please try again once the service is configured.",
+                    whatWentRight: errorMessage,
+                    areasForGrowth: "Unable to generate growth areas. Please try again once the service is configured.",
+                    skillsDetected: [],
+                    skillCounts: {},
+                    nextFocus: "Please try another practice session once the service is configured.",
                 };
             }
         }
         
-        // Return a fallback Feedback object to prevent UI crashes and provide a positive, informative message.
+        // Return a fallback Feedback object with all required fields to prevent UI crashes
+        const errorMessage = ErrorHandler.getUserFriendlyMessage(
+            ErrorHandler.createError(
+                "We encountered an issue while generating your detailed feedback. However, remember that every practice session is a valuable learning experience. Please try another session later.",
+                'FEEDBACK_GENERATION_ERROR',
+                error,
+                undefined,
+                'getFeedbackForTranscript'
+            )
+        );
+        
         return {
-            whatWentRight: ErrorHandler.getUserFriendlyMessage(
-                ErrorHandler.createError(
-                    "We encountered an issue while generating your detailed feedback. However, remember that every practice session is a valuable learning experience. Please try another session later.",
-                    'FEEDBACK_GENERATION_ERROR',
-                    error,
-                    undefined,
-                    'getFeedbackForTranscript'
-                )
-            ),
+            empathyScore: 3,
+            empathyBreakdown: "Unable to analyze empathy score due to technical issues. Please try another session.",
+            whatWentRight: errorMessage,
+            areasForGrowth: "Unable to generate growth areas due to technical issues. Please try another session.",
+            skillsDetected: [],
+            skillCounts: {},
+            nextFocus: "Please try another practice session to receive detailed feedback.",
         };
     }
 };

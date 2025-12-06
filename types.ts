@@ -70,10 +70,15 @@ export interface ChatMessage {
 export interface Feedback {
     whatWentRight: string; // Stays for free tier compatibility and as a premium summary
     keyTakeaway?: string;
-    empathyScore?: number;
-    constructiveFeedback?: string; // Formerly areasForGrowth
-    keySkillsUsed?: string[]; // Changed from string to string[]
-    nextPracticeFocus?: string;
+    empathyScore: number; // Always generated (1-5)
+    empathyBreakdown?: string; // Explanation of why that score
+    constructiveFeedback?: string; // Formerly areasForGrowth (kept for backward compatibility)
+    areasForGrowth?: string; // Specific suggestions for growth
+    keySkillsUsed?: string[]; // Changed from string to string[] (kept for backward compatibility)
+    skillsDetected?: string[]; // Array of skill names that were used
+    skillCounts?: Record<string, number>; // Object with count per skill, e.g., {"Reflections": 4, "Open Questions": 2}
+    nextPracticeFocus?: string; // Kept for backward compatibility
+    nextFocus?: string; // Next practice recommendation
     analysisStatus?: 'complete' | 'insufficient-data';
     analysisMessage?: string;
 }
