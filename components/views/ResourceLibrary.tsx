@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { UserTier } from '../../types';
-import { Button } from '../ui/Button';
+import { BackButton } from '../ui/BackButton';
 import { Card } from '../ui/Card';
 
 interface ResourceLibraryProps {
@@ -352,14 +352,7 @@ const ResourceDetailView: React.FC<{ resourceId: number; onBack: () => void; }> 
     return (
         <div className="min-h-screen bg-transparent pb-24 px-6">
             <header className="flex items-center mb-6 pt-4">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onBack}
-                    icon={<i className="fa fa-arrow-left" />}
-                    aria-label="Go back"
-                    className="mr-3"
-                />
+                <BackButton onClick={onBack} className="mr-3" />
                 <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">{resource.title}</h1>
             </header>
             <main className="pb-8">
@@ -404,14 +397,7 @@ const ResourceLibrary: React.FC<ResourceLibraryProps> = ({ onUpgrade, userTier, 
     return (
         <div className="min-h-screen bg-transparent pb-24 flex flex-col">
             <header className="flex items-center mb-4 pt-4 px-6">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onBack}
-                    icon={<i className="fa fa-arrow-left" />}
-                    aria-label="Go back"
-                    className="mr-3"
-                />
+                <BackButton onClick={onBack} className="mr-3" />
                 <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Resource Library</h1>
             </header>
 

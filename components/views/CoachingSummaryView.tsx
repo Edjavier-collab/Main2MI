@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CoachingSummary } from '../../types';
 import { Button } from '../ui/Button';
+import { BackButton } from '../ui/BackButton';
 import { Card } from '../ui/Card';
 
 interface CoachingSummaryViewProps {
@@ -127,14 +128,7 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
         return (
             <div className="min-h-screen bg-transparent p-6">
                 <header className="flex items-center mb-6 max-w-4xl mx-auto">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={onBack}
-                        icon={<i className="fa fa-arrow-left" />}
-                        aria-label="Go back"
-                        className="mr-3"
-                    />
+                    <BackButton onClick={onBack} className="mr-3" />
                     <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Coaching Summary</h1>
                 </header>
                 <main className="max-w-2xl mx-auto">
@@ -142,9 +136,7 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
                         <i className="fa-solid fa-circle-exclamation text-5xl text-[var(--color-error)] mb-4" aria-hidden="true"></i>
                         <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Could Not Generate Summary</h2>
                         <p className="text-[var(--color-text-secondary)] mt-2 max-w-sm mx-auto">{error}</p>
-                        <Button variant="primary" onClick={onBack} className="mt-6">
-                            Go Back
-                        </Button>
+                        <BackButton onClick={onBack} className="mt-6" />
                     </Card>
                 </main>
             </div>
@@ -155,14 +147,7 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
         return (
             <div className="min-h-screen bg-transparent p-6">
                 <header className="flex items-center mb-6 max-w-4xl mx-auto">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={onBack}
-                        icon={<i className="fa fa-arrow-left" />}
-                        aria-label="Go back"
-                        className="mr-3"
-                    />
+                    <BackButton onClick={onBack} className="mr-3" />
                     <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Coaching Summary</h1>
                 </header>
                 <main className="max-w-2xl mx-auto">
@@ -170,9 +155,7 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
                         <i className="fa-regular fa-file-lines text-5xl text-[var(--color-text-muted)] mb-4" aria-hidden="true"></i>
                         <h2 className="text-xl font-bold text-[var(--color-text-primary)]">No Summary Available</h2>
                         <p className="text-[var(--color-text-secondary)] mt-2">Go back and generate a coaching summary from your sessions.</p>
-                        <Button variant="primary" onClick={onBack} className="mt-6">
-                            Go Back
-                        </Button>
+                        <BackButton onClick={onBack} className="mt-6" />
                     </Card>
                 </main>
             </div>
@@ -216,14 +199,7 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
             {/* Header Bar */}
             <header className="px-6 py-4 flex items-center justify-between max-w-4xl mx-auto no-print">
                 <div className="flex items-center">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={onBack}
-                        icon={<i className="fa fa-arrow-left" />}
-                        aria-label="Go back"
-                        className="mr-3"
-                    />
+                    <BackButton onClick={onBack} className="mr-3" />
                     <div>
                         <h1 className="text-xl font-bold text-[var(--color-text-primary)]">Coaching Summary</h1>
                         <p className="text-xs text-[var(--color-text-muted)]">{summary.dateRange}</p>

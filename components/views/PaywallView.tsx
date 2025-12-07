@@ -3,6 +3,7 @@ import { redirectToCheckout } from '../../services/stripeService';
 import { User } from '@supabase/supabase-js';
 import { View } from '../../types';
 import { Button } from '../ui/Button';
+import { BackButton } from '../ui/BackButton';
 import { Card } from '../ui/Card';
 import { useToast } from '../ui/Toast';
 import { HeaderWave } from '../illustrations/SeafoamIllustrations';
@@ -36,13 +37,7 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                 <div className="relative h-32 overflow-hidden">
                     <HeaderWave className="absolute top-0 left-0 right-0" />
                     <div className="relative z-10 flex items-center justify-end h-full px-6">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                        onClick={onBack}
-                            icon={<i className="fa fa-times" />}
-                        aria-label="Close"
-                        />
+                        <BackButton onClick={onBack} label="Close" icon={<i className="fa fa-times text-[var(--color-text-primary)]" aria-hidden="true"></i>} />
                     </div>
                 </div>
 
@@ -88,14 +83,11 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                         >
                             Sign Up or Log In
                         </Button>
-                        <Button
+                        <BackButton
                             onClick={onBack}
-                            variant="ghost"
-                            size="sm"
-                            fullWidth
-                        >
-                            Continue as Guest (3 free sessions/month)
-                        </Button>
+                            label="Continue as Guest (3 free sessions/month)"
+                            className="w-full justify-center"
+                        />
                     </div>
                 </div>
             </div>
@@ -130,13 +122,7 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
             <div className="relative h-32 overflow-hidden">
                 <HeaderWave className="absolute top-0 left-0 right-0" />
                 <div className="relative z-10 flex items-center justify-end h-full px-6">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                    onClick={onBack}
-                        icon={<i className="fa fa-times" />}
-                    aria-label="Close"
-                    />
+                    <BackButton onClick={onBack} label="Close" icon={<i className="fa fa-times text-[var(--color-text-primary)]" aria-hidden="true"></i>} />
                 </div>
             </div>
 

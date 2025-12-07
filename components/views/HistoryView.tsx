@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Session, UserTier } from '../../types';
 import FeedbackView from './FeedbackView';
-import { Button } from '../ui/Button';
+import { BackButton } from '../ui/BackButton';
 import { Card } from '../ui/Card';
 
 interface HistoryViewProps {
@@ -24,14 +24,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ sessions, onBack, onNavigateT
     return (
         <div className="min-h-screen bg-transparent pb-24">
             <div className="flex items-center px-6 py-4">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onBack}
-                    icon={<i className="fa fa-arrow-left" />}
-                    aria-label="Go back"
-                    className="mr-3"
-                />
+                <BackButton onClick={onBack} className="mr-3" />
                 <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Session History</h1>
             </div>
             

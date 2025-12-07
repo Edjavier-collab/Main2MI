@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
+import { BackButton } from '../ui/BackButton';
 import { Card } from '../ui/Card';
 import { useToast } from '../ui/Toast';
 
@@ -79,14 +80,7 @@ const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({ onBack }) => {
         <div className="min-h-screen bg-transparent flex flex-col p-4 pb-24">
             <ToastContainer toasts={toasts} onRemove={removeToast} />
             <header className="flex items-center w-full max-w-sm mx-auto pt-4">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onBack}
-                    icon={<i className="fa fa-arrow-left" />}
-                    aria-label="Go back"
-                    className="mr-3"
-                />
+                <BackButton onClick={onBack} className="mr-3" />
                 <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
                     Forgot Password
                 </h1>
@@ -130,13 +124,7 @@ const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({ onBack }) => {
                                 Resend Email
                             </Button>
                         )}
-                        <Button
-                            onClick={onBack}
-                            variant="primary"
-                            fullWidth
-                        >
-                            Back to Log In
-                        </Button>
+                        <BackButton onClick={onBack} className="w-full justify-center" />
                     </div>
                 ) : (
                     <Card variant="elevated" padding="lg" className="w-full">

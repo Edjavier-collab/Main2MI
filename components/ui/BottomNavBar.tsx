@@ -26,10 +26,10 @@ const NavItem: React.FC<NavItemProps> = ({ label, icon, isActive, onClick, isLoc
             <div className="relative flex flex-col items-center">
                 {/* Icon with minimalist styling */}
                 <div className="relative">
-                    <i className={`${icon} ${isActive ? 'text-zinc-900' : 'text-zinc-400'} text-xl transition-colors`} style={{ fontWeight: isActive ? 600 : 300 }}></i>
+                    <i className={`${icon} ${isActive ? 'text-zinc-900' : 'text-zinc-400'} text-[28px] transition-colors`} aria-hidden="true"></i>
                     {isLocked && (
                         <div className="absolute -top-1 -right-2 bg-zinc-800 text-white w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white" title="Premium Feature">
-                            <i className="fa-solid fa-lock" style={{ fontSize: '7px' }}></i>
+                            <i className="fa-solid fa-lock" style={{ fontSize: '7px' }} aria-hidden="true"></i>
                         </div>
                     )}
                 </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { View } from '../../types';
 import { Button } from '../ui/Button';
+import { BackButton } from '../ui/BackButton';
 import { Card } from '../ui/Card';
 import { useToast } from '../ui/Toast';
 
@@ -154,16 +155,10 @@ const EmailConfirmationView: React.FC<EmailConfirmationViewProps> = ({ email, on
                         I've Verified My Email
                     </Button>
 
-                    <Button
-                        type="button"
+                    <BackButton
                         onClick={onBack}
-                        disabled={resendLoading || checkingStatus}
-                        variant="ghost"
-                        size="sm"
-                        fullWidth
-                    >
-                        Back to Login
-                    </Button>
+                        className="w-full justify-center"
+                    />
                 </div>
             </div>
         </div>
