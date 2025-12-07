@@ -3,9 +3,9 @@ import { User } from '@supabase/supabase-js';
 import { SubscriptionDetails, UserTier } from '../../types';
 import { getUserSubscription, cancelSubscription, restoreSubscription, createMockSubscription, upgradeToAnnual } from '../../services/stripeService';
 import { Button } from '../ui/Button';
+import { BackButton } from '../ui/BackButton';
 import { Card } from '../ui/Card';
 import { useToast } from '../ui/Toast';
-import { HeaderWave } from '../illustrations/SeafoamIllustrations';
 
 interface CancelSubscriptionViewProps {
     user: User;
@@ -241,9 +241,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                             </Card>
                         )}
                         </div>
-                    <Button onClick={onBack} fullWidth>
-                        Go Back
-                    </Button>
+                    <BackButton onClick={onBack} className="w-full justify-center" label="Go Back" />
                 </Card>
             </div>
         );
@@ -281,9 +279,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                             Fix Subscription (Dev)
                             </Button>
                         </div>
-                        <Button onClick={onBack} fullWidth>
-                            Go Back to Settings
-                        </Button>
+                        <BackButton onClick={onBack} className="w-full justify-center" label="Go Back to Settings" />
                     </Card>
                 </div>
             );
@@ -300,9 +296,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                         <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">No Active Subscription</h1>
                         <p className="text-[var(--color-text-secondary)]">You don't have an active subscription to cancel.</p>
                     </div>
-                    <Button onClick={onBack} fullWidth>
-                        Go Back
-                    </Button>
+                    <BackButton onClick={onBack} className="w-full justify-center" label="Go Back" />
                 </Card>
             </div>
         );
@@ -344,18 +338,8 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
             <ToastContainer toasts={toasts} onRemove={removeToast} />
             
             {/* Header */}
-            <div className="relative h-32 overflow-hidden">
-                <HeaderWave className="absolute top-0 left-0 right-0" />
-                <div className="relative z-10 flex items-center h-full px-6">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={onBack}
-                        icon={<i className="fa fa-arrow-left" />}
-                        aria-label="Go back"
-                        className="mr-3"
-                    />
-                </div>
+            <div className="px-6 py-4">
+                <BackButton onClick={onBack} />
             </div>
 
             <div className="w-full max-w-md mx-auto px-6">
@@ -472,102 +456,76 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                                         </div>
                                     </Card>
                                 )}
-                                <Button
-                                    onClick={() => setShowCancellationFlow(true)}
-                                    variant="danger"
-                                    size="lg"
-                                    fullWidth
-                                >
-                                    Cancel Subscription
-                                </Button>
-                                <Button
-                                    onClick={onBack}
-                                    variant="secondary"
-                                    fullWidth
-                                >
-                                    Go Back to Settings
-                                </Button>
+                                <div className="space-y-3">
+                                    <button
+                                        onClick={() => setShowCancellationFlow(true)}
+                                        className="w-full py-3 px-4 bg-white border border-[var(--color-neutral-300)] text-[var(--color-error)] font-semibold text-sm hover:bg-red-50 transition-colors rounded-lg shadow-md"
+                                    >
+                                        Cancel Subscription
+                                    </button>
+                                    <BackButton onClick={onBack} label="Go Back to Settings" className="w-full justify-center" />
+                                </div>
                             </>
                         ) : (
                             // Cancellation flow - Show retention offer buttons
-                            <>
-                                <Button
+                            <div className="space-y-3">
+                                <button
                                     onClick={handleAcceptOffer}
                                     disabled={actionLoading !== null}
-                                    variant="primary"
-                                    size="lg"
-                                    fullWidth
-                                    loading={actionLoading === 'accept'}
+                                    className="w-full py-3 px-4 bg-[var(--color-primary)] border border-[var(--color-primary)] text-white font-semibold text-sm hover:bg-[var(--color-primary-dark)] transition-colors rounded-lg shadow-md disabled:opacity-50"
                                 >
-                                    Keep My Subscription (30% Off)
-                                </Button>
-                                <Button
+                                    {actionLoading === 'accept' ? 'Processing...' : 'Keep My Subscription (30% Off)'}
+                                </button>
+                                <button
                                     onClick={handleCancel}
                                     disabled={actionLoading !== null}
-                                    variant="secondary"
-                                    size="lg"
-                                    fullWidth
-                                    loading={actionLoading === 'cancel'}
+                                    className="w-full py-3 px-4 bg-white border border-[var(--color-neutral-300)] text-[var(--color-text-secondary)] font-semibold text-sm hover:bg-[var(--color-bg-accent)] transition-colors rounded-lg shadow-md disabled:opacity-50"
                                 >
-                                    Cancel Anyway
-                                </Button>
-                            </>
+                                    {actionLoading === 'cancel' ? 'Cancelling...' : 'Cancel Anyway'}
+                                </button>
+                            </div>
                         )}
                     </div>
                 )}
 
                 {subscription.cancelAtPeriodEnd && (
-                    <div className="space-y-4">
-                        <div className="text-center">
-                            <p className="text-[var(--color-text-secondary)] mb-4">
-                            Your subscription is scheduled to cancel on {formatDate(subscription.currentPeriodEnd)}.
-                        </p>
+                    <div>
+                        <div className="text-center mb-5">
+                            <p className="text-[var(--color-text-secondary)]">
+                                Your subscription is scheduled to cancel on {formatDate(subscription.currentPeriodEnd)}.
+                            </p>
                         </div>
-                        <Button
-                            onClick={handleRestore}
-                            disabled={actionLoading !== null}
-                            variant="success"
-                            size="lg"
-                            fullWidth
-                            loading={actionLoading === 'restore'}
-                            icon={<i className="fa-solid fa-rotate-left" />}
-                        >
-                                    Restore Purchase
-                        </Button>
-                        <Button
-                            onClick={onBack}
-                            variant="secondary"
-                            fullWidth
-                        >
-                            Go Back to Settings
-                        </Button>
+                        <div className="space-y-3">
+                            <button
+                                onClick={handleRestore}
+                                disabled={actionLoading !== null}
+                                className="w-full py-3 px-4 bg-[var(--color-success)] border border-[var(--color-success)] text-white font-semibold text-sm hover:bg-[var(--color-success-dark)] transition-colors rounded-lg shadow-md disabled:opacity-50"
+                            >
+                                <i className="fa-solid fa-rotate-left mr-2" aria-hidden="true"></i>
+                                {actionLoading === 'restore' ? 'Restoring...' : 'Restore Purchase'}
+                            </button>
+                            <BackButton onClick={onBack} label="Go Back to Settings" className="w-full justify-center" />
+                        </div>
                     </div>
                 )}
 
                 {subscription.hasRetentionDiscount && !subscription.cancelAtPeriodEnd && (
-                    <div className="space-y-4">
-                        <div className="text-center">
-                            <p className="text-[var(--color-text-secondary)] mb-4">
-                            You're already enjoying the 30% discount! Your subscription will continue at the discounted rate.
-                        </p>
+                    <div>
+                        <div className="text-center mb-5">
+                            <p className="text-[var(--color-text-secondary)]">
+                                You're already enjoying the 30% discount! Your subscription will continue at the discounted rate.
+                            </p>
                         </div>
-                        <Button
-                            onClick={handleCancel}
-                            disabled={actionLoading !== null}
-                            variant="secondary"
-                            size="lg"
-                            fullWidth
-                            loading={actionLoading === 'cancel'}
-                        >
-                            Cancel Subscription
-                        </Button>
-                        <Button
-                            onClick={onBack}
-                            variant="primary"
-                            fullWidth
-                        >
-                            Go Back to Settings
-                        </Button>
+                        <div className="space-y-3">
+                            <button
+                                onClick={handleCancel}
+                                disabled={actionLoading !== null}
+                                className="w-full py-3 px-4 bg-white border border-[var(--color-neutral-300)] text-[var(--color-error)] font-semibold text-sm hover:bg-red-50 transition-colors rounded-lg shadow-md disabled:opacity-50"
+                            >
+                                {actionLoading === 'cancel' ? 'Cancelling...' : 'Cancel Subscription'}
+                            </button>
+                            <BackButton onClick={onBack} label="Go Back to Settings" className="w-full justify-center" />
+                        </div>
                     </div>
                 )}
             </div>

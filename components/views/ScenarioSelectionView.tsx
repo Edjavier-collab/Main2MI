@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { PatientProfileFilters, StageOfChange, DifficultyLevel } from '../../types';
 import { PATIENT_PROFILE_TEMPLATES, STAGE_DESCRIPTIONS } from '../../constants';
 import { Button } from '../ui/Button';
+import { BackButton } from '../ui/BackButton';
 import { Card } from '../ui/Card';
 
 interface ScenarioSelectionViewProps {
@@ -182,14 +183,7 @@ export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ on
     return (
         <div className="min-h-screen bg-transparent pb-24 p-4 sm:p-6">
             <header className="flex items-center mb-6 pt-2 max-w-2xl mx-auto">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onBack}
-                    icon={<i className="fa fa-arrow-left" />}
-                    aria-label="Go back"
-                    className="mr-3"
-                />
+                <BackButton onClick={onBack} className="mr-3" />
                 <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Scenario Selection</h1>
             </header>
 
@@ -279,43 +273,31 @@ export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ on
                 </Card>
 
                 {/* CTA Buttons */}
-                <Card variant="elevated" padding="lg" className="border-2 border-black shadow-lg">
+                <div>
                     <div className="text-center mb-6">
-                        <div className="inline-flex items-center justify-center w-16 h-16 bg-[var(--color-primary-lighter)] border-2 border-black mb-3">
+                        <div className="inline-flex items-center justify-center w-16 h-16 bg-[var(--color-primary-lighter)] rounded-full mb-3">
                             <i className="fa-solid fa-rocket text-3xl text-[var(--color-primary-dark)]" aria-hidden="true"></i>
                         </div>
                         <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Ready to Start?</h2>
                         <p className="text-sm text-[var(--color-text-secondary)] mt-1">Choose how you'd like to begin your practice session</p>
                     </div>
-                    
-                    <div className="space-y-3">
-                        <Button
+
+                    <div className="shadow-lg rounded-lg overflow-hidden">
+                        <button
                             onClick={handleStart}
-                            variant="primary"
-                            size="lg"
-                            fullWidth
-                            icon={<i className="fa-solid fa-play" />}
+                            className="w-full py-3 px-4 bg-white border-2 border-b border-[var(--color-neutral-400)] text-[var(--color-text-primary)] font-semibold text-base hover:bg-[var(--color-bg-accent)] transition-colors"
                         >
                             Start Selected Scenario
-                        </Button>
-                        <Button
+                        </button>
+                        <button
                             onClick={handleRandomStart}
-                            variant="secondary"
-                            size="lg"
-                            fullWidth
-                            icon={<i className="fa-solid fa-shuffle" />}
+                            className="w-full py-3 px-4 bg-white border-2 border-t-0 border-[var(--color-neutral-400)] text-[var(--color-text-primary)] font-semibold text-base hover:bg-[var(--color-bg-accent)] transition-colors"
                         >
                             Start a Random Scenario
-                        </Button>
-                        
-                        <div className="mt-4 p-3 bg-[var(--color-bg-accent)] border border-[var(--color-primary-light)] text-center">
-                            <i className="fa-solid fa-circle-info mr-2 text-[var(--color-primary)]" aria-hidden="true"></i>
-                            <span className="text-xs text-[var(--color-text-secondary)]">
-                                Random scenario will ignore all selections above
-                            </span>
-                        </div>
+                        </button>
                     </div>
-                </Card>
+
+                </div>
             </main>
         </div>
     );

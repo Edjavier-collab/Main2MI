@@ -106,11 +106,11 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
         return (
             <div className="min-h-screen bg-transparent flex flex-col items-center justify-center p-4">
                 <PatientProfileCard patient={patient} userTier={userTier} />
-                <Button 
+                <Button
                     onClick={() => setIsSessionStarted(true)}
-                    variant="success"
+                    variant="primary"
                     size="lg"
-                    className="mt-8"
+                    className="mt-8 px-12 py-4 text-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] border-2 border-black"
                 >
                     Begin Session
                 </Button>

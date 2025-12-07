@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
 import { Button } from '../ui/Button';
+import { BackButton } from '../ui/BackButton';
 import { Card } from '../ui/Card';
 import { useToast } from '../ui/Toast';
 
@@ -145,14 +146,7 @@ const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({ onBack, onSuccess
             <div className="min-h-screen bg-transparent flex flex-col p-4 pb-24">
                 <ToastContainer toasts={toasts} onRemove={removeToast} />
                 <header className="flex items-center w-full max-w-sm mx-auto pt-4">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={onBack}
-                        icon={<i className="fa fa-arrow-left" />}
-                        aria-label="Go back"
-                        className="mr-3"
-                    />
+                    <BackButton onClick={onBack} className="mr-3" />
                     <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
                         Reset Password
                     </h1>
@@ -167,13 +161,7 @@ const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({ onBack, onSuccess
                         <p className="text-[var(--color-text-secondary)] mb-6">
                             This password reset link is invalid or has expired. Please request a new one.
                         </p>
-                        <Button
-                            onClick={onBack}
-                            variant="primary"
-                            fullWidth
-                        >
-                            Back to Login
-                        </Button>
+                        <BackButton onClick={onBack} className="w-full justify-center" />
                     </Card>
                 </div>
             </div>
@@ -184,14 +172,7 @@ const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({ onBack, onSuccess
         <div className="min-h-screen bg-transparent flex flex-col p-4 pb-24">
             <ToastContainer toasts={toasts} onRemove={removeToast} />
             <header className="flex items-center w-full max-w-sm mx-auto pt-4">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onBack}
-                    icon={<i className="fa fa-arrow-left" />}
-                    aria-label="Go back"
-                    className="mr-3"
-                />
+                <BackButton onClick={onBack} className="mr-3" />
                 <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
                     Reset Password
                 </h1>

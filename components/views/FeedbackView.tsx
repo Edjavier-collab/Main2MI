@@ -148,15 +148,19 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                             <Button
                                 onClick={onStartPractice}
                                 variant="primary"
+                                size="lg"
                                 fullWidth
+                                className="text-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] border-2 border-black"
                             >
                                 Start a New Practice
                             </Button>
                         )}
                         <Button
                             onClick={onDone}
-                            variant="secondary"
+                            variant="ghost"
+                            size="lg"
                             fullWidth
+                            className="text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] border-2 border-black"
                         >
                             Back to Dashboard
                         </Button>
