@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { HeaderWave } from '../illustrations/SeafoamIllustrations';
 import { GrowthLogo, SeedlingIcon, BranchDecoration } from '../illustrations/GrowthIllustrations';
 import { SoftCard } from '../ui/SoftCard';
 import { PillButton } from '../ui/PillButton';
@@ -30,9 +29,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   return (
     <div className="home-view">
-      {/* Header with wave */}
+      {/* Header */}
       <div className="home-view__header">
-        <HeaderWave className="home-view__wave" />
         <div className="home-view__header-content">
           <GrowthLogo size={60} className="home-view__logo" />
           <h1 className="home-view__greeting">{getGreeting()}, {userName}!</h1>

@@ -1,4 +1,6 @@
 import React from 'react';
+import { Card } from '../ui/Card';
+import { BackButton } from '../ui/BackButton';
 
 interface CookiePolicyProps {
     onBack: () => void;
@@ -8,15 +10,7 @@ const CookiePolicy: React.FC<CookiePolicyProps> = ({ onBack }) => {
     return (
         <div className="min-h-screen bg-transparent pb-24">
             <div className="max-w-3xl mx-auto px-6 py-4">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onBack}
-                    icon={<i className="fa fa-arrow-left" />}
-                    className="mb-6"
-                >
-                    Back
-                </Button>
+                <BackButton onClick={onBack} className="mb-6" />
 
                 <Card variant="elevated" padding="lg">
                     <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-6">Cookie Policy</h1>

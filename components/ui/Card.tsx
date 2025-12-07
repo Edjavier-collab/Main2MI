@@ -33,7 +33,7 @@ export const Card: React.FC<CardProps> = ({
     lg: 'p-8',
   };
   
-  const hoverClasses = hoverable || onClick ? 'cursor-pointer hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0' : '';
+  const hoverClasses = hoverable || onClick ? 'cursor-pointer tile-hover active:scale-[0.98]' : '';
   
   const classes = `${baseClasses} ${variantClasses[variant]} ${paddingClasses[padding]} ${hoverClasses} ${className}`;
   

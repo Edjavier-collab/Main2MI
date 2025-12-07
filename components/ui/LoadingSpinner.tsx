@@ -1,4 +1,5 @@
 import React from 'react';
+import LottieLoader from './LottieLoader';
 
 interface LoadingSpinnerProps {
     /** Size of the spinner */
@@ -27,13 +28,6 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     fullScreen = false,
     className = ''
 }) => {
-    const sizeClasses = {
-        sm: 'w-6 h-6',
-        md: 'w-10 h-10',
-        lg: 'w-14 h-14',
-        xl: 'w-20 h-20'
-    };
-
     const textSizeClasses = {
         sm: 'text-sm',
         md: 'text-base',
@@ -48,28 +42,8 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
             aria-live="polite"
             aria-busy="true"
         >
-            {/* Spinner Animation */}
-            <div className="relative">
-                {/* Outer ring */}
-                <div 
-                    className={`${sizeClasses[size]} rounded-full border-4 border-sky-100`}
-                    aria-hidden="true"
-                />
-                
-                {/* Spinning ring */}
-                <div 
-                    className={`absolute inset-0 ${sizeClasses[size]} rounded-full border-4 border-transparent border-t-sky-500 animate-spin`}
-                    aria-hidden="true"
-                />
-                
-                {/* Inner pulse */}
-                <div 
-                    className={`absolute inset-0 flex items-center justify-center`}
-                    aria-hidden="true"
-                >
-                    <div className={`w-2 h-2 rounded-full bg-sky-500 animate-pulse-soft`} />
-                </div>
-            </div>
+            {/* Lottie Animation Spinner */}
+            <LottieLoader size={size} />
             
             {/* Loading Message */}
             {message && (

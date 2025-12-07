@@ -26,21 +26,34 @@ serve(async (req: Request) => {
 
     const stripe = getStripe();
     const priceIds = getPriceIds();
+    
+    // Log Stripe key info for debugging (only first/last chars)
+    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY') || '';
+    console.log('[get-subscription] Stripe key prefix:', stripeKey.substring(0, 8) + '...' + stripeKey.substring(stripeKey.length - 4));
 
     // Get user email from Supabase
     let userEmail: string;
     try {
       userEmail = await getUserEmail(userId);
+      console.log('[get-subscription] User email from Supabase:', userEmail);
     } catch (error) {
       console.error('[get-subscription] Failed to get user email:', error);
       return errorResponse('User not found', 404);
     }
 
     // Find Stripe customer by email
+    console.log('[get-subscription] Searching Stripe for customer with email:', userEmail);
     const customers = await stripe.customers.list({
       email: userEmail,
-      limit: 1,
+      limit: 10, // Increase limit to see if there are multiple customers
     });
+    
+    console.log('[get-subscription] Stripe customers found:', customers.data.length);
+    if (customers.data.length > 0) {
+      customers.data.forEach((c, i) => {
+        console.log(`[get-subscription] Customer ${i}: id=${c.id}, email=${c.email}`);
+      });
+    }
 
     if (customers.data.length === 0) {
       console.log('[get-subscription] No Stripe customer found for email:', userEmail);
@@ -59,11 +72,29 @@ serve(async (req: Request) => {
     const customer = customers.data[0];
 
     // Get active subscriptions
+    console.log('[get-subscription] Searching for subscriptions for customer:', customer.id);
     const subscriptions = await stripe.subscriptions.list({
       customer: customer.id,
       status: 'active',
-      limit: 1,
+      limit: 10, // Increase limit to see all subscriptions
     });
+    
+    console.log('[get-subscription] Active subscriptions found:', subscriptions.data.length);
+    if (subscriptions.data.length > 0) {
+      subscriptions.data.forEach((s, i) => {
+        console.log(`[get-subscription] Subscription ${i}: id=${s.id}, status=${s.status}, plan=${s.items.data[0]?.price?.id}`);
+      });
+    } else {
+      // Also check for all subscriptions (any status) to help debug
+      const allSubs = await stripe.subscriptions.list({
+        customer: customer.id,
+        limit: 10,
+      });
+      console.log('[get-subscription] All subscriptions (any status):', allSubs.data.length);
+      allSubs.data.forEach((s, i) => {
+        console.log(`[get-subscription] All sub ${i}: id=${s.id}, status=${s.status}`);
+      });
+    }
 
     if (subscriptions.data.length === 0) {
       console.log('[get-subscription] No active subscription found for customer:', customer.id);
