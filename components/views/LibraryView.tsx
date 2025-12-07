@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { HeaderWave } from '../illustrations/SeafoamIllustrations';
 import { Card } from '../ui/Card';
 import './LibraryView.css';
 
@@ -33,7 +32,6 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
     <div className="library-view">
       {/* Header */}
       <div className="library-view__header">
-        <HeaderWave className="library-view__wave" />
         <div className="library-view__header-content">
           <h1>Resource Library</h1>
           <p>Learn MI fundamentals and techniques</p>

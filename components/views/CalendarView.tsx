@@ -27,7 +27,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ sessions, onBack, userTier,
             return;
         }
         
-        const premiumSessions = sessions.filter(s => s.tier === UserTier.Premium && s.feedback.constructiveFeedback);
+        const premiumSessions = sessions.filter(s => s.tier === UserTier.Premium);
         if (premiumSessions.length === 0 && !hasCoachingSummary) {
              showToast("You need to complete at least one Premium session to generate a summary.", 'warning');
              return;
@@ -144,21 +144,20 @@ const CalendarView: React.FC<CalendarViewProps> = ({ sessions, onBack, userTier,
                                     </span>
                                 </div>
 
-                                <Button
-                                    onClick={handleGenerateClick}
-                                    disabled={isGeneratingSummary || (isPremium && !hasCoachingSummary && sessions.filter(s => s.tier === UserTier.Premium).length === 0)}
-                                    variant={isPremium ? 'primary' : 'secondary'}
-                                    size="lg"
-                                    fullWidth
-                                    loading={isGeneratingSummary}
-                                    icon={
-                                        !isGeneratingSummary && (
-                                            <i className={`fa-solid ${hasCoachingSummary ? 'fa-eye' : (isPremium ? 'fa-wand-magic-sparkles' : 'fa-lock')}`} />
-                                        )
-                                    }
-                                >
-                                    {hasCoachingSummary ? 'View Summary' : 'Generate Summary'}
-                                </Button>
+                                <div className="mt-6 flex justify-center">
+                                    <button
+                                        onClick={handleGenerateClick}
+                                        disabled={isGeneratingSummary}
+                                        className={`inline-flex items-center gap-3 px-7 py-3.5 bg-white border border-[var(--color-neutral-300)] rounded-lg shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 text-[var(--color-text-primary)] font-semibold text-base disabled:opacity-50 disabled:cursor-not-allowed ${isPremium ? 'hover:bg-[var(--color-bg-accent)]' : ''}`}
+                                    >
+                                        {isGeneratingSummary ? (
+                                            <i className="fa-solid fa-spinner fa-spin text-lg" aria-hidden="true"></i>
+                                        ) : (
+                                            <i className={`fa-solid ${hasCoachingSummary ? 'fa-eye' : (isPremium ? 'fa-wand-magic-sparkles' : 'fa-lock')} text-lg`} aria-hidden="true"></i>
+                                        )}
+                                        <span>{hasCoachingSummary ? 'View Summary' : 'Generate Summary'}</span>
+                                    </button>
+                                </div>
 
                                 {!isPremium && (
                                     <p className="text-center text-sm text-[var(--color-text-muted)]">

@@ -146,12 +146,15 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
     };
 
     const handleUpgradeToAnnual = async () => {
+        console.log('[CancelSubscriptionView] Upgrade to Annual clicked');
         setUpgradeLoading(true);
         setError(null);
         setSuccess(null);
         
         try {
+            console.log('[CancelSubscriptionView] Calling upgradeToAnnual for user:', user.id);
             const result = await upgradeToAnnual(user.id);
+            console.log('[CancelSubscriptionView] Upgrade response:', result);
             const message = result?.message || 'Your subscription will be upgraded to Annual at the end of your current billing period.';
             showToast(message, 'success');
             // Reload subscription to show updated plan
@@ -162,7 +165,20 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
             }
         } catch (err) {
             console.error('[CancelSubscriptionView] Error upgrading:', err);
-            showToast(err instanceof Error ? err.message : 'Failed to upgrade subscription. Please try again.', 'error');
+            const errorMessage = err instanceof Error ? err.message : 'Failed to upgrade subscription. Please try again.';
+            
+            // Provide more helpful error messages
+            let displayMessage = errorMessage;
+            if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
+                displayMessage = 'Unable to reach the subscription server. Please ensure your Supabase Edge Functions are deployed and running.';
+            } else if (errorMessage.includes('No customer found') || errorMessage.includes('No active subscription')) {
+                displayMessage = 'Subscription not found. Please ensure you have an active subscription.';
+            } else if (errorMessage.includes('already on the annual plan')) {
+                displayMessage = 'Your subscription is already on the annual plan.';
+            }
+            
+            showToast(displayMessage, 'error');
+            setError(displayMessage);
         } finally {
             setUpgradeLoading(false);
         }
@@ -445,7 +461,12 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                                             </div>
                                             </Card>
                                             <Button
-                                            onClick={handleUpgradeToAnnual}
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                console.log('[CancelSubscriptionView] Button clicked, calling handleUpgradeToAnnual');
+                                                handleUpgradeToAnnual();
+                                            }}
                                             disabled={upgradeLoading || actionLoading !== null}
                                                 variant="success"
                                             fullWidth
@@ -458,8 +479,9 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                                 )}
                                 <div className="space-y-3">
                                     <button
+                                        type="button"
                                         onClick={() => setShowCancellationFlow(true)}
-                                        className="w-full py-3 px-4 bg-white border border-[var(--color-neutral-300)] text-[var(--color-error)] font-semibold text-sm hover:bg-red-50 transition-colors rounded-lg shadow-md"
+                                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-[var(--color-neutral-300)] rounded-lg shadow-md hover:bg-[var(--color-bg-accent)] hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 text-[var(--color-text-primary)] font-semibold text-sm"
                                     >
                                         Cancel Subscription
                                     </button>
@@ -469,20 +491,24 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                         ) : (
                             // Cancellation flow - Show retention offer buttons
                             <div className="space-y-3">
-                                <button
+                                <Button
                                     onClick={handleAcceptOffer}
                                     disabled={actionLoading !== null}
-                                    className="w-full py-3 px-4 bg-[var(--color-primary)] border border-[var(--color-primary)] text-white font-semibold text-sm hover:bg-[var(--color-primary-dark)] transition-colors rounded-lg shadow-md disabled:opacity-50"
+                                    variant="primary"
+                                    fullWidth
+                                    loading={actionLoading === 'accept'}
                                 >
-                                    {actionLoading === 'accept' ? 'Processing...' : 'Keep My Subscription (30% Off)'}
-                                </button>
-                                <button
+                                    Keep My Subscription (30% Off)
+                                </Button>
+                                <Button
                                     onClick={handleCancel}
                                     disabled={actionLoading !== null}
-                                    className="w-full py-3 px-4 bg-white border border-[var(--color-neutral-300)] text-[var(--color-text-secondary)] font-semibold text-sm hover:bg-[var(--color-bg-accent)] transition-colors rounded-lg shadow-md disabled:opacity-50"
+                                    variant="secondary"
+                                    fullWidth
+                                    loading={actionLoading === 'cancel'}
                                 >
-                                    {actionLoading === 'cancel' ? 'Cancelling...' : 'Cancel Anyway'}
-                                </button>
+                                    Cancel Anyway
+                                </Button>
                             </div>
                         )}
                     </div>
@@ -496,14 +522,16 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                             </p>
                         </div>
                         <div className="space-y-3">
-                            <button
+                            <Button
                                 onClick={handleRestore}
                                 disabled={actionLoading !== null}
-                                className="w-full py-3 px-4 bg-[var(--color-success)] border border-[var(--color-success)] text-white font-semibold text-sm hover:bg-[var(--color-success-dark)] transition-colors rounded-lg shadow-md disabled:opacity-50"
+                                variant="success"
+                                fullWidth
+                                loading={actionLoading === 'restore'}
+                                icon={<i className="fa-solid fa-rotate-left" aria-hidden="true"></i>}
                             >
-                                <i className="fa-solid fa-rotate-left mr-2" aria-hidden="true"></i>
-                                {actionLoading === 'restore' ? 'Restoring...' : 'Restore Purchase'}
-                            </button>
+                                Restore Purchase
+                            </Button>
                             <BackButton onClick={onBack} label="Go Back to Settings" className="w-full justify-center" />
                         </div>
                     </div>
@@ -518,11 +546,19 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                         </div>
                         <div className="space-y-3">
                             <button
+                                type="button"
                                 onClick={handleCancel}
                                 disabled={actionLoading !== null}
-                                className="w-full py-3 px-4 bg-white border border-[var(--color-neutral-300)] text-[var(--color-error)] font-semibold text-sm hover:bg-red-50 transition-colors rounded-lg shadow-md disabled:opacity-50"
+                                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-[var(--color-neutral-300)] rounded-lg shadow-md hover:bg-[var(--color-bg-accent)] hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 text-[var(--color-text-primary)] font-semibold text-sm disabled:opacity-50"
                             >
-                                {actionLoading === 'cancel' ? 'Cancelling...' : 'Cancel Subscription'}
+                                {actionLoading === 'cancel' ? (
+                                    <>
+                                        <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+                                        <span>Cancelling...</span>
+                                    </>
+                                ) : (
+                                    <span>Cancel Subscription</span>
+                                )}
                             </button>
                             <BackButton onClick={onBack} label="Go Back to Settings" className="w-full justify-center" />
                         </div>

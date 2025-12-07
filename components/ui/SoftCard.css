@@ -28,7 +28,7 @@
 }
 
 .soft-card--hoverable:hover {
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.02);
   box-shadow: var(--shadow-lg);
   border-color: var(--color-primary);
 }

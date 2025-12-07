@@ -6,7 +6,6 @@ import { Button } from '../ui/Button';
 import { BackButton } from '../ui/BackButton';
 import { Card } from '../ui/Card';
 import { useToast } from '../ui/Toast';
-import { HeaderWave } from '../illustrations/SeafoamIllustrations';
 
 interface PaywallViewProps {
     onBack: () => void;
@@ -35,7 +34,6 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                 
                 {/* Header */}
                 <div className="relative h-32 overflow-hidden">
-                    <HeaderWave className="absolute top-0 left-0 right-0" />
                     <div className="relative z-10 flex items-center justify-end h-full px-6">
                         <BackButton onClick={onBack} label="Close" icon={<i className="fa fa-times text-[var(--color-text-primary)]" aria-hidden="true"></i>} />
                     </div>
@@ -120,7 +118,6 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
             
             {/* Header */}
             <div className="relative h-32 overflow-hidden">
-                <HeaderWave className="absolute top-0 left-0 right-0" />
                 <div className="relative z-10 flex items-center justify-end h-full px-6">
                     <BackButton onClick={onBack} label="Close" icon={<i className="fa fa-times text-[var(--color-text-primary)]" aria-hidden="true"></i>} />
                 </div>
@@ -146,9 +143,26 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                 </Card>
 
                 <div className="space-y-4">
-                    {/* Annual Plan */}
-                    <Card variant="accent" padding="lg" className="border-2 border-[var(--color-primary)] relative">
-                        <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2 bg-[var(--color-primary)] text-white text-xs font-bold px-3 py-1 rounded-full uppercase shadow-md">
+                    {/* Annual Plan - Fully Clickable Tile */}
+                    <div
+                        role="button"
+                        tabIndex={loading !== null ? -1 : 0}
+                        onClick={() => loading === null && handleSubscribe('annual')}
+                        onKeyDown={(e) => {
+                            if ((e.key === 'Enter' || e.key === ' ') && loading === null) {
+                                e.preventDefault();
+                                handleSubscribe('annual');
+                            }
+                        }}
+                        className={`relative rounded-[var(--radius-lg)] border-2 border-[var(--color-primary)] bg-[var(--color-bg-accent)] p-6 text-left transition-all duration-200 ease-out ${
+                            loading !== null
+                                ? 'opacity-70 cursor-not-allowed'
+                                : 'cursor-pointer tile-hover active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2'
+                        }`}
+                        aria-label="Subscribe to Annual Plan for $99.99 per year"
+                        aria-disabled={loading !== null}
+                    >
+                        <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2 bg-[var(--color-primary)] text-white text-sm font-extrabold px-4 py-1.5 rounded-full uppercase shadow-lg">
                             Best Value
                         </div>
                         <div className="flex justify-between items-center mb-4">
@@ -161,22 +175,44 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                                 <p className="text-[var(--color-text-muted)] text-sm">/year</p>
                             </div>
                         </div>
-                        <Button 
-                            onClick={() => handleSubscribe('annual')}
-                            disabled={loading !== null}
-                            variant="primary"
-                            fullWidth
-                            loading={loading === 'annual'}
-                        >
-                            Subscribe Annually
-                        </Button>
-                    </Card>
+                        <div className={`w-full py-3 rounded-lg font-extrabold text-base text-center transition-colors ${
+                            loading === 'annual'
+                                ? 'bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]'
+                                : 'bg-[var(--color-primary)] text-white'
+                        }`}>
+                            {loading === 'annual' ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <i className="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+                                    Processing...
+                                </span>
+                            ) : (
+                                'Subscribe Annually'
+                            )}
+                        </div>
+                    </div>
 
-                    {/* Monthly Plan */}
-                    <Card variant="elevated" padding="lg" className="border-2 border-[var(--color-primary-lighter)]">
-                         <div className="flex justify-between items-center mb-4">
+                    {/* Monthly Plan - Fully Clickable Tile */}
+                    <div
+                        role="button"
+                        tabIndex={loading !== null ? -1 : 0}
+                        onClick={() => loading === null && handleSubscribe('monthly')}
+                        onKeyDown={(e) => {
+                            if ((e.key === 'Enter' || e.key === ' ') && loading === null) {
+                                e.preventDefault();
+                                handleSubscribe('monthly');
+                            }
+                        }}
+                        className={`relative rounded-[var(--radius-lg)] border-2 border-[var(--color-primary-lighter)] bg-white p-6 text-left shadow-md transition-all duration-200 ease-out ${
+                            loading !== null
+                                ? 'opacity-70 cursor-not-allowed'
+                                : 'cursor-pointer tile-hover active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2'
+                        }`}
+                        aria-label="Subscribe to Monthly Plan for $9.99 per month"
+                        aria-disabled={loading !== null}
+                    >
+                        <div className="flex justify-between items-center mb-4">
                             <div>
-                                <h3 className="font-bold text-lg text-[var(--color-text-primary)]">Monthly Plan</h3>
+                                <h3 className="font-extrabold text-xl text-[var(--color-text-primary)]">Monthly Plan</h3>
                                 <p className="text-[var(--color-text-muted)] text-sm">Billed monthly</p>
                             </div>
                             <div className="text-right">
@@ -184,16 +220,21 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                                 <p className="text-[var(--color-text-muted)] text-sm">/month</p>
                             </div>
                         </div>
-                        <Button 
-                            onClick={() => handleSubscribe('monthly')}
-                            disabled={loading !== null}
-                            variant="primary"
-                            fullWidth
-                            loading={loading === 'monthly'}
-                        >
-                            Subscribe Monthly
-                        </Button>
-                    </Card>
+                        <div className={`w-full py-3 rounded-lg font-extrabold text-base text-center transition-colors ${
+                            loading === 'monthly'
+                                ? 'bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]'
+                                : 'bg-[var(--color-primary)] text-white'
+                        }`}>
+                            {loading === 'monthly' ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <i className="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+                                    Processing...
+                                </span>
+                            ) : (
+                                'Subscribe Monthly'
+                            )}
+                        </div>
+                    </div>
                 </div>
 
                 <div className="mt-8 text-xs text-[var(--color-text-muted)]">

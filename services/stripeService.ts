@@ -234,18 +234,36 @@ export const restoreSubscription = async (userId: string): Promise<any> => {
  * Upgrade subscription from monthly to annual
  */
 export const upgradeToAnnual = async (userId: string): Promise<any> => {
-    const response = await callEdgeFunction('upgrade-subscription', {
-        method: 'POST',
-        body: { userId },
-    });
+    console.log('[stripeService] upgradeToAnnual called for user:', userId);
+    
+    try {
+        const response = await callEdgeFunction('upgrade-subscription', {
+            method: 'POST',
+            body: { userId },
+        });
 
-    if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to upgrade subscription' }));
-        const errorMessage = errorData.error || errorData.message || 'Failed to upgrade subscription';
-        throw new Error(errorMessage);
+        console.log('[stripeService] upgradeToAnnual response status:', response.status, response.statusText);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => {
+                console.error('[stripeService] Failed to parse error response');
+                return { error: `Failed to upgrade subscription (${response.status} ${response.statusText})` };
+            });
+            const errorMessage = errorData.error || errorData.message || `Failed to upgrade subscription (${response.status})`;
+            console.error('[stripeService] upgradeToAnnual error:', errorMessage, errorData);
+            throw new Error(errorMessage);
+        }
+
+        const result = await response.json();
+        console.log('[stripeService] upgradeToAnnual success:', result);
+        return result;
+    } catch (error) {
+        console.error('[stripeService] upgradeToAnnual exception:', error);
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error('Failed to upgrade subscription');
     }
-
-    return await response.json();
 };
 
 /**

@@ -30,7 +30,7 @@ const FeedbackCard: React.FC<FeedbackCardProps> = ({ title, icon, color, childre
     const classes = colorClasses[color];
 
     return (
-        <div className={`p-6 rounded-2xl ${classes.bg}`}>
+        <div className={`p-6 rounded-2xl ${classes.bg} tile-hover`}>
             <div className="flex items-start space-x-4">
                 <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${classes.iconBg}`}>
                     <i className={`fa ${icon} text-xl ${classes.iconText}`}></i>
