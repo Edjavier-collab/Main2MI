@@ -211,7 +211,7 @@ Components are organized into three categories:
 - **HistoryView** - Past session review with tier-based filtering
 - **ResourceLibrary** - MI educational content (some premium-gated)
 - **CoachingSummaryView** - AI coaching report from multiple sessions (premium)
-- **PaywallView** - Stripe checkout integration
+- **PaywallView** - Stripe checkout integration with enhanced subscription tiles
 - **ScenarioSelectionView** - Premium scenario filtering
 - **CalendarView** - Session calendar with coaching summary generation
 - **SettingsView** - Account management, subscription, logout
@@ -221,18 +221,24 @@ Components are organized into three categories:
 - **Onboarding** - New user onboarding flow
 - **ViewRenderer** - View router with lazy loading
 
-**ui/** - Reusable UI components (12 total):
+**ui/** - Reusable UI components (16+ total):
+- **BackButton** - Consistent back navigation button
 - **BottomNavBar** - Mobile navigation
+- **Button** - Standardized button component with variants (primary, secondary, ghost, danger, success)
+- **Card** - Flexible card component with hover effects
 - **ChatBubble** - Message display in practice
 - **CookieConsent** - GDPR cookie banner
 - **ErrorBoundary** - Error handling with fallback UI
-- **FeedbackCard** - Feedback display cards
-- **LoadingSpinner** - Loading states
+- **FeedbackCard** - Feedback display cards with tile-hover effect
+- **LoadingSpinner** - Loading states (now uses LottieLoader)
+- **LottieLoader** - Lottie animation wrapper with CSS fallback
 - **OfflineIndicator** - PWA offline status
 - **PasswordStrengthIndicator** - Password validation UI
-- **PatientProfileCard** - Patient info display
+- **PatientProfileCard** - Patient info display with tile-hover effect
 - **ReviewPrompt** - App review prompt
+- **SoftCard** - Soft-styled card with hover animations
 - **Timer** - Practice session timer
+- **Toast** - Toast notification system
 - **UpgradeModal** - Premium upsell modal
 
 **legal/** - Legal/compliance pages (5 total):
@@ -272,10 +278,12 @@ The app is a Progressive Web App with:
 
 ### Styling
 
-- Tailwind CSS utility classes only
-- No separate CSS files
+- Tailwind CSS utility classes + CSS custom properties (design tokens)
+- CSS files for complex components (`SoftCard.css`, `BottomNav.css`, etc.)
 - Font Awesome icons (`fa` classes)
 - Responsive mobile-first design
+- Global `.tile-hover` class for consistent card/tile hover effects (scale + shadow)
+- CSS variables defined in `styles/theme.css` and `styles/design-tokens.css`
 
 ## Important Implementation Details
 
@@ -358,13 +366,21 @@ The `scripts/` directory contains helpful utilities:
 - **Test payments**: Use Stripe test mode with test card numbers (4242 4242 4242 4242)
 - **PWA testing**: Use Chrome DevTools Application tab to test service worker
 - **Offline mode**: Test offline functionality using DevTools Network throttling
+- **Apple Pay/Link on Checkout**: These are controlled via Stripe Dashboard (Settings > Payment methods), not code
+- **Lottie animations**: Replace `assets/animations/loading.json` with custom animations as needed
 
 ## Project Structure
 
 ```
 ├── App.tsx                    # Main app component and orchestrator
 ├── index.tsx                  # Entry point
-├── index.css                  # Global styles
+├── index.css                  # Global styles (includes .tile-hover utility)
+├── assets/
+│   └── animations/
+│       └── loading.json       # Lottie animation for loading spinner
+├── styles/
+│   ├── design-tokens.css      # CSS custom properties for spacing, colors, etc.
+│   └── theme.css              # Seafoam aquatic color palette
 ├── types.ts                   # All TypeScript interfaces and enums
 ├── contexts/
 │   └── AuthContext.tsx        # Supabase auth with mock fallback
@@ -398,10 +414,17 @@ The `scripts/` directory contains helpful utilities:
 │   │   ├── SettingsView.tsx
 │   │   ├── CancelSubscriptionView.tsx
 │   │   └── ...
-│   ├── ui/                    # Reusable UI components (12 files)
+│   ├── ui/                    # Reusable UI components (16+ files)
+│   │   ├── BackButton.tsx
 │   │   ├── BottomNavBar.tsx
+│   │   ├── Button.tsx
+│   │   ├── Card.tsx
 │   │   ├── ChatBubble.tsx
+│   │   ├── LottieLoader.tsx
+│   │   ├── LoadingSpinner.tsx
+│   │   ├── SoftCard.tsx
 │   │   ├── Timer.tsx
+│   │   ├── Toast.tsx
 │   │   ├── OfflineIndicator.tsx
 │   │   └── ...
 │   └── legal/                 # Legal pages (5 files)
