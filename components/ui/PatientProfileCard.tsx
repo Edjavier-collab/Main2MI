@@ -5,6 +5,7 @@ import { PatientProfile, StageOfChange, UserTier } from '../../types';
 interface PatientProfileCardProps {
     patient: PatientProfile;
     userTier?: UserTier;
+    onUpgrade?: () => void;
 }
 
 interface InfoSectionProps {
@@ -35,7 +36,7 @@ const stageColors: Record<StageOfChange, string> = {
 };
 
 
-const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTier }) => {
+const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTier, onUpgrade }) => {
     const isFreeTier = userTier === UserTier.Free;
 
     const abbreviate = (text: string): string => {
@@ -88,7 +89,18 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
             </main>
 
             {isFreeTier && (
-                <footer className="bg-slate-50 border-t border-gray-200 px-6 py-4 text-center">
+                <footer 
+                    className={`bg-slate-50 border-t border-gray-200 px-6 py-4 text-center ${onUpgrade ? 'cursor-pointer hover:bg-slate-100 transition-colors' : ''}`}
+                    onClick={onUpgrade}
+                    role={onUpgrade ? 'button' : undefined}
+                    tabIndex={onUpgrade ? 0 : undefined}
+                    onKeyDown={onUpgrade ? (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            onUpgrade();
+                        }
+                    } : undefined}
+                >
                     <div className="flex items-center justify-center">
                         <i className="fa-solid fa-lock text-slate-400 mr-3"></i>
                         <p className="text-sm font-medium text-slate-600">

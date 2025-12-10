@@ -488,6 +488,17 @@ export const getPatientResponse = async (chat: Chat, message: string, patient?: 
     }
 };
 
+const FEEDBACK_SKILLS = [
+    'Open Questions',
+    'Affirmations',
+    'Reflections',
+    'Summaries',
+    'Developing Discrepancy',
+    'Eliciting Change Talk',
+    'Rolling with Resistance',
+    'Supporting Self-Efficacy'
+];
+
 const feedbackSchema = {
     type: Type.OBJECT,
     properties: {
@@ -548,6 +559,123 @@ const feedbackSchema = {
 };
 
 // Removed freeFeedbackSchema - we now always generate all feedback fields regardless of tier
+
+const coerceSkillCounts = (rawCounts: unknown): Record<string, number> => {
+    if (!rawCounts) return {};
+    try {
+        if (typeof rawCounts === 'string') {
+            return JSON.parse(rawCounts);
+        }
+        if (typeof rawCounts === 'object') {
+            return rawCounts as Record<string, number>;
+        }
+    } catch (e) {
+        console.warn('[normalizeFeedbackOutput] Failed to parse skillCounts', e);
+    }
+    return {};
+};
+
+const sanitizeSkills = (skills: unknown): string[] => {
+    if (!Array.isArray(skills)) return [];
+    return skills.filter((s): s is string => typeof s === 'string' && FEEDBACK_SKILLS.includes(s));
+};
+
+const sanitizeString = (value: unknown, fallback = ''): string => {
+    if (typeof value !== 'string') return fallback;
+    const trimmed = value.trim();
+    return trimmed.length ? trimmed : fallback;
+};
+
+export const normalizeFeedbackOutput = (feedbackJson: any): Feedback => {
+    const skillsDetected = sanitizeSkills(feedbackJson?.skillsDetected);
+    const keySkillsUsed = sanitizeSkills(feedbackJson?.keySkillsUsed);
+    const skillCounts = coerceSkillCounts(feedbackJson?.skillCounts);
+    const empathyScoreRaw = Number(feedbackJson?.empathyScore);
+    const empathyScore = Number.isFinite(empathyScoreRaw)
+        ? Math.max(0, Math.min(5, Math.round(empathyScoreRaw)))
+        : 0;
+
+    const nextFocus = sanitizeString(feedbackJson?.nextFocus || feedbackJson?.nextPracticeFocus,
+        'For your next session, focus on using at least three open questions and three reflections.');
+
+    return {
+        keyTakeaway: sanitizeString(feedbackJson?.keyTakeaway, undefined as unknown as string),
+        empathyScore,
+        empathyBreakdown: sanitizeString(feedbackJson?.empathyBreakdown, 'No empathy analysis generated.'),
+        whatWentRight: sanitizeString(feedbackJson?.whatWentRight, 'No strengths were detected.'),
+        constructiveFeedback: sanitizeString(
+            feedbackJson?.constructiveFeedback || feedbackJson?.areasForGrowth,
+            'No constructive feedback generated.'
+        ),
+        areasForGrowth: sanitizeString(
+            feedbackJson?.areasForGrowth || feedbackJson?.constructiveFeedback,
+            'No areas for growth generated.'
+        ),
+        skillsDetected,
+        keySkillsUsed: keySkillsUsed.length ? keySkillsUsed : skillsDetected,
+        skillCounts,
+        nextPracticeFocus: sanitizeString(
+            feedbackJson?.nextPracticeFocus || feedbackJson?.nextFocus,
+            'Practice delivering at least three complex reflections that capture both sides of ambivalence.'
+        ),
+        nextFocus,
+        analysisStatus: feedbackJson?.analysisStatus || 'complete',
+        analysisMessage: sanitizeString(feedbackJson?.analysisMessage, '')
+    };
+};
+
+export const normalizeCoachingSummary = (
+    summaryJson: any,
+    totalSessions: number,
+    firstSessionDate: string,
+    lastSessionDate: string
+): CoachingSummary => {
+    const safeString = (val: unknown, fallback: string) =>
+        typeof val === 'string' && val.trim().length ? val : fallback;
+
+    const safeArray = (val: unknown): string[] =>
+        Array.isArray(val) ? val.filter((v): v is string => typeof v === 'string' && v.trim().length) : [];
+
+    const safeProgression = (val: unknown): CoachingSummary['skillProgression'] => {
+        if (!Array.isArray(val)) return [];
+        return val
+            .map(item => {
+                if (!item || typeof item !== 'object') return null;
+                const skillName = safeString((item as any).skillName, '');
+                const totalCount = Number((item as any).totalCount);
+                const averagePerSession = Number((item as any).averagePerSession);
+                const trend = (item as any).trend;
+                if (!skillName) return null;
+                return {
+                    skillName,
+                    totalCount: Number.isFinite(totalCount) ? totalCount : 0,
+                    averagePerSession: Number.isFinite(averagePerSession) ? averagePerSession : 0,
+                    trend: trend === 'increasing' || trend === 'decreasing' ? trend : 'stable'
+                };
+            })
+            .filter(Boolean) as CoachingSummary['skillProgression'];
+    };
+
+    return {
+        totalSessions,
+        dateRange: `${firstSessionDate} to ${lastSessionDate}`,
+        strengthsAndTrends: safeString(
+            summaryJson?.strengthsAndTrends,
+            `Across your ${totalSessions} session${totalSessions === 1 ? '' : 's'}, you've shown consistent engagement and rapport-building.`
+        ),
+        areasForFocus: safeString(
+            summaryJson?.areasForFocus,
+            'Focus on deepening reflections and eliciting change talk consistently across sessions.'
+        ),
+        summaryAndNextSteps: safeString(
+            summaryJson?.summaryAndNextSteps,
+            `Nice work staying consistent across ${totalSessions} session${totalSessions === 1 ? '' : 's'}. For your next session, pick one MI skill to emphasize and measure it.`
+        ),
+        skillProgression: safeProgression(summaryJson?.skillProgression),
+        topSkillsToImprove: safeArray(summaryJson?.topSkillsToImprove),
+        specificNextSteps: safeArray(summaryJson?.specificNextSteps),
+    };
+};
 
 
 export const getFeedbackForTranscript = async (transcript: ChatMessage[], patient: PatientProfile, userTier: UserTier): Promise<Feedback> => {
@@ -635,31 +763,7 @@ export const getFeedbackForTranscript = async (transcript: ChatMessage[], patien
         }
         
         const feedbackJson = JSON.parse(response.text);
-        
-        // Parse skillCounts from JSON string if it exists
-        let skillCounts: Record<string, number> = {};
-        if (feedbackJson.skillCounts) {
-            try {
-                skillCounts = typeof feedbackJson.skillCounts === 'string' 
-                    ? JSON.parse(feedbackJson.skillCounts) 
-                    : feedbackJson.skillCounts;
-            } catch (e) {
-                console.warn('[getFeedbackForTranscript] Failed to parse skillCounts, using empty object');
-                skillCounts = {};
-            }
-        }
-        
-        // Ensure backward compatibility by mapping new fields to old field names if needed
-        const feedback: Feedback = {
-            ...feedbackJson,
-            skillCounts,
-            // Map new field names to old ones for backward compatibility
-            constructiveFeedback: feedbackJson.constructiveFeedback || feedbackJson.areasForGrowth,
-            keySkillsUsed: feedbackJson.keySkillsUsed || feedbackJson.skillsDetected,
-            nextPracticeFocus: feedbackJson.nextPracticeFocus || feedbackJson.nextFocus,
-        };
-
-        return feedback;
+        return normalizeFeedbackOutput(feedbackJson);
 
     } catch (error) {
         // Use standardized error handler
@@ -921,12 +1025,8 @@ export const generateCoachingSummary = async (sessions: Session[]): Promise<Coac
             throw new Error('API response did not contain text content');
         }
 
-        const summaryJson = JSON.parse(response.text) as CoachingSummary;
-        return {
-            ...summaryJson,
-            totalSessions: sessionSummaries.length,
-            dateRange: `${firstSessionDate} to ${lastSessionDate}`,
-        };
+        const summaryJson = JSON.parse(response.text);
+        return normalizeCoachingSummary(summaryJson, sessionSummaries.length, firstSessionDate, lastSessionDate);
 
     } catch (error) {
         // Use standardized error handler

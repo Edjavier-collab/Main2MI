@@ -14,6 +14,7 @@ interface PracticeViewProps {
     patient: PatientProfile;
     userTier: UserTier;
     onFinish: (transcript: ChatMessage[], feedback: Feedback) => void;
+    onUpgrade?: () => void;
 }
 
 const SpeechVisualizer: React.FC = () => (
@@ -25,7 +26,7 @@ const SpeechVisualizer: React.FC = () => (
     </div>
 );
 
-const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish }) => {
+const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish, onUpgrade }) => {
     const [isSessionStarted, setIsSessionStarted] = useState(false);
     const [chat, setChat] = useState<Chat | null>(null);
     const [transcript, setTranscript] = useState<ChatMessage[]>([]);
@@ -105,7 +106,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
     if (!isSessionStarted) {
         return (
             <div className="min-h-screen bg-transparent flex flex-col items-center justify-center p-4">
-                <PatientProfileCard patient={patient} userTier={userTier} />
+                <PatientProfileCard patient={patient} userTier={userTier} onUpgrade={onUpgrade} />
                 <Button
                     onClick={() => setIsSessionStarted(true)}
                     variant="primary"

@@ -73,7 +73,7 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                     </Card>
 
                     <div className="space-y-4">
-                        <Button
+                        <button
                             onClick={() => {
                                 if (onNavigateToLogin) {
                                     onNavigateToLogin();
@@ -81,12 +81,10 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                                     onBack();
                                 }
                             }}
-                            variant="primary"
-                            size="lg"
-                            fullWidth
+                            className="w-full py-3 bg-white border border-[var(--color-neutral-300)] rounded-lg shadow-md hover:bg-[var(--color-bg-accent)] hover:shadow-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 text-[var(--color-text-primary)] font-bold text-lg"
                         >
                             Sign Up or Log In
-                        </Button>
+                        </button>
                         <BackButton
                             onClick={onBack}
                             label="Continue as Guest (3 free sessions/month)"

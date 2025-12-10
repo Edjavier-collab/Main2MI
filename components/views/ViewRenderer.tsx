@@ -113,7 +113,7 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
       case View.ScenarioSelection:
         return <ScenarioSelectionView onBack={() => onNavigate(View.Dashboard)} onStartPractice={onStartFilteredPractice} />;
       case View.Practice:
-        return currentPatient && <PracticeView patient={currentPatient} userTier={userTier} onFinish={onFinishPractice} />;
+        return currentPatient && <PracticeView patient={currentPatient} userTier={userTier} onFinish={onFinishPractice} onUpgrade={() => onNavigate(View.Paywall)} />;
       case View.Feedback:
         return currentSession && (
           <FeedbackView 

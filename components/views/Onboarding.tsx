@@ -138,7 +138,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onFinish }) => {
                 </Button>
             </header>
 
-            <main className="flex flex-col items-center justify-center flex-grow w-full mt-12 sm:mt-0 overflow-hidden">
+            <main className="flex flex-col items-center justify-center flex-grow w-full overflow-hidden">
                 <div key={currentStep} className="animate-slide-fade-in flex flex-col items-center text-center w-full">
                     {isAcceptanceStep ? (
                         <>
