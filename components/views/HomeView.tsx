@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { useStreak } from '../../hooks/useStreak';
+import { useXP } from '../../hooks/useXP';
 import { GrowthLogo, SeedlingIcon, BranchDecoration } from '../illustrations/GrowthIllustrations';
 import { SoftCard } from '../ui/SoftCard';
 import { PillButton } from '../ui/PillButton';
@@ -8,7 +10,6 @@ import './HomeView.css';
 interface HomeViewProps {
   userName: string;
   sessionsThisWeek: number;
-  currentStreak: number;
   avgScore: number;
   onStartPractice: () => void;
 }
@@ -16,10 +17,12 @@ interface HomeViewProps {
 export const HomeView: React.FC<HomeViewProps> = ({
   userName,
   sessionsThisWeek,
-  currentStreak,
   avgScore,
   onStartPractice,
 }) => {
+  const { currentStreak } = useStreak();
+  const { currentLevel, levelName, currentXP, xpToNextLevel, xpProgress, isLoading: xpLoading } = useXP();
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';
@@ -74,6 +77,35 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <span className="home-view__stat-label">Avg Score</span>
           </SoftCard>
         </div>
+
+        {/* Level Progress */}
+        <SoftCard className="home-view__level-card">
+          <div className="home-view__level-header">
+            <span className="home-view__level-icon">
+              {currentLevel === 1 && '🌱'}
+              {currentLevel === 2 && '🌿'}
+              {currentLevel === 3 && '🌳'}
+              {currentLevel === 4 && '🏆'}
+            </span>
+            <div className="home-view__level-info">
+              <span className="home-view__level-name">{levelName}</span>
+              <span className="home-view__level-xp">
+                {xpLoading ? '...' : `${currentXP.toLocaleString()} XP`}
+              </span>
+            </div>
+            {currentLevel < 4 && (
+              <span className="home-view__level-next">
+                {xpToNextLevel.toLocaleString()} to next
+              </span>
+            )}
+          </div>
+          <div className="home-view__level-bar">
+            <div 
+              className="home-view__level-fill"
+              style={{ width: `${xpProgress}%` }}
+            />
+          </div>
+        </SoftCard>
 
         {/* Quick Tips Card */}
         <SoftCard variant="accent" className="home-view__tips-card">

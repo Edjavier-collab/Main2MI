@@ -108,6 +108,63 @@
   color: var(--color-text-muted);
 }
 
+/* Level Progress Card */
+.home-view__level-card {
+  margin-bottom: var(--space-lg);
+  padding: var(--space-md);
+}
+
+.home-view__level-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.home-view__level-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.home-view__level-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.home-view__level-name {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.home-view__level-xp {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.home-view__level-next {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.home-view__level-bar {
+  height: 8px;
+  background: var(--color-neutral-200, #e5e7eb);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.home-view__level-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  border-radius: var(--radius-full);
+  transition: width 500ms ease-out;
+}
+
 /* Tips Card */
 .home-view__tips-card h3 {
   font-size: var(--font-size-base);

@@ -70,6 +70,12 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentView, onNavigate, us
                     onClick={() => onNavigate(View.Dashboard)}
                 />
                 <NavItem
+                    label="Reports"
+                    icon="fa-solid fa-chart-line"
+                    isActive={currentView === View.Reports}
+                    onClick={() => onNavigate(View.Reports)}
+                />
+                <NavItem
                     label="Library"
                     icon="fa-solid fa-book-open"
                     isActive={currentView === View.ResourceLibrary}
