@@ -443,41 +443,48 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                                 {detectedPlan === 'monthly' && (
                                     <Card variant="accent" padding="lg" className="mb-4 border-2 border-[var(--color-success-light)]">
                                         <div className="text-center mb-4">
-                                            <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">Upgrade to Annual</h3>
+                                            <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">Switch to Annual Billing</h3>
                                             <p className="text-[var(--color-text-secondary)] text-sm mb-3">
-                                            Save money by switching to annual billing. Your upgrade will take effect at the end of your current billing period.
-                                        </p>
+                                                Change to annual billing to save <span className="font-bold text-[var(--color-success)]">${(subscription.originalPrice * 12 - 99.99).toFixed(2)}/year</span>.
+                                                <br />
+                                                The change takes effect at the end of your current month.
+                                            </p>
+                                            
+                                            <Button
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    console.log('[CancelSubscriptionView] Button clicked, calling handleUpgradeToAnnual');
+                                                    handleUpgradeToAnnual();
+                                                }}
+                                                disabled={upgradeLoading || actionLoading !== null}
+                                                variant="success"
+                                                fullWidth
+                                                loading={upgradeLoading}
+                                                className="mb-4 !text-black !border-2 !border-black"
+                                            >
+                                                Switch to Annual & Save
+                                            </Button>
+
                                             <Card variant="default" padding="sm" className="mb-3">
                                                 <div className="flex justify-between items-center text-sm">
                                                     <span className="text-[var(--color-text-secondary)]">Monthly (current)</span>
                                                     <span className="font-semibold text-[var(--color-text-primary)]">{formatPrice(subscription.originalPrice)}/month</span>
-                                            </div>
+                                                </div>
                                                 <div className="flex justify-between items-center mt-2 text-sm">
                                                     <span className="text-[var(--color-text-secondary)]">Annual (upgrade)</span>
                                                     <span className="font-semibold text-[var(--color-success)]">$99.99/year</span>
-                                            </div>
-                                                <div className="text-center mt-2 text-xs text-[var(--color-text-muted)]">
-                                                Save ${(subscription.originalPrice * 12 - 99.99).toFixed(2)} per year
-                                            </div>
+                                                </div>
                                             </Card>
-                                            <Button
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                console.log('[CancelSubscriptionView] Button clicked, calling handleUpgradeToAnnual');
-                                                handleUpgradeToAnnual();
-                                            }}
-                                            disabled={upgradeLoading || actionLoading !== null}
-                                                variant="success"
-                                            fullWidth
-                                                loading={upgradeLoading}
-                                            >
-                                                Upgrade to Annual Plan
-                                            </Button>
                                         </div>
                                     </Card>
                                 )}
                                 <div className="space-y-3">
+                                    <div className="text-center mb-1">
+                                        <p className="text-xs text-[var(--color-text-muted)]">
+                                            Not interested in the annual discount?
+                                        </p>
+                                    </div>
                                     <button
                                         type="button"
                                         onClick={() => setShowCancellationFlow(true)}
