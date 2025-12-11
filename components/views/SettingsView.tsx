@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { UserTier, View } from '../../types';
 import { User } from '@supabase/supabase-js';
 import { restoreSubscription, getUserSubscription } from '../../services/stripeService';
+import { submitFeedback } from '../../services/feedbackService';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { useToast } from '../ui/Toast';
+import { FeedbackModal } from '../ui/FeedbackModal';
 
 interface SettingsViewProps {
     userTier: UserTier;
@@ -27,14 +29,35 @@ const SettingsSection: React.FC<{ title: string; children: React.ReactNode; prom
     </div>
 );
 
-const SettingsRow: React.FC<{ onClick?: () => void; isLast?: boolean; children: React.ReactNode }> = ({ onClick, isLast = false, children }) => (
-    <div
-        onClick={onClick}
-        className={`flex justify-between items-center p-4 ${onClick ? 'cursor-pointer hover:bg-[var(--color-bg-accent)]' : ''} transition-colors ${!isLast ? 'border-b border-[var(--color-neutral-200)]' : ''}`}
-    >
-        {children}
-    </div>
-);
+const SettingsRow: React.FC<{ onClick?: () => void; isLast?: boolean; children: React.ReactNode }> = ({ onClick, isLast = false, children }) => {
+    const baseClasses = `flex justify-between items-center p-4 min-h-[var(--touch-target-min)] transition-colors ${!isLast ? 'border-b border-[var(--color-neutral-200)]' : ''}`;
+    const interactiveClasses = onClick ? 'cursor-pointer hover:bg-[var(--color-bg-accent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-primary)]' : '';
+
+    if (onClick) {
+        return (
+            <div
+                role="button"
+                tabIndex={0}
+                onClick={onClick}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onClick();
+                    }
+                }}
+                className={`${baseClasses} ${interactiveClasses}`}
+            >
+                {children}
+            </div>
+        );
+    }
+
+    return (
+        <div className={baseClasses}>
+            {children}
+        </div>
+    );
+};
 
 
 const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywall, onLogout, onNavigate, user }) => {
@@ -47,7 +70,19 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
     const [subscriptionLoading, setSubscriptionLoading] = useState(false);
     const [subscriptionCancelled, setSubscriptionCancelled] = useState(false);
     const [hasPremiumMismatch, setHasPremiumMismatch] = useState(false);
+    const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
     const { toasts, showToast, removeToast, ToastContainer } = useToast();
+
+    const handleFeedbackSubmit = async (rating: number, comment: string) => {
+        try {
+            await submitFeedback({ rating, comment, userId: user?.id });
+            showToast('Thank you for your feedback!', 'success');
+        } catch (err) {
+            console.error('[SettingsView] Error submitting feedback:', err);
+            showToast('Failed to submit feedback. Please try again.', 'error');
+            throw err; // Re-throw so FeedbackModal knows submission failed
+        }
+    };
 
     const handlePlaceholderClick = (feature: string) => {
         alert(`${feature} feature coming soon!`);
@@ -168,6 +203,11 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                 setSubscriptionPlan(null);
                 setSubscriptionCancelled(false);
                 setHasPremiumMismatch(false);
+                // Show error toast for subscription fetch failures (except network errors which are expected offline)
+                const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+                if (!errorMessage.includes('Failed to fetch') && !errorMessage.includes('NetworkError')) {
+                    showToast('Unable to load subscription details', 'warning');
+                }
             } finally {
                 setSubscriptionLoading(false);
             }
@@ -261,21 +301,21 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] truncate" title={user.email}>
                                         {fullName}
                                     </h3>
-                                    <div className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] mt-1">
-                                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                    <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--color-text-muted)] mt-1">
+                                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
                                             isPremium ? 'bg-[var(--color-warning-light)] text-[var(--color-warning-dark)] border border-[var(--color-warning)]' : 'bg-[var(--color-neutral-100)] text-[var(--color-neutral-600)] border border-[var(--color-neutral-200)]'
                                         }`}>
-                                            {isPremium 
-                                                ? subscriptionPlan === 'monthly' 
-                                                    ? 'Premium - Monthly' 
+                                            {isPremium
+                                                ? subscriptionPlan === 'monthly'
+                                                    ? 'Premium Monthly'
                                                     : subscriptionPlan === 'annual'
-                                                        ? 'Premium - Annual'
-                                                        : 'Premium Member'
+                                                        ? 'Premium Annual'
+                                                        : 'Premium'
                                                 : 'Free Plan'
                                             }
                                         </span>
                                         {memberSince && (
-                                            <span>• Member since {memberSince}</span>
+                                            <span className="text-xs whitespace-nowrap">Since {memberSince}</span>
                                         )}
                                     </div>
                                 </div>
@@ -440,12 +480,23 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                 </SettingsSection>
 
                 <SettingsSection title="Support">
-                    <SettingsRow onClick={() => onNavigate(View.Support)} isLast>
+                    <SettingsRow onClick={() => onNavigate(View.Support)}>
                         <span className="text-[var(--color-text-primary)]">Contact Us / Help Center</span>
+                        <i className="fa fa-chevron-right text-[var(--color-text-muted)]" aria-hidden="true"></i>
+                    </SettingsRow>
+                    <SettingsRow onClick={() => setFeedbackModalOpen(true)} isLast>
+                        <span className="text-[var(--color-text-primary)]">Give Feedback</span>
                         <i className="fa fa-chevron-right text-[var(--color-text-muted)]" aria-hidden="true"></i>
                     </SettingsRow>
                 </SettingsSection>
             </main>
+
+            {/* Feedback Modal */}
+            <FeedbackModal
+                isOpen={feedbackModalOpen}
+                onClose={() => setFeedbackModalOpen(false)}
+                onSubmit={handleFeedbackSubmit}
+            />
         </div>
     );
 };

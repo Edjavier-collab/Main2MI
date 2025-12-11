@@ -16,10 +16,20 @@ export const SoftCard: React.FC<SoftCardProps> = ({
   onClick,
   hoverable = false,
 }) => {
+  const isInteractive = hoverable || onClick;
+
   return (
-    <div 
-      className={`soft-card soft-card--${variant} ${hoverable ? 'soft-card--hoverable' : ''} ${className}`}
+    <div
+      className={`soft-card soft-card--${variant} ${isInteractive ? 'soft-card--hoverable' : ''} ${className}`}
       onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      } : undefined}
     >
       {children}
     </div>

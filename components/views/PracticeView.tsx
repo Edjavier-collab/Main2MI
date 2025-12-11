@@ -122,13 +122,19 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
     return (
         <div className="flex flex-col h-screen bg-transparent">
             <div className="flex justify-between items-center p-4 border-b-2 border-black bg-white">
-                <h3 className="font-bold text-lg text-[var(--color-text-primary)]">Session with {patient.name}</h3>
-                <div className="flex items-center space-x-3">
+                <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-lg text-[var(--color-text-primary)] truncate">Session with {patient.name}</h3>
+                    {/* Progress indicator showing message count */}
+                    <p className="text-xs text-[var(--color-text-muted)]">
+                        {transcript.length === 0 ? 'Start the conversation...' : `${transcript.length} message${transcript.length !== 1 ? 's' : ''} exchanged`}
+                    </p>
+                </div>
+                <div className="flex items-center space-x-3 flex-shrink-0">
                     <Timer initialSeconds={sessionDuration} onTimeUp={handleEndSession} />
-                    <button 
-                        onClick={handleEndSession} 
+                    <button
+                        onClick={handleEndSession}
                         disabled={isEndingSession}
-                        className="px-4 py-2 bg-red-500 text-white font-semibold border-2 border-black hover:bg-red-600 disabled:opacity-50 transition-colors"
+                        className="px-4 min-h-[var(--touch-target-min)] bg-red-500 text-white font-semibold border-2 border-black hover:bg-red-600 disabled:opacity-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
                     >
                         {isEndingSession ? (
                             <span className="flex items-center gap-2">
@@ -156,9 +162,13 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
             </div>
 
             <div className="p-4 border-t-2 border-black bg-[var(--color-bg-accent)]">
+                {/* Screen reader announcement for voice recording status */}
+                <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+                    {isListening ? 'Recording started. Speak now.' : ''}
+                </div>
                 {micError && (
                     <Card variant="accent" padding="sm" className="mb-3 border-l-4 border-[var(--color-error)]">
-                        <div className="flex items-center gap-2 text-[var(--color-error)] text-sm">
+                        <div className="flex items-center gap-2 text-[var(--color-error)] text-sm" role="alert">
                             <i className="fa fa-exclamation-circle" aria-hidden="true"></i>
                             <span>{micError}</span>
                         </div>
@@ -187,24 +197,25 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
                     </div>
                     {hasSupport && (
                         <div className="relative group flex items-center">
-                            <button 
-                                onClick={handleVoiceSend} 
-                                disabled={isPatientTyping} 
-                                className={`w-12 h-12 flex items-center justify-center border-2 border-black transition-colors duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 ${isListening ? 'bg-[var(--color-error)] text-white animate-pulse focus:ring-[var(--color-error)]' : 'bg-white text-[var(--color-text-primary)] hover:bg-[var(--color-primary-lighter)] focus:ring-[var(--color-primary)]'}`}
+                            <button
+                                onClick={handleVoiceSend}
+                                disabled={isPatientTyping}
+                                className={`w-[var(--touch-target-min)] h-[var(--touch-target-min)] flex items-center justify-center border-2 border-black transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${isListening ? 'bg-[var(--color-error)] text-white animate-pulse focus-visible:ring-[var(--color-error)]' : 'bg-white text-[var(--color-text-primary)] hover:bg-[var(--color-primary-lighter)] focus-visible:ring-[var(--color-primary)]'}`}
                                 aria-label={isListening ? 'Stop recording' : 'Start recording'}
+                                aria-pressed={isListening}
                             >
                                 <i className="fa-solid fa-microphone text-xl" aria-hidden="true"></i>
                             </button>
-                            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-[var(--color-neutral-800)] text-white text-xs font-semibold shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10 whitespace-nowrap">
+                            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-[var(--color-neutral-800)] text-white text-xs font-semibold shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10 whitespace-nowrap rounded">
                                 {isListening ? 'Stop Recording' : 'Start Recording'}
                                 <svg className="absolute text-[var(--color-neutral-800)] h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255" xmlSpace="preserve"><polygon className="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
                             </div>
                         </div>
                     )}
-                    <button 
-                        onClick={handleTextSend} 
-                        disabled={isPatientTyping || !speechTranscript.trim()} 
-                        className="w-12 h-12 flex items-center justify-center bg-[var(--color-primary)] text-[var(--color-text-primary)] border-2 border-black hover:bg-[var(--color-primary-dark)] disabled:bg-[var(--color-neutral-300)] disabled:text-[var(--color-neutral-500)] disabled:border-[var(--color-neutral-400)] transition-colors"
+                    <button
+                        onClick={handleTextSend}
+                        disabled={isPatientTyping || !speechTranscript.trim()}
+                        className="w-[var(--touch-target-min)] h-[var(--touch-target-min)] flex items-center justify-center bg-[var(--color-primary)] text-[var(--color-text-primary)] border-2 border-black hover:bg-[var(--color-primary-dark)] disabled:bg-[var(--color-neutral-300)] disabled:text-[var(--color-neutral-500)] disabled:border-[var(--color-neutral-400)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
                         aria-label="Send message"
                     >
                         <i className="fa-solid fa-paper-plane text-xl" aria-hidden="true"></i>

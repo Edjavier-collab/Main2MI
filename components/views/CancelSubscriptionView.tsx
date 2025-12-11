@@ -522,16 +522,24 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                             </p>
                         </div>
                         <div className="space-y-3">
-                            <Button
+                            <button
+                                type="button"
                                 onClick={handleRestore}
                                 disabled={actionLoading !== null}
-                                variant="success"
-                                fullWidth
-                                loading={actionLoading === 'restore'}
-                                icon={<i className="fa-solid fa-rotate-left" aria-hidden="true"></i>}
+                                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-[var(--color-neutral-300)] rounded-lg shadow-md hover:bg-[var(--color-bg-accent)] hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 text-[var(--color-text-primary)] font-semibold text-sm disabled:opacity-50"
                             >
-                                Restore Purchase
-                            </Button>
+                                {actionLoading === 'restore' ? (
+                                    <>
+                                        <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+                                        <span>Restoring...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <i className="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                                        <span>Restore Purchase</span>
+                                    </>
+                                )}
+                            </button>
                             <BackButton onClick={onBack} label="Go Back to Settings" className="w-full justify-center" />
                         </div>
                     </div>

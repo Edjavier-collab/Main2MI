@@ -156,19 +156,22 @@ const Onboarding: React.FC<OnboardingProps> = ({ onFinish }) => {
                                     onClick={() => setAgeConfirmed(!ageConfirmed)}
                                     className={`cursor-pointer border-2 ${ageConfirmed ? 'border-[var(--color-primary)]' : 'border-[var(--color-neutral-200)]'}`}
                                 >
-                                    <label className="flex items-start cursor-pointer">
-                                        <input 
-                                            type="checkbox" 
+                                    <div className="flex items-start">
+                                        <input
+                                            type="checkbox"
                                             checked={ageConfirmed}
-                                            onChange={(e) => setAgeConfirmed(e.target.checked)}
-                                            className="w-5 h-5 text-[var(--color-primary)] rounded mt-1 mr-4 flex-shrink-0 cursor-pointer"
+                                            onChange={() => {}} // Handled by Card onClick
+                                            onClick={(e) => e.stopPropagation()} // Prevent double-toggle
+                                            className="w-5 h-5 text-[var(--color-primary)] rounded mt-1 mr-4 flex-shrink-0 pointer-events-none"
+                                            aria-label="I confirm I am 18 years of age or older"
+                                            tabIndex={-1}
                                         />
                                         <span className="text-[var(--color-text-primary)] text-sm">
                                             I confirm I am <strong>18 years of age or older</strong>
                                         </span>
-                                    </label>
+                                    </div>
                                 </Card>
-                                
+
                                 <Card
                                     variant={termsAccepted ? "accent" : "elevated"}
                                     padding="md"
@@ -176,19 +179,22 @@ const Onboarding: React.FC<OnboardingProps> = ({ onFinish }) => {
                                     onClick={() => setTermsAccepted(!termsAccepted)}
                                     className={`cursor-pointer border-2 ${termsAccepted ? 'border-[var(--color-primary)]' : 'border-[var(--color-neutral-200)]'}`}
                                 >
-                                    <label className="flex items-start cursor-pointer">
-                                        <input 
-                                            type="checkbox" 
+                                    <div className="flex items-start">
+                                        <input
+                                            type="checkbox"
                                             checked={termsAccepted}
-                                            onChange={(e) => setTermsAccepted(e.target.checked)}
-                                            className="w-5 h-5 text-[var(--color-primary)] rounded mt-1 mr-4 flex-shrink-0 cursor-pointer"
+                                            onChange={() => {}} // Handled by Card onClick
+                                            onClick={(e) => e.stopPropagation()} // Prevent double-toggle
+                                            className="w-5 h-5 text-[var(--color-primary)] rounded mt-1 mr-4 flex-shrink-0 pointer-events-none"
+                                            aria-label="I agree to the Terms of Service and Medical & Education Disclaimer"
+                                            tabIndex={-1}
                                         />
                                         <span className="text-[var(--color-text-primary)] text-sm">
                                             I agree to the <strong>Terms of Service</strong> and <strong>Medical & Education Disclaimer</strong>
                                         </span>
-                                    </label>
+                                    </div>
                                 </Card>
-                                
+
                                 <Card
                                     variant={privacyAccepted ? "accent" : "elevated"}
                                     padding="md"
@@ -196,17 +202,20 @@ const Onboarding: React.FC<OnboardingProps> = ({ onFinish }) => {
                                     onClick={() => setPrivacyAccepted(!privacyAccepted)}
                                     className={`cursor-pointer border-2 ${privacyAccepted ? 'border-[var(--color-primary)]' : 'border-[var(--color-neutral-200)]'}`}
                                 >
-                                    <label className="flex items-start cursor-pointer">
-                                        <input 
-                                            type="checkbox" 
+                                    <div className="flex items-start">
+                                        <input
+                                            type="checkbox"
                                             checked={privacyAccepted}
-                                            onChange={(e) => setPrivacyAccepted(e.target.checked)}
-                                            className="w-5 h-5 text-[var(--color-primary)] rounded mt-1 mr-4 flex-shrink-0 cursor-pointer"
+                                            onChange={() => {}} // Handled by Card onClick
+                                            onClick={(e) => e.stopPropagation()} // Prevent double-toggle
+                                            className="w-5 h-5 text-[var(--color-primary)] rounded mt-1 mr-4 flex-shrink-0 pointer-events-none"
+                                            aria-label="I agree to the Privacy Policy"
+                                            tabIndex={-1}
                                         />
                                         <span className="text-[var(--color-text-primary)] text-sm">
                                             I agree to the <strong>Privacy Policy</strong>
                                         </span>
-                                    </label>
+                                    </div>
                                 </Card>
                             </div>
                         </>
@@ -217,15 +226,28 @@ const Onboarding: React.FC<OnboardingProps> = ({ onFinish }) => {
             </main>
 
             <footer className="w-full max-w-sm">
-                <div className="flex justify-center space-x-2 mb-8">
-                    {onboardingSteps.map((_, index) => (
-                        <div
-                            key={index}
-                            className={`w-2.5 h-2.5 rounded-full transition-colors duration-300 ${index === currentStep ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-neutral-300)]'}`}
-                            aria-label={`Step ${index + 1}`}
-                        ></div>
-                    ))}
-                </div>
+                {/* Progress indicator with proper accessibility */}
+                <nav aria-label="Onboarding progress" className="mb-8">
+                    <ol className="flex justify-center space-x-2">
+                        {onboardingSteps.map((_, index) => {
+                            const stepLabels = ['Welcome', 'How It Works', 'Learn', 'Feedback', 'Terms'];
+                            const isActive = index === currentStep;
+                            const isCompleted = index < currentStep;
+                            return (
+                                <li key={index} className="flex items-center">
+                                    <span
+                                        className={`w-2.5 h-2.5 rounded-full transition-colors duration-300 ${isActive ? 'bg-[var(--color-primary)]' : isCompleted ? 'bg-[var(--color-primary-dark)]' : 'bg-[var(--color-neutral-300)]'}`}
+                                        aria-current={isActive ? 'step' : undefined}
+                                        aria-label={`${stepLabels[index]}: ${isActive ? 'Current step' : isCompleted ? 'Completed' : 'Not yet reached'}`}
+                                    />
+                                </li>
+                            );
+                        })}
+                    </ol>
+                    <p className="text-center text-xs text-[var(--color-text-muted)] mt-2">
+                        Step {currentStep + 1} of {onboardingSteps.length}
+                    </p>
+                </nav>
                 <div className="space-y-3">
                     <Button
                         onClick={handleNext}

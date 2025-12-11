@@ -33,10 +33,13 @@
   --space-10: 40px;
   --space-12: 48px;
   
-  /* Button Heights (minimum 44px for touch targets) */
-  --button-height-sm: 36px;
-  --button-height-md: 44px;
-  --button-height-lg: 52px;
+  /* Button Heights (minimum 44px for touch targets per WCAG 2.5.5) */
+  --button-height-sm: 44px;
+  --button-height-md: 48px;
+  --button-height-lg: 56px;
+
+  /* Touch Target Minimum (WCAG 2.5.5) */
+  --touch-target-min: 44px;
   
   /* Button Padding */
   --button-padding-sm: var(--space-2) var(--space-4);

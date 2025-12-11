@@ -120,6 +120,7 @@ The app uses a hybrid approach:
 **Supabase (Primary):**
 - `profiles` table: user_id, email, tier, timestamps
 - `sessions` table: user_id, session_data (JSONB), created_at
+- `feedback` table: user_id (nullable), rating (1-5), comment (text), created_at, user_agent
 - RLS policies protect user data
 
 **localStorage (Fallback):**
@@ -128,6 +129,7 @@ The app uses a hybrid approach:
 
 **Service Architecture:**
 - `databaseService.ts` - Supabase CRUD operations
+- `feedbackService.ts` - In-app feedback submission
 - `subscriptionService.ts` - Tier limits and session counting
 - `sessionLoader.ts` - Session persistence logic
 - Falls back gracefully if Supabase fails
@@ -230,6 +232,7 @@ Components are organized into three categories:
 - **CookieConsent** - GDPR cookie banner
 - **ErrorBoundary** - Error handling with fallback UI
 - **FeedbackCard** - Feedback display cards with tile-hover effect
+- **FeedbackModal** - In-app feedback modal (1–5 stars + optional comment)
 - **LoadingSpinner** - Loading states (now uses LottieLoader)
 - **LottieLoader** - Lottie animation wrapper with CSS fallback
 - **OfflineIndicator** - PWA offline status
@@ -368,6 +371,35 @@ The `scripts/` directory contains helpful utilities:
 - **Offline mode**: Test offline functionality using DevTools Network throttling
 - **Apple Pay/Link on Checkout**: These are controlled via Stripe Dashboard (Settings > Payment methods), not code
 - **Lottie animations**: Replace `assets/animations/loading.json` with custom animations as needed
+- **Feedback table**: Must be created manually in Supabase (see SQL snippet below)
+
+### Feedback Table Schema (Supabase)
+
+Run this SQL in the Supabase SQL editor to create the `feedback` table:
+
+```sql
+create table if not exists public.feedback (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete set null,
+  rating smallint not null check (rating >= 1 and rating <= 5),
+  comment text,
+  user_agent text,
+  created_at timestamptz not null default now()
+);
+
+-- Enable RLS
+alter table public.feedback enable row level security;
+
+-- Allow authenticated users to insert their own feedback
+create policy "Users can insert their own feedback"
+  on public.feedback for insert
+  with check (auth.uid() = user_id or user_id is null);
+
+-- Allow anonymous feedback (user_id = null)
+create policy "Allow anonymous feedback insert"
+  on public.feedback for insert
+  with check (user_id is null);
+```
 
 ## Project Structure
 
@@ -399,6 +431,7 @@ The `scripts/` directory contains helpful utilities:
 │   ├── geminiTextProcessor.ts # Text processing
 │   ├── patientService.ts      # Patient profile generation
 │   ├── databaseService.ts     # Supabase database operations
+│   ├── feedbackService.ts     # In-app feedback submission
 │   ├── subscriptionService.ts # Tier limits and session counting
 │   ├── stripeService.ts       # Stripe checkout via Edge Functions
 │   └── sessionLoader.ts       # Session persistence

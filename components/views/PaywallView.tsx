@@ -176,21 +176,28 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                             <i className="fa-solid fa-star text-sm"></i>
                             Best Value
                         </div>
-                        <div className="flex justify-between items-center mb-5">
+                        <div className="flex justify-between items-center mb-3">
                             <div>
                                 <h3 className="font-extrabold text-xl text-[var(--color-text-primary)]">Annual Plan</h3>
-                                <p className="font-bold text-[var(--color-primary-dark)] text-base mt-1">Get 2 months free!</p>
+                                <p className="font-bold text-[var(--color-success)] text-base mt-1">
+                                    <i className="fa-solid fa-tag mr-1" aria-hidden="true"></i>
+                                    Save $19.89/year
+                                </p>
                             </div>
                             <div className="text-right">
+                                <p className="text-[var(--color-text-muted)] text-sm line-through">$119.88</p>
                                 <p className="font-extrabold text-3xl text-[var(--color-text-primary)]">$99.99</p>
                                 <p className="text-[var(--color-text-muted)] text-sm font-semibold">/year</p>
                             </div>
                         </div>
-                        <button className={`w-full py-4 rounded-xl font-extrabold text-lg text-center transition-all duration-300 shadow-md ${
+                        <p className="text-xs text-[var(--color-text-muted)] mb-4 text-center">
+                            That's just <span className="font-bold text-[var(--color-text-secondary)]">$8.33/month</span> • Cancel anytime
+                        </p>
+                        <div className={`w-full py-4 rounded-xl font-extrabold text-lg text-center transition-all duration-300 shadow-md ${
                             loading === 'annual'
                                 ? 'bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]'
-                                : 'bg-[var(--color-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-primary-dark)] hover:shadow-lg hover:scale-[1.02]'
-                        }`} disabled={loading !== null} type="button">
+                                : 'bg-[var(--color-primary)] text-[var(--color-text-primary)]'
+                        }`} aria-hidden="true">
                             {loading === 'annual' ? (
                                 <span className="flex items-center justify-center gap-2">
                                     <i className="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
@@ -199,7 +206,7 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                             ) : (
                                 'Subscribe Annually'
                             )}
-                        </button>
+                        </div>
                     </div>
 
                     {/* Monthly Plan - Fully Clickable Tile */}
@@ -221,21 +228,24 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                         aria-label="Subscribe to Monthly Plan for $9.99 per month"
                         aria-disabled={loading !== null}
                     >
-                        <div className="flex justify-between items-center mb-5">
+                        <div className="flex justify-between items-center mb-3">
                             <div>
                                 <h3 className="font-extrabold text-xl text-[var(--color-text-primary)]">Monthly Plan</h3>
-                                <p className="text-[var(--color-text-secondary)] text-base font-semibold mt-1">Billed monthly</p>
+                                <p className="text-[var(--color-text-secondary)] text-base font-semibold mt-1">Flexible billing</p>
                             </div>
                             <div className="text-right">
                                 <p className="font-extrabold text-3xl text-[var(--color-text-primary)]">$9.99</p>
                                 <p className="text-[var(--color-text-muted)] text-sm font-semibold">/month</p>
                             </div>
                         </div>
-                        <button className={`w-full py-4 rounded-xl font-extrabold text-lg text-center transition-all duration-300 shadow-md ${
+                        <p className="text-xs text-[var(--color-text-muted)] mb-4 text-center">
+                            No commitment • Cancel anytime
+                        </p>
+                        <div className={`w-full py-4 rounded-xl font-extrabold text-lg text-center transition-all duration-300 shadow-md ${
                             loading === 'monthly'
                                 ? 'bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]'
-                                : 'bg-[var(--color-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-primary-dark)] hover:shadow-lg hover:scale-[1.02]'
-                        }`} disabled={loading !== null} type="button">
+                                : 'bg-[var(--color-primary)] text-[var(--color-text-primary)]'
+                        }`} aria-hidden="true">
                             {loading === 'monthly' ? (
                                 <span className="flex items-center justify-center gap-2">
                                     <i className="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
@@ -244,7 +254,7 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                             ) : (
                                 'Subscribe Monthly'
                             )}
-                        </button>
+                        </div>
                     </div>
                 </div>
 

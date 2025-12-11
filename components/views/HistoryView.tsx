@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Session, UserTier } from '../../types';
 import FeedbackView from './FeedbackView';
 import { BackButton } from '../ui/BackButton';
+import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 
 interface HistoryViewProps {
@@ -10,9 +11,10 @@ interface HistoryViewProps {
     onBack: () => void;
     onNavigateToPaywall: () => void;
     userTier: UserTier;
+    onStartPractice?: () => void;
 }
 
-const HistoryView: React.FC<HistoryViewProps> = ({ sessions, onBack, onNavigateToPaywall, userTier }) => {
+const HistoryView: React.FC<HistoryViewProps> = ({ sessions, onBack, onNavigateToPaywall, userTier, onStartPractice }) => {
     const [selectedSession, setSelectedSession] = useState<Session | null>(null);
 
     if (selectedSession) {
@@ -32,10 +34,23 @@ const HistoryView: React.FC<HistoryViewProps> = ({ sessions, onBack, onNavigateT
                 {sortedSessions.length === 0 ? (
                     <Card variant="accent" padding="lg" className="mt-6 text-center">
                         <div className="mb-6">
-                            <i className="fa-regular fa-clock text-6xl text-[var(--color-text-muted)]" aria-hidden="true"></i>
+                            <div className="mx-auto w-20 h-20 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center mb-4">
+                                <i className="fa-regular fa-clock text-4xl text-[var(--color-primary)]" aria-hidden="true"></i>
+                            </div>
                         </div>
                         <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">No Sessions Yet</h2>
-                        <p className="text-[var(--color-text-secondary)]">You haven't completed any sessions yet.</p>
+                        <p className="text-[var(--color-text-secondary)] mb-6">Complete your first practice session to see it here.</p>
+                        {onStartPractice && (
+                            <Button
+                                onClick={onStartPractice}
+                                variant="primary"
+                                size="lg"
+                                fullWidth
+                                icon={<i className="fa-solid fa-play" aria-hidden="true"></i>}
+                            >
+                                Start Your First Practice
+                            </Button>
+                        )}
                     </Card>
                 ) : (
                     <div className="space-y-3 mt-6">
