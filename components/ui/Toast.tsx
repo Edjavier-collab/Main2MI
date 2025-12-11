@@ -2,6 +2,14 @@ import React, { useEffect, useState } from 'react';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
+// Default durations by type (errors stay longer so users can read them)
+const DEFAULT_DURATIONS: Record<ToastType, number> = {
+  success: 3000,  // Quick confirmation
+  info: 4000,     // Standard info
+  warning: 5000,  // Give time to read
+  error: 6000,    // Errors need more time to read/act
+};
+
 interface ToastProps {
   message: string;
   type?: ToastType;
@@ -12,21 +20,23 @@ interface ToastProps {
 export const Toast: React.FC<ToastProps> = ({
   message,
   type = 'info',
-  duration = 5000,
+  duration,
   onClose,
 }) => {
+  // Use provided duration or fall back to type-based default
+  const effectiveDuration = duration ?? DEFAULT_DURATIONS[type];
   const [isVisible, setIsVisible] = useState(true);
-  
+
   useEffect(() => {
-    if (duration > 0) {
+    if (effectiveDuration > 0) {
       const timer = setTimeout(() => {
         setIsVisible(false);
         setTimeout(() => onClose?.(), 300); // Wait for fade out
-      }, duration);
-      
+      }, effectiveDuration);
+
       return () => clearTimeout(timer);
     }
-  }, [duration, onClose]);
+  }, [effectiveDuration, onClose]);
   
   const typeClasses = {
     success: 'bg-[var(--color-success)] text-white',

@@ -18,16 +18,33 @@ interface LockedSectionProps {
 
 const LockedSection: React.FC<LockedSectionProps> = ({ children, onUpgrade, lockMessage = "Upgrade to see this content" }) => {
     return (
-        <div className="relative cursor-pointer" onClick={onUpgrade}>
+        <div
+            className="relative cursor-pointer group"
+            onClick={onUpgrade}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onUpgrade();
+                }
+            }}
+            aria-label={`${lockMessage}. Tap to upgrade to premium.`}
+        >
             {/* Real content, but blurred - user can see there's text behind */}
-            <div className="filter blur-[4px] select-none pointer-events-none">
+            <div className="filter blur-[4px] select-none pointer-events-none" aria-hidden="true">
                 {children}
             </div>
             {/* Semi-transparent overlay with lock - allows blurred content to show through */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 rounded-2xl transition-all hover:bg-white/70">
-                <i className="fa-solid fa-lock text-3xl text-gray-400 mb-2"></i>
-                <p className="text-gray-600 font-semibold text-sm">{lockMessage}</p>
-                <p className="text-sky-500 text-xs mt-1 font-medium">Tap to upgrade</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 rounded-2xl transition-all group-hover:bg-white/70 group-focus-visible:ring-2 group-focus-visible:ring-[var(--color-primary)] group-focus-visible:ring-offset-2">
+                <div className="bg-[var(--color-primary-lighter)] w-14 h-14 rounded-full flex items-center justify-center mb-3 shadow-md group-hover:scale-110 transition-transform">
+                    <i className="fa-solid fa-lock text-2xl text-[var(--color-primary-dark)]" aria-hidden="true"></i>
+                </div>
+                <p className="text-[var(--color-text-primary)] font-bold text-sm">{lockMessage}</p>
+                <p className="text-[var(--color-primary)] text-xs mt-1 font-semibold flex items-center gap-1">
+                    <i className="fa-solid fa-arrow-up text-[10px]" aria-hidden="true"></i>
+                    Tap to upgrade
+                </p>
             </div>
         </div>
     );

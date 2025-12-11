@@ -20,8 +20,9 @@ const NavItem: React.FC<NavItemProps> = ({ label, icon, isActive, onClick, isLoc
     return (
         <button
             onClick={onClick}
-            className="flex flex-1 flex-col items-center transition-all duration-200 pt-2 pb-2 min-h-[56px] touch-manipulation"
-            aria-label={label}
+            className="flex flex-1 flex-col items-center justify-center transition-all duration-200 min-h-[var(--touch-target-min)] min-w-[var(--touch-target-min)] touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 rounded-lg"
+            aria-label={isLocked ? `${label} (Premium feature)` : label}
+            aria-current={isActive ? 'page' : undefined}
         >
             <div className="relative flex flex-col items-center">
                 {/* Icon with minimalist styling */}

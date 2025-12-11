@@ -187,20 +187,37 @@ const Dashboard: React.FC<DashboardProps> = ({
                 {hasSessions && (
                     <div className="grid grid-cols-3 gap-3 mb-6">
                         <Card variant="default" padding="sm" className="text-center">
-                            <p className="text-2xl font-bold text-[var(--color-primary-dark)]">{sessionsThisMonth}</p>
-                            <p className="text-xs text-[var(--color-text-muted)]">This Month</p>
+                            <div className="flex items-center justify-center mb-1">
+                                <i className="fa-solid fa-calendar-check text-[var(--color-primary)] text-sm" aria-hidden="true"></i>
+                            </div>
+                            <p className="text-2xl font-bold text-[var(--color-text-primary)]">{sessionsThisMonth}</p>
+                            <p className="text-xs text-[var(--color-text-muted)] font-medium">This Month</p>
                         </Card>
                         <Card variant="default" padding="sm" className="text-center">
-                            <p className="text-2xl font-bold text-[var(--color-primary-dark)]">
-                                {avgScore !== null ? `${avgScore}%` : '—'}
+                            <div className="flex items-center justify-center mb-1">
+                                <i className="fa-solid fa-heart text-[var(--color-error)] text-sm" aria-hidden="true"></i>
+                            </div>
+                            <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+                                {avgScore !== null ? (
+                                    <span className={avgScore >= 4 ? 'text-[var(--color-success)]' : avgScore >= 3 ? 'text-[var(--color-warning)]' : 'text-[var(--color-text-primary)]'}>
+                                        {avgScore}/5
+                                    </span>
+                                ) : '—'}
                             </p>
-                            <p className="text-xs text-[var(--color-text-muted)]">Avg Score</p>
+                            <p className="text-xs text-[var(--color-text-muted)] font-medium">Avg Empathy</p>
                         </Card>
                         <Card variant="default" padding="sm" className="text-center">
-                            <p className="text-2xl font-bold text-[var(--color-primary-dark)]">
-                                {streak > 0 ? streak : '—'}
+                            <div className="flex items-center justify-center mb-1">
+                                <i className="fa-solid fa-fire text-[var(--color-warning)] text-sm" aria-hidden="true"></i>
+                            </div>
+                            <p className="text-2xl font-bold text-[var(--color-text-primary)]">
+                                {streak > 0 ? (
+                                    <span className={streak >= 7 ? 'text-[var(--color-success)]' : streak >= 3 ? 'text-[var(--color-warning)]' : 'text-[var(--color-text-primary)]'}>
+                                        {streak}
+                                    </span>
+                                ) : '—'}
                             </p>
-                            <p className="text-xs text-[var(--color-text-muted)]">Day Streak</p>
+                            <p className="text-xs text-[var(--color-text-muted)] font-medium">Day Streak</p>
                         </Card>
                     </div>
                 )}
@@ -253,18 +270,48 @@ const Dashboard: React.FC<DashboardProps> = ({
                     </div>
                 )}
 
-                {/* Empty State */}
+                {/* Empty State - First Time User Tips */}
                 {!hasSessions && (
                     <Card variant="accent" padding="lg" className="text-center">
                         <div className="mb-4">
-                            <i className="fa-regular fa-lightbulb text-5xl text-[var(--color-text-muted)]" aria-hidden="true"></i>
+                            <div className="mx-auto w-16 h-16 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center">
+                                <i className="fa-regular fa-lightbulb text-3xl text-[var(--color-primary)]" aria-hidden="true"></i>
+                            </div>
                         </div>
                         <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">
-                            No sessions yet
+                            Welcome to MI Practice Coach!
                         </h3>
-                        <p className="text-sm text-[var(--color-text-secondary)]">
-                            Start your first practice to begin building your MI skills!
+                        <p className="text-sm text-[var(--color-text-secondary)] mb-4">
+                            Here's how to get started:
                         </p>
+                        <ul className="text-sm text-[var(--color-text-secondary)] text-left space-y-2 mb-4">
+                            <li className="flex items-start gap-2">
+                                <span className="text-[var(--color-primary)] font-bold">1.</span>
+                                <span>Tap "Start a New Practice" above</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="text-[var(--color-primary)] font-bold">2.</span>
+                                <span>Review your patient's profile</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="text-[var(--color-primary)] font-bold">3.</span>
+                                <span>Practice your MI conversation skills</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="text-[var(--color-primary)] font-bold">4.</span>
+                                <span>Get AI-powered feedback to improve</span>
+                            </li>
+                        </ul>
+                        {onNavigate && (
+                            <Button
+                                onClick={() => onNavigate(View.ResourceLibrary)}
+                                variant="ghost"
+                                size="sm"
+                                icon={<i className="fa-solid fa-book-open" aria-hidden="true"></i>}
+                            >
+                                Browse Learning Resources
+                            </Button>
+                        )}
                     </Card>
                 )}
             </main>

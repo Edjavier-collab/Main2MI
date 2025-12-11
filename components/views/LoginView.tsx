@@ -28,6 +28,9 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, onNavigate, onEmailConfi
     const [resendCooldown, setResendCooldown] = useState(0);
     const [resendLoading, setResendLoading] = useState(false);
     const [checkingStatus, setCheckingStatus] = useState(false);
+    const [emailTouched, setEmailTouched] = useState(false);
+    const [nameTouched, setNameTouched] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
     const { toasts, showToast, removeToast, ToastContainer } = useToast();
 
@@ -36,6 +39,12 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, onNavigate, onEmailConfi
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
     };
+
+    // Real-time validation states
+    const isEmailValid = !email || validateEmail(email);
+    const isNameValid = !fullName || fullName.trim().length >= 2;
+    const showEmailError = emailTouched && email && !validateEmail(email);
+    const showNameError = nameTouched && isSignUp && fullName && fullName.trim().length < 2;
 
     // Handle resend cooldown timer
     React.useEffect(() => {
@@ -302,13 +311,26 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, onNavigate, onEmailConfi
                                 type="text"
                                 value={fullName}
                                 onChange={(e) => setFullName(e.target.value)}
+                                onBlur={() => setNameTouched(true)}
                                 placeholder="Full Name"
                                 required
                                 disabled={loading}
                                 autoComplete="name"
                                 aria-label="Full Name"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white disabled:opacity-50"
+                                aria-invalid={showNameError ? 'true' : undefined}
+                                aria-describedby={showNameError ? 'name-error' : undefined}
+                                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-gray-800 dark:placeholder-gray-400 dark:text-white disabled:opacity-50 min-h-[var(--touch-target-min)] ${
+                                    showNameError
+                                        ? 'border-red-500 dark:border-red-500'
+                                        : 'border-gray-300 dark:border-gray-600'
+                                }`}
                             />
+                            {showNameError && (
+                                <p id="name-error" className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                                    <i className="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                                    Name must be at least 2 characters
+                                </p>
+                            )}
                         </div>
                     )}
                     <div>
@@ -318,28 +340,52 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, onNavigate, onEmailConfi
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
+                            onBlur={() => setEmailTouched(true)}
                             placeholder="Email"
                             required
                             disabled={loading}
                             autoComplete="email"
                             aria-label="Email address"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white disabled:opacity-50"
+                            aria-invalid={showEmailError ? 'true' : undefined}
+                            aria-describedby={showEmailError ? 'email-error' : undefined}
+                            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-gray-800 dark:placeholder-gray-400 dark:text-white disabled:opacity-50 min-h-[var(--touch-target-min)] ${
+                                showEmailError
+                                    ? 'border-red-500 dark:border-red-500'
+                                    : 'border-gray-300 dark:border-gray-600'
+                            }`}
                         />
+                        {showEmailError && (
+                            <p id="email-error" className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                                <i className="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                                Please enter a valid email address
+                            </p>
+                        )}
                     </div>
                     <div>
                         <label htmlFor="password" className="sr-only">Password</label>
-                        <input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Password"
-                            required
-                            disabled={loading}
-                            autoComplete={isSignUp ? 'new-password' : 'current-password'}
-                            aria-describedby={isSignUp ? 'password-strength' : undefined}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white disabled:opacity-50"
-                        />
+                        <div className="relative">
+                            <input
+                                id="password"
+                                type={showPassword ? 'text' : 'password'}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="Password"
+                                required
+                                disabled={loading}
+                                autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                                aria-describedby={isSignUp ? 'password-strength' : undefined}
+                                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white disabled:opacity-50 min-h-[var(--touch-target-min)]"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1 min-w-[var(--touch-target-min)] min-h-[var(--touch-target-min)] flex items-center justify-center -mr-1"
+                                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                tabIndex={-1}
+                            >
+                                <i className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} aria-hidden="true"></i>
+                            </button>
+                        </div>
                         {/* Password strength indicator for sign up */}
                         {isSignUp && (
                             <div id="password-strength">
@@ -362,9 +408,16 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, onNavigate, onEmailConfi
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-sky-500 text-white font-bold py-3 rounded-lg hover:bg-sky-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full bg-sky-500 text-white font-bold py-3 rounded-lg hover:bg-sky-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                        {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Log In'}
+                        {loading ? (
+                            <>
+                                <i className="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+                                <span>{isSignUp ? 'Creating Account...' : 'Logging In...'}</span>
+                            </>
+                        ) : (
+                            isSignUp ? 'Sign Up' : 'Log In'
+                        )}
                     </button>
                     <div className="text-center">
                         <button
