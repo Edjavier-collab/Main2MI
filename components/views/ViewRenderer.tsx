@@ -20,6 +20,7 @@ const ResetPasswordView = lazy(() => import('./ResetPasswordView'));
 const EmailConfirmationView = lazy(() => import('./EmailConfirmationView'));
 const CoachingSummaryView = lazy(() => import('./CoachingSummaryView'));
 const SupportView = lazy(() => import('./SupportView'));
+const ReportsView = lazy(() => import('./ReportsView'));
 
 // Lazy-loaded legal pages
 const PrivacyPolicy = lazy(() => import('../legal/PrivacyPolicy'));
@@ -205,6 +206,16 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
         return <Disclaimer onBack={() => onNavigate(View.Settings)} />;
       case View.Support:
         return <SupportView onBack={() => onNavigate(View.Settings)} />;
+      case View.Reports:
+        return (
+          <ReportsView
+            sessions={sessions}
+            userTier={userTier}
+            onBack={() => onNavigate(View.Dashboard)}
+            onUpgrade={() => onNavigate(View.Paywall)}
+            onNavigate={onNavigate}
+          />
+        );
       case View.Dashboard:
       default:
         return (

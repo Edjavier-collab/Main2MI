@@ -369,6 +369,7 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                                     feedback.whatWentRight?.includes('having trouble connecting') ||
                                     feedback.whatWentRight?.includes('technical issues');
     
+    
     return (
         <div className="bg-transparent pb-24">
              <div className="p-4 sm:p-6 max-w-2xl mx-auto">
@@ -388,7 +389,7 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                 
                 {/* At a Glance Section */}
                 <Card variant="elevated" padding="md" className="mb-6 animate-slide-fade-in">
-                    <div className="flex justify-center mb-6 text-center">
+                    <div className="flex justify-center text-center">
                         <div className="flex flex-col items-center">
                             <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">Empathy Score</h3>
                             <EmpathyGauge score={feedback.empathyScore ?? 0} />
@@ -397,15 +398,6 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                                 <p className="text-[var(--color-text-secondary)] text-sm mt-3 max-w-md text-center">{feedback.empathyBreakdown}</p>
                             )}
                         </div>
-                    </div>
-                    <div className="border-t border-[var(--color-neutral-200)] pt-6">
-                        <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2 flex items-center">
-                             <i className="fa-solid fa-star text-[var(--color-warning)] mr-2" aria-hidden="true"></i>
-                             Key Takeaway
-                        </h3>
-                        <p className="text-[var(--color-text-secondary)] text-lg leading-relaxed pl-8">
-                            "{feedback.keyTakeaway ?? 'Great job completing the session!'}"
-                        </p>
                     </div>
                 </Card>
 

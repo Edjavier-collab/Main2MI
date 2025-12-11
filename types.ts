@@ -21,6 +21,7 @@ export enum View {
   ScenarioSelection = 'scenarioSelection',
   Calendar = 'calendar',
   CoachingSummary = 'coachingSummary',
+  Reports = 'reports',
   PrivacyPolicy = 'privacyPolicy',
   TermsOfService = 'termsOfService',
   SubscriptionTerms = 'subscriptionTerms',

@@ -1,8 +1,12 @@
 import React from 'react';
 import { Session, UserTier, View } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
+import { useStreak } from '../../hooks/useStreak';
+import { useXP } from '../../hooks/useXP';
+import { useBadges } from '../../hooks/useBadges';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import BadgeDisplay from '../gamification/BadgeDisplay';
 
 interface DashboardProps {
     onStartPractice: () => void;
@@ -38,43 +42,18 @@ const Dashboard: React.FC<DashboardProps> = ({
         ? Math.round(sessionsWithScore.reduce((sum, s) => sum + (s.feedback.empathyScore || 0), 0) / sessionsWithScore.length)
         : null;
 
-    // Calculate streak (consecutive days with sessions)
-    const calculateStreak = () => {
-        if (sessions.length === 0) return 0;
-        const sortedDates = [...new Set(sessions.map(s => new Date(s.date).toDateString()))]
-            .map(d => new Date(d))
-            .sort((a, b) => b.getTime() - a.getTime());
-        
-        let streak = 0;
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        for (let i = 0; i < sortedDates.length; i++) {
-            const checkDate = new Date(today);
-            checkDate.setDate(today.getDate() - i);
-            checkDate.setHours(0, 0, 0, 0);
-            
-            const sessionDate = new Date(sortedDates[i]);
-            sessionDate.setHours(0, 0, 0, 0);
-            
-            if (sessionDate.getTime() === checkDate.getTime()) {
-                streak++;
-            } else if (i === 0 && sessionDate.getTime() < checkDate.getTime()) {
-                // Allow starting from yesterday if no session today
-                const yesterday = new Date(today);
-                yesterday.setDate(today.getDate() - 1);
-                if (sessionDate.getTime() === yesterday.getTime()) {
-                    streak++;
-                } else {
-                    break;
-                }
-            } else {
-                break;
-            }
-        }
-        return streak;
-    };
-    const streak = calculateStreak();
+    // Get streak from the useStreak hook (persisted in Supabase)
+    const { currentStreak: streak } = useStreak();
+
+    // Get XP and level from the useXP hook
+    const { currentXP, currentLevel, levelName, xpToNextLevel, xpProgress, isLoading: xpLoading } = useXP();
+
+    // Level icons for Growth Garden theme
+    const levelIcons = ['🌱', '🌿', '🌳', '🏆'];
+    const levelIcon = levelIcons[currentLevel - 1] || '🌱';
+
+    // Get badges
+    const { unlockedBadges } = useBadges();
 
     const displayRemaining = remainingFreeSessions !== null 
         ? remainingFreeSessions 
@@ -221,6 +200,67 @@ const Dashboard: React.FC<DashboardProps> = ({
                         </Card>
                     </div>
                 )}
+
+                {/* Level Progress */}
+                <Card variant="default" padding="md" className="mb-6">
+                    <div className="flex items-center gap-3 mb-2">
+                        <span className="text-2xl">{levelIcon}</span>
+                        <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-bold text-[var(--color-text-primary)]">
+                                    {levelName}
+                                </span>
+                                <span className="text-xs text-[var(--color-text-muted)]">
+                                    {xpLoading ? '...' : `${currentXP.toLocaleString()} XP`}
+                                </span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs text-[var(--color-text-secondary)]">
+                                    Level {currentLevel}
+                                </span>
+                                {currentLevel < 4 && (
+                                    <span className="text-xs text-[var(--color-text-muted)]">
+                                        {xpToNextLevel.toLocaleString()} to next
+                                    </span>
+                                )}
+                                {currentLevel === 4 && (
+                                    <span className="text-xs text-[var(--color-primary-dark)] font-medium">
+                                        Max level!
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    <div 
+                        className="w-full h-2 rounded-full overflow-hidden"
+                        style={{ backgroundColor: 'var(--color-neutral-200, #e5e7eb)' }}
+                    >
+                        <div
+                            className="h-full rounded-full transition-all duration-500 ease-out"
+                            style={{ 
+                                width: `${xpProgress}%`,
+                                background: currentLevel === 4 
+                                    ? 'linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)'
+                                    : 'var(--color-primary)',
+                            }}
+                            role="progressbar"
+                            aria-valuenow={xpProgress}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-label={`Level ${currentLevel} progress: ${xpProgress}%`}
+                        />
+                    </div>
+                </Card>
+
+                {/* Your Badges Section - Shows all badges (locked + unlocked) */}
+                <div className="mb-6">
+                    <h3 className="text-sm font-bold text-[var(--color-text-muted)] uppercase mb-3 px-1">
+                        Your Badges
+                    </h3>
+                    <Card variant="default" padding="md">
+                        <BadgeDisplay showAll={true} />
+                    </Card>
+                </div>
 
                 {/* Recent Sessions Preview */}
                 {hasSessions && recentSessions.length > 0 && (

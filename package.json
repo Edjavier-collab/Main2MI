@@ -24,6 +24,7 @@
     "lottie-react": "^2.4.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "recharts": "^2.15.4",
     "stripe": "^19.3.0",
     "workbox-window": "^7.4.0"
   },

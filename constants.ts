@@ -215,3 +215,108 @@ export const STAGE_DESCRIPTIONS: Record<StageOfChange, string> = {
 
 export const FREE_SESSION_DURATION = 90; // seconds
 export const PREMIUM_SESSION_DURATION = 300; // seconds
+
+// XP System Constants
+export const XP_LEVELS = [
+  { level: 1, name: 'Curious Beginner', minXP: 0, maxXP: 99 },
+  { level: 2, name: 'Engaged Learner', minXP: 100, maxXP: 499 },
+  { level: 3, name: 'Skilled Practitioner', minXP: 500, maxXP: 1499 },
+  { level: 4, name: 'MI Champion', minXP: 1500, maxXP: Infinity },
+] as const;
+
+export const XP_AWARDS = {
+  SESSION_COMPLETE: 10,      // Base XP for completing a session
+  SCORE_70_PLUS_BONUS: 5,    // Bonus for 70%+ empathy score (3.5+/5)
+  SCORE_90_PLUS_BONUS: 10,   // Bonus for 90%+ empathy score (4.5+/5) - replaces 70% bonus
+  STREAK_DAY_BONUS: 2,       // XP per streak day
+  BADGE_UNLOCK: 25,          // XP for unlocking a badge
+} as const;
+
+// Badge System Constants
+export interface BadgeDefinition {
+  id: string;
+  name: string;
+  emoji: string;
+  description: string;
+  category: 'streak' | 'milestone' | 'skill';
+  requirement: number;
+}
+
+export const BADGES: BadgeDefinition[] = [
+  // Streak Badges
+  {
+    id: 'streak-3',
+    name: 'First Flame',
+    emoji: '🔥',
+    description: 'Practice for 3 days in a row',
+    category: 'streak',
+    requirement: 3,
+  },
+  {
+    id: 'streak-7',
+    name: 'Week Warrior',
+    emoji: '💪',
+    description: 'Practice for 7 days in a row',
+    category: 'streak',
+    requirement: 7,
+  },
+  {
+    id: 'streak-30',
+    name: 'Monthly Master',
+    emoji: '🌟',
+    description: 'Practice for 30 days in a row',
+    category: 'streak',
+    requirement: 30,
+  },
+  {
+    id: 'streak-90',
+    name: 'Quarterly Champion',
+    emoji: '👑',
+    description: 'Practice for 90 days in a row',
+    category: 'streak',
+    requirement: 90,
+  },
+  // Milestone Badges
+  {
+    id: 'sessions-1',
+    name: 'First Steps',
+    emoji: '🌱',
+    description: 'Complete your first practice session',
+    category: 'milestone',
+    requirement: 1,
+  },
+  {
+    id: 'sessions-10',
+    name: 'Getting Serious',
+    emoji: '📚',
+    description: 'Complete 10 practice sessions',
+    category: 'milestone',
+    requirement: 10,
+  },
+  {
+    id: 'sessions-50',
+    name: 'Dedicated',
+    emoji: '🎯',
+    description: 'Complete 50 practice sessions',
+    category: 'milestone',
+    requirement: 50,
+  },
+  {
+    id: 'sessions-100',
+    name: 'MI Master',
+    emoji: '🏆',
+    description: 'Complete 100 practice sessions',
+    category: 'milestone',
+    requirement: 100,
+  },
+] as const;
+
+// Helper to get badge by ID
+export const getBadgeById = (id: string): BadgeDefinition | undefined => {
+  return BADGES.find(badge => badge.id === id);
+};
+
+// Helper to get badges by category
+export const getBadgesByCategory = (category: BadgeDefinition['category']): BadgeDefinition[] => {
+  return BADGES.filter(badge => badge.category === category);
+};
