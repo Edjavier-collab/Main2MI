@@ -6,6 +6,8 @@ import { Card } from '../ui/Card';
 import ExecutiveSummary from '../reports/ExecutiveSummary';
 import SkillRadarChart from '../reports/SkillRadarChart';
 import TrendAnalysis from '../reports/TrendAnalysis';
+import DetailedInsights from '../reports/DetailedInsights';
+import ActionPlan from '../reports/ActionPlan';
 
 interface ReportsViewProps {
   sessions: Session[];
@@ -111,6 +113,33 @@ const ReportsView: React.FC<ReportsViewProps> = ({
             </div>
             <TrendAnalysis
               sessionData={reportData.dailyScores}
+              isLoading={reportData.isLoading}
+            />
+          </Card>
+        )}
+
+        {/* Premium Detailed Insights - per-skill breakdown with recommendations */}
+        {isPremium && reportData.skillScores.length > 0 && (
+          <Card variant="default" padding="lg" className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 
+                className="text-sm font-bold uppercase tracking-wide"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
+                Detailed Insights
+              </h3>
+              <span 
+                className="text-xs px-2 py-1 rounded-full"
+                style={{ 
+                  backgroundColor: 'var(--color-primary-50)',
+                  color: 'var(--color-primary-700)',
+                }}
+              >
+                Tap to expand
+              </span>
+            </div>
+            <DetailedInsights
+              skillScores={reportData.skillScores}
               isLoading={reportData.isLoading}
             />
           </Card>
@@ -266,6 +295,37 @@ const ReportsView: React.FC<ReportsViewProps> = ({
                 </div>
               ))}
             </div>
+          </Card>
+        )}
+
+        {/* Premium Action Plan - personalized next steps */}
+        {isPremium && reportData.skillScores.length > 0 && (
+          <Card variant="default" padding="lg" className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 
+                className="text-sm font-bold uppercase tracking-wide"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
+                Your Action Plan
+              </h3>
+              <span 
+                className="text-xs px-2 py-1 rounded-full"
+                style={{ 
+                  backgroundColor: 'var(--color-primary-50)',
+                  color: 'var(--color-primary-700)',
+                }}
+              >
+                This Week
+              </span>
+            </div>
+            <ActionPlan
+              skillScores={reportData.skillScores}
+              sessionCount={reportData.sessionCount}
+              periodStart={reportData.periodStart}
+              periodEnd={reportData.periodEnd}
+              onStartPractice={() => onNavigate(View.ScenarioSelection)}
+              isLoading={reportData.isLoading}
+            />
           </Card>
         )}
 
