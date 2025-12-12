@@ -345,7 +345,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                                     variant="secondary"
                                     fullWidth
                                     loading={logoutLoading}
-                                    className="border-2 border-red-500 text-red-600 hover:bg-red-50 hover:border-red-600 focus:ring-red-500"
+                                    className="border-2 border-error text-error hover:bg-error-light hover:border-error-dark focus:ring-error"
                                     icon={!logoutLoading ? <i className="fa-solid fa-right-from-bracket" /> : undefined}
                                 >
                                     {logoutLoading ? 'Logging Out...' : 'Log Out'}
@@ -388,24 +388,24 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                             {subscriptionCancelled && (
                                 <SettingsRow onClick={handleRestorePurchase} isLast>
                                     <div className="flex-1">
-                                        <span className="text-sky-600">Restore Purchase</span>
+                                        <span className="text-primary-dark">Restore Purchase</span>
                                         {restoreLoading && (
-                                            <span className="ml-2 text-xs text-gray-500">
+                                            <span className="ml-2 text-xs text-neutral-500">
                                                 <i className="fa fa-spinner fa-spin"></i> Restoring...
                                             </span>
                                         )}
                                         {restoreSuccess && (
-                                            <span className="ml-2 text-xs text-green-600">
+                                            <span className="ml-2 text-xs text-success-dark">
                                                 <i className="fa fa-check"></i> Restored!
                                             </span>
                                         )}
                                         {restoreError && (
-                                            <span className="ml-2 text-xs text-red-600">
+                                            <span className="ml-2 text-xs text-error">
                                                 <i className="fa fa-exclamation-triangle"></i> {restoreError}
                                             </span>
                                         )}
                                     </div>
-                                    {!restoreLoading && <i className="fa fa-chevron-right text-gray-400"></i>}
+                                    {!restoreLoading && <i className="fa fa-chevron-right text-neutral-400"></i>}
                                 </SettingsRow>
                             )}
                         </>
@@ -432,24 +432,24 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                             {subscriptionCancelled && (
                                 <SettingsRow onClick={handleRestorePurchase} isLast>
                                     <div className="flex-1">
-                                        <span className="text-sky-600">Restore Purchase</span>
+                                        <span className="text-primary-dark">Restore Purchase</span>
                                         {restoreLoading && (
-                                            <span className="ml-2 text-xs text-gray-500">
+                                            <span className="ml-2 text-xs text-neutral-500">
                                                 <i className="fa fa-spinner fa-spin"></i> Restoring...
                                             </span>
                                         )}
                                         {restoreSuccess && (
-                                            <span className="ml-2 text-xs text-green-600">
+                                            <span className="ml-2 text-xs text-success-dark">
                                                 <i className="fa fa-check"></i> Restored!
                                             </span>
                                         )}
                                         {restoreError && (
-                                            <span className="ml-2 text-xs text-red-600">
+                                            <span className="ml-2 text-xs text-error">
                                                 <i className="fa fa-exclamation-triangle"></i> {restoreError}
                                             </span>
                                         )}
                                     </div>
-                                    {!restoreLoading && <i className="fa fa-chevron-right text-gray-400"></i>}
+                                    {!restoreLoading && <i className="fa fa-chevron-right text-neutral-400"></i>}
                                 </SettingsRow>
                             )}
                         </>

@@ -21,18 +21,18 @@ const InfoSection: React.FC<InfoSectionProps> = ({ icon, title, children, colorC
             <i className={`fa-solid ${icon} w-6 text-center mr-2`}></i>
             {title}
         </h3>
-        <div className="text-gray-700 space-y-2 pl-8">
+        <div className="text-neutral-700 space-y-2 pl-8">
             {children}
         </div>
     </div>
 );
 
 const stageColors: Record<StageOfChange, string> = {
-    [StageOfChange.Precontemplation]: 'bg-red-100 text-red-800',
-    [StageOfChange.Contemplation]: 'bg-yellow-100 text-yellow-800',
-    [StageOfChange.Preparation]: 'bg-blue-100 text-blue-800',
-    [StageOfChange.Action]: 'bg-green-100 text-green-800',
-    [StageOfChange.Maintenance]: 'bg-purple-100 text-purple-800',
+    [StageOfChange.Precontemplation]: 'bg-error-light text-error-dark',
+    [StageOfChange.Contemplation]: 'bg-warning-light text-warning-dark',
+    [StageOfChange.Preparation]: 'bg-info-light text-info-dark',
+    [StageOfChange.Action]: 'bg-success-light text-success-dark',
+    [StageOfChange.Maintenance]: 'bg-primary-lighter text-primary-darker',
 };
 
 
@@ -48,12 +48,12 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
     };
 
     return (
-        <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-2xl mx-auto shadow-sm overflow-hidden tile-hover">
+        <div className="bg-white border border-neutral-200 rounded-2xl w-full max-w-2xl mx-auto shadow-sm overflow-hidden tile-hover">
             {/* Header */}
-            <header className="flex items-center justify-between p-6 border-b border-gray-200">
+            <header className="flex items-center justify-between p-6 border-b border-neutral-200">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900">{patient.name}</h2>
-                    <p className="text-gray-500">{patient.age}, {patient.sex}</p>
+                    <h2 className="text-2xl font-bold text-neutral-900">{patient.name}</h2>
+                    <p className="text-neutral-500">{patient.age}, {patient.sex}</p>
                 </div>
                 <div className={`px-3 py-1 text-sm font-bold rounded-full ${stageColors[patient.stageOfChange]}`}>
                     {patient.stageOfChange}
@@ -83,14 +83,14 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
                         Chief Complaint
                     </h3>
                     <blockquote className="border-l-4 border-indigo-500 bg-indigo-50 p-4 rounded-r-lg ml-8">
-                        <p className="text-gray-800 italic leading-relaxed">"{patient.chiefComplaint}"</p>
+                        <p className="text-neutral-800 italic leading-relaxed">"{patient.chiefComplaint}"</p>
                     </blockquote>
                 </div>
             </main>
 
             {isFreeTier && (
                 <footer 
-                    className={`bg-slate-50 border-t border-gray-200 px-6 py-4 text-center ${onUpgrade ? 'cursor-pointer hover:bg-slate-100 transition-colors' : ''}`}
+                    className={`bg-neutral-50 border-t border-neutral-200 px-6 py-4 text-center ${onUpgrade ? 'cursor-pointer hover:bg-neutral-100 transition-colors' : ''}`}
                     onClick={onUpgrade}
                     role={onUpgrade ? 'button' : undefined}
                     tabIndex={onUpgrade ? 0 : undefined}
@@ -102,8 +102,8 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
                     } : undefined}
                 >
                     <div className="flex items-center justify-center">
-                        <i className="fa-solid fa-lock text-slate-400 mr-3"></i>
-                        <p className="text-sm font-medium text-slate-600">
+                        <i className="fa-solid fa-lock text-neutral-400 mr-3"></i>
+                        <p className="text-sm font-medium text-neutral-600">
                             Upgrade to Premium to view the patient's complete profile.
                         </p>
                     </div>

@@ -27,7 +27,7 @@ const NavItem: React.FC<NavItemProps> = ({ label, icon, isActive, onClick, isLoc
             <div className="relative flex flex-col items-center">
                 {/* Icon with minimalist styling */}
                 <div className="relative">
-                    <i className={`${icon} ${isActive ? 'text-zinc-900' : 'text-zinc-400'} text-[28px] transition-colors`} aria-hidden="true"></i>
+                    <i className={`${icon} ${isActive ? 'text-zinc-900' : 'text-zinc-400'} text-3xl transition-colors`} aria-hidden="true"></i>
                     {isLocked && (
                         <div className="absolute -top-1 -right-2 bg-zinc-800 text-white w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white" title="Premium Feature">
                             <i className="fa-solid fa-lock" style={{ fontSize: '7px' }} aria-hidden="true"></i>
@@ -41,7 +41,7 @@ const NavItem: React.FC<NavItemProps> = ({ label, icon, isActive, onClick, isLoc
                 )}
                 
                 {/* Label with minimalist typography */}
-                <span className={`text-[10px] mt-1.5 transition-colors ${isActive ? 'text-zinc-900 font-semibold' : 'text-zinc-400 font-normal'}`} style={{ letterSpacing: '0.025em' }}>
+                <span className={`text-xs mt-1.5 transition-colors tracking-wide ${isActive ? 'text-zinc-900 font-semibold' : 'text-zinc-400 font-normal'}`}>
                     {label}
                 </span>
             </div>

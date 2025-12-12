@@ -199,7 +199,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, o
                                         <i
                                             className={`fa-star text-3xl ${
                                                 star <= displayRating
-                                                    ? 'fa-solid text-yellow-400'
+                                                    ? 'fa-solid text-warning'
                                                     : 'fa-regular text-[var(--color-neutral-300)]'
                                             }`}
                                             aria-hidden="true"

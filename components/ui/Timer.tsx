@@ -25,7 +25,7 @@ const Timer: React.FC<TimerProps> = ({ initialSeconds, onTimeUp }) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
 
-    const timeColor = seconds <= 30 ? 'text-red-500' : 'text-gray-700';
+    const timeColor = seconds <= 30 ? 'text-error' : 'text-neutral-700';
 
     return (
         <div className={`font-mono text-lg font-bold transition-colors duration-300 ${timeColor}`}>

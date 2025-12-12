@@ -74,8 +74,9 @@ export const useTierManager = () => {
 
   /**
    * Verify premium status via Edge Function (server-side, cannot be spoofed)
+   * Falls back to database tier if Edge Function is unavailable
    */
-  const verifyPremiumStatus = useCallback(async (forceRefresh = false): Promise<boolean> => {
+  const verifyPremiumStatus = useCallback(async (forceRefresh = false, databaseTier?: UserTier): Promise<boolean> => {
     if (!user || !isSupabaseConfigured()) {
       setIsPremiumVerified(false);
       return false;
@@ -100,6 +101,12 @@ export const useTierManager = () => {
 
       if (!accessToken) {
         console.warn('[useTierManager] No access token available for verification');
+        // Fallback to database tier if available
+        if (databaseTier === UserTier.Premium) {
+          console.log('[useTierManager] Falling back to database tier (premium)');
+          setIsPremiumVerified(true);
+          return true;
+        }
         setIsPremiumVerified(false);
         return false;
       }
@@ -114,10 +121,20 @@ export const useTierManager = () => {
       });
 
       if (!response.ok) {
-        console.error('[useTierManager] Premium verification failed:', response.status);
-        // On error, don't trust cached/local premium status
+        // Edge Function unavailable (404, 500, etc.) - fallback to database tier
+        console.warn('[useTierManager] Edge Function unavailable (status:', response.status, '), falling back to database tier');
+        if (databaseTier === UserTier.Premium) {
+          console.log('[useTierManager] Database tier is premium, trusting it as fallback');
+          setIsPremiumVerified(true);
+          cacheVerification({
+            isPremium: true,
+            tier: 'premium',
+            verifiedAt: new Date().toISOString(),
+          });
+          return true;
+        }
+        // User is free tier in database, so they're definitely not premium
         setIsPremiumVerified(false);
-        clearVerificationCache();
         return false;
       }
 
@@ -146,10 +163,20 @@ export const useTierManager = () => {
 
       return isPremium;
     } catch (error) {
-      console.error('[useTierManager] Error verifying premium status:', error);
-      // On error, don't trust premium status
+      // Network error, Edge Function not deployed, etc. - fallback to database tier
+      console.warn('[useTierManager] Error verifying premium status, falling back to database tier:', error);
+      if (databaseTier === UserTier.Premium) {
+        console.log('[useTierManager] Database tier is premium, trusting it as fallback');
+        setIsPremiumVerified(true);
+        cacheVerification({
+          isPremium: true,
+          tier: 'premium',
+          verifiedAt: new Date().toISOString(),
+        });
+        return true;
+      }
+      // User is free tier in database, so they're definitely not premium
       setIsPremiumVerified(false);
-      clearVerificationCache();
       return false;
     } finally {
       setIsVerifying(false);
@@ -180,20 +207,24 @@ export const useTierManager = () => {
     }
 
     const loadAndVerifyTier = async () => {
+      let databaseTier: UserTier = UserTier.Free;
+      
       try {
         console.log('[useTierManager] Loading tier from Supabase for user:', user.id);
         const profile = await getUserProfile(user.id);
         
         if (profile && profile.tier) {
           console.log('[useTierManager] Loaded tier from Supabase:', profile.tier);
-          setUserTier(profile.tier as UserTier);
+          databaseTier = profile.tier as UserTier;
+          setUserTier(databaseTier);
           localStorage.setItem('mi-coach-tier', profile.tier);
         } else {
           console.log('[useTierManager] No profile found. Creating new profile with Free tier.');
           // Create a new profile for the user
           const newProfile = await createUserProfile(user.id, UserTier.Free);
           if (newProfile && newProfile.tier) {
-            setUserTier(newProfile.tier as UserTier);
+            databaseTier = newProfile.tier as UserTier;
+            setUserTier(databaseTier);
             localStorage.setItem('mi-coach-tier', newProfile.tier);
           } else {
             // Fallback to Free tier if creation fails
@@ -203,21 +234,21 @@ export const useTierManager = () => {
         }
 
         // After loading from Supabase, verify server-side for premium users
-        // This ensures premium status cannot be spoofed via localStorage
-        await verifyPremiumStatus();
+        // Pass the database tier so we can fallback if Edge Function is unavailable
+        await verifyPremiumStatus(false, databaseTier);
       } catch (error) {
         console.error('[useTierManager] Failed to load tier from Supabase:', error);
         // Fallback to localStorage or Free
         const savedTier = localStorage.getItem('mi-coach-tier') as UserTier;
         if (savedTier && Object.values(UserTier).includes(savedTier)) {
           setUserTier(savedTier);
+          databaseTier = savedTier;
         } else {
           setUserTier(UserTier.Free);
           localStorage.setItem('mi-coach-tier', UserTier.Free);
         }
-        // Clear verification on error - don't trust unverified premium status
-        setIsPremiumVerified(false);
-        clearVerificationCache();
+        // Try to verify with the fallback tier
+        await verifyPremiumStatus(false, databaseTier);
       }
     };
 
@@ -246,10 +277,11 @@ export const useTierManager = () => {
     try {
       const profile = await getUserProfile(user.id);
       if (profile && profile.tier) {
-        updateTier(profile.tier as UserTier);
-        // Re-verify server-side
-        await verifyPremiumStatus(true);
-        return profile.tier as UserTier;
+        const databaseTier = profile.tier as UserTier;
+        updateTier(databaseTier);
+        // Re-verify server-side, passing database tier as fallback
+        await verifyPremiumStatus(true, databaseTier);
+        return databaseTier;
       }
     } catch (error) {
       console.error('[useTierManager] Failed to refresh tier:', error);

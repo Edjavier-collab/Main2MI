@@ -19,14 +19,14 @@ const SkillProgressBar: React.FC<SkillProgressBarProps> = ({
     const getSkillColor = () => {
         const avg = averagePerSession;
         if (avg >= 3) {
-            // Strong usage - green
-            return 'bg-green-500';
+            // Strong usage - success
+            return 'bg-success';
         } else if (avg >= 1.5) {
-            // Moderate usage - amber
-            return 'bg-amber-500';
+            // Moderate usage - warning
+            return 'bg-warning';
         } else {
-            // Low usage - red
-            return 'bg-red-500';
+            // Low usage - error
+            return 'bg-error';
         }
     };
 
@@ -34,11 +34,11 @@ const SkillProgressBar: React.FC<SkillProgressBarProps> = ({
     const getTrendIcon = () => {
         switch (trend) {
             case 'increasing':
-                return <i className="fa-solid fa-arrow-up text-green-600" aria-label="Increasing trend" />;
+                return <i className="fa-solid fa-arrow-up text-success-dark" aria-label="Increasing trend" />;
             case 'decreasing':
-                return <i className="fa-solid fa-arrow-down text-red-600" aria-label="Decreasing trend" />;
+                return <i className="fa-solid fa-arrow-down text-error-dark" aria-label="Decreasing trend" />;
             case 'stable':
-                return <i className="fa-solid fa-minus text-gray-500" aria-label="Stable trend" />;
+                return <i className="fa-solid fa-minus text-neutral-500" aria-label="Stable trend" />;
         }
     };
 
@@ -62,7 +62,7 @@ const SkillProgressBar: React.FC<SkillProgressBarProps> = ({
                     </span>
                 </div>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-neutral-200 rounded-full h-3 overflow-hidden">
                 <div
                     className={`${getSkillColor()} h-full rounded-full transition-all duration-500 ease-out`}
                     style={{ width: `${progressPercent}%` }}

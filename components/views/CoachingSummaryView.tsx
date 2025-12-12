@@ -71,9 +71,9 @@ const SkillBar: React.FC<{ skillName: string; score: number; maxScore: number; t
         return 'bg-gradient-to-r from-rose-400 to-red-500';
     };
     const getTrendIcon = () => {
-        if (trend === 'increasing') return { icon: 'fa-arrow-trend-up', color: 'text-green-600' };
-        if (trend === 'decreasing') return { icon: 'fa-arrow-trend-down', color: 'text-red-500' };
-        return { icon: 'fa-minus', color: 'text-gray-400' };
+        if (trend === 'increasing') return { icon: 'fa-arrow-trend-up', color: 'text-success-dark' };
+        if (trend === 'decreasing') return { icon: 'fa-arrow-trend-down', color: 'text-error' };
+        return { icon: 'fa-minus', color: 'text-neutral-400' };
     };
     const trendInfo = getTrendIcon();
 
@@ -328,7 +328,7 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
                     
                     /* Certificate header band */
                     .certificate-header-band {
-                        background: linear-gradient(135deg, #2C4A44 0%, #4A6B66 100%) !important;
+                        background: linear-gradient(135deg, var(--color-text-primary) 0%, var(--color-text-secondary) 100%) !important;
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
                         color: white !important;
@@ -343,7 +343,7 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
                     /* Card styling for print */
                     .print-card {
                         background: white !important;
-                        border: 1px solid #e5e7eb !important;
+                        border: 1px solid var(--color-neutral-200) !important;
                         box-shadow: none !important;
                         page-break-inside: avoid;
                     }
@@ -418,14 +418,14 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
                                             max={5}
                                             size={100}
                                             strokeWidth={8}
-                                            color={overallScore >= 4 ? '#10b981' : overallScore >= 3 ? '#f59e0b' : '#ef4444'}
+                                            color={overallScore >= 4 ? 'var(--color-success)' : overallScore >= 3 ? 'var(--color-warning)' : 'var(--color-error)'}
                                             label="Overall"
                                         />
                                     </div>
 
                                     {/* Sessions Count */}
                                     <StatCard
-                                        icon="fa-solid fa-clipboard-check text-blue-600"
+                                        icon="fa-solid fa-clipboard-check text-info"
                                         value={summary.totalSessions}
                                         label="Sessions"
                                         colorClass="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100 print-color"
@@ -457,8 +457,8 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
                                 {/* Strengths */}
                                 {strengths.length > 0 && (
                                     <div className="mb-6">
-                                        <h3 className="text-sm font-semibold text-green-700 mb-3 flex items-center gap-2">
-                                            <i className="fa-solid fa-star text-green-500" aria-hidden="true"></i>
+                                        <h3 className="text-sm font-semibold text-success-dark mb-3 flex items-center gap-2">
+                                            <i className="fa-solid fa-star text-success" aria-hidden="true"></i>
                                             Strengths
                                         </h3>
                                         {strengths.map((skill, index) => (
@@ -505,9 +505,9 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
                                         {showNotPracticed && (
                                             <div className="mt-3 space-y-2">
                                                 {notPracticed.map((skill, index) => (
-                                                    <div key={index} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
+                                                    <div key={index} className="flex items-center justify-between py-2 px-3 bg-neutral-50 rounded-lg">
                                                         <span className="text-sm text-[var(--color-text-muted)]">{skill.skillName}</span>
-                                                        <span className="text-xs text-gray-400 italic">No data</span>
+                                                        <span className="text-xs text-neutral-400 italic">No data</span>
                                                     </div>
                                                 ))}
                                             </div>

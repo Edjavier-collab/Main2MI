@@ -87,9 +87,9 @@ class ErrorBoundary extends Component<Props, State> {
                 >
                     <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
                         {/* Error Icon */}
-                        <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6">
+                        <div className="mx-auto w-16 h-16 bg-error-light rounded-full flex items-center justify-center mb-6">
                             <svg 
-                                className="w-8 h-8 text-red-500" 
+                                className="w-8 h-8 text-error" 
                                 fill="none" 
                                 stroke="currentColor" 
                                 viewBox="0 0 24 24"
@@ -105,25 +105,25 @@ class ErrorBoundary extends Component<Props, State> {
                         </div>
 
                         {/* Error Message */}
-                        <h1 className="text-2xl font-bold text-gray-800 mb-2">
+                        <h1 className="text-2xl font-bold text-neutral-800 mb-2">
                             Oops! Something went wrong
                         </h1>
-                        <p className="text-gray-600 mb-6">
+                        <p className="text-neutral-600 mb-6">
                             We're sorry, but something unexpected happened. Don't worry, your data is safe.
                         </p>
 
                         {/* Error Details (Development only) */}
                         {process.env.NODE_ENV === 'development' && this.state.error && (
                             <details className="mb-6 text-left">
-                                <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
+                                <summary className="cursor-pointer text-sm text-neutral-500 hover:text-neutral-700">
                                     Technical Details (Development Only)
                                 </summary>
-                                <div className="mt-2 p-4 bg-gray-100 rounded-lg text-xs font-mono overflow-auto max-h-48">
-                                    <p className="text-red-600 font-semibold mb-2">
+                                <div className="mt-2 p-4 bg-neutral-100 rounded-lg text-xs font-mono overflow-auto max-h-48">
+                                    <p className="text-error font-semibold mb-2">
                                         {this.state.error.name}: {this.state.error.message}
                                     </p>
                                     {this.state.errorInfo && (
-                                        <pre className="text-gray-600 whitespace-pre-wrap">
+                                        <pre className="text-neutral-600 whitespace-pre-wrap">
                                             {this.state.errorInfo.componentStack}
                                         </pre>
                                     )}
@@ -148,7 +148,7 @@ class ErrorBoundary extends Component<Props, State> {
                             
                             <button
                                 onClick={this.handleReload}
-                                className="w-full bg-gray-100 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                                className="w-full bg-neutral-100 text-neutral-700 font-semibold py-3 px-6 rounded-xl hover:bg-neutral-200 transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2"
                                 aria-label="Reload the page"
                             >
                                 <span className="flex items-center justify-center gap-2">
@@ -161,7 +161,7 @@ class ErrorBoundary extends Component<Props, State> {
                             
                             <button
                                 onClick={this.handleGoHome}
-                                className="w-full text-gray-500 text-sm py-2 hover:text-gray-700 transition-colors focus:outline-none focus:underline"
+                                className="w-full text-neutral-500 text-sm py-2 hover:text-neutral-700 transition-colors focus:outline-none focus:underline"
                                 aria-label="Go back to home page"
                             >
                                 Return to Home
@@ -169,7 +169,7 @@ class ErrorBoundary extends Component<Props, State> {
                         </div>
 
                         {/* Support Info */}
-                        <p className="mt-6 text-xs text-gray-400">
+                        <p className="mt-6 text-xs text-neutral-400">
                             If this problem persists, please contact support.
                         </p>
                     </div>

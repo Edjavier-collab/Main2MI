@@ -47,7 +47,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
             
             {/* Loading Message */}
             {message && (
-                <p className={`${textSizeClasses[size]} text-gray-600 font-medium text-center`}>
+                <p className={`${textSizeClasses[size]} text-neutral-600 font-medium text-center`}>
                     {message}
                 </p>
             )}
@@ -99,7 +99,7 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
     height,
     className = ''
 }) => {
-    const baseClasses = 'skeleton rounded animate-pulse bg-gray-200';
+    const baseClasses = 'skeleton rounded animate-pulse bg-neutral-200';
 
     switch (type) {
         case 'avatar':
@@ -186,7 +186,7 @@ export const PageLoader: React.FC<{ message?: string }> = ({
             <LoadingSpinner size="lg" message={message} />
 
             {/* Tip */}
-            <p className="mt-8 text-sm text-gray-400 text-center max-w-xs">
+            <p className="mt-8 text-sm text-neutral-400 text-center max-w-xs">
                 Preparing your personalized practice experience...
             </p>
         </div>
