@@ -24,12 +24,58 @@ interface UseBadgesReturn {
 
 // Storage key for anonymous/fallback badge data
 const BADGES_STORAGE_KEY = 'mi-coach-badges';
+// Storage key for badges pending sync to Supabase
+const BADGE_SYNC_QUEUE_KEY = 'mi-coach-badge-sync-queue';
 
 interface StoredBadge {
   badgeId: string;
   unlockedAt: string;
   seen: boolean;
 }
+
+interface QueuedBadge {
+  badgeId: string;
+  unlockedAt: string;
+}
+
+/**
+ * Get badges queued for sync to Supabase
+ */
+const getQueuedBadges = (): QueuedBadge[] => {
+  try {
+    const stored = localStorage.getItem(BADGE_SYNC_QUEUE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
+
+/**
+ * Add a badge to the sync queue
+ */
+const addToQueue = (badgeId: string, unlockedAt: string): void => {
+  try {
+    const queue = getQueuedBadges();
+    if (!queue.some(q => q.badgeId === badgeId)) {
+      queue.push({ badgeId, unlockedAt });
+      localStorage.setItem(BADGE_SYNC_QUEUE_KEY, JSON.stringify(queue));
+    }
+  } catch {
+    // Ignore storage errors
+  }
+};
+
+/**
+ * Remove a badge from the sync queue
+ */
+const removeFromQueue = (badgeId: string): void => {
+  try {
+    const queue = getQueuedBadges().filter(q => q.badgeId !== badgeId);
+    localStorage.setItem(BADGE_SYNC_QUEUE_KEY, JSON.stringify(queue));
+  } catch {
+    // Ignore storage errors
+  }
+};
 
 /**
  * Hook to manage user badges
@@ -127,9 +173,12 @@ export const useBadges = (): UseBadgesReturn => {
 
   /**
    * Save a single badge to Supabase
+   * If save fails, queues the badge for retry on next load
    */
-  const saveBadgeToSupabase = useCallback(async (userId: string, badgeId: string): Promise<boolean> => {
+  const saveBadgeToSupabase = useCallback(async (userId: string, badgeId: string, unlockedAt: string): Promise<boolean> => {
     if (!isSupabaseConfigured()) {
+      // Queue for later sync when Supabase becomes available
+      addToQueue(badgeId, unlockedAt);
       return false;
     }
 
@@ -140,7 +189,7 @@ export const useBadges = (): UseBadgesReturn => {
         .insert({
           user_id: userId,
           badge_id: badgeId,
-          unlocked_at: new Date().toISOString(),
+          unlocked_at: unlockedAt,
           seen: false,
         });
 
@@ -148,16 +197,24 @@ export const useBadges = (): UseBadgesReturn => {
         // Ignore duplicate key errors (badge already unlocked)
         if (error.code === '23505') {
           console.log('[useBadges] Badge already unlocked:', badgeId);
-          return false;
+          // Remove from queue if it was queued
+          removeFromQueue(badgeId);
+          return true; // Treat as success since badge exists
         }
         console.error('[useBadges] Failed to save badge to Supabase:', error);
+        // Queue for retry
+        addToQueue(badgeId, unlockedAt);
         return false;
       }
 
       console.log('[useBadges] Badge saved to Supabase:', badgeId);
+      // Remove from queue on success
+      removeFromQueue(badgeId);
       return true;
     } catch (error) {
       console.error('[useBadges] Error saving badge to Supabase:', error);
+      // Queue for retry
+      addToQueue(badgeId, unlockedAt);
       return false;
     }
   }, []);
@@ -192,6 +249,7 @@ export const useBadges = (): UseBadgesReturn => {
 
     // Unlock the new badges
     const now = new Date();
+    const nowStr = now.toISOString();
     const newUnlockedBadges: UnlockedBadge[] = newlyUnlocked.map(badge => ({
       ...badge,
       unlockedAt: now,
@@ -205,7 +263,8 @@ export const useBadges = (): UseBadgesReturn => {
     // Persist to storage
     if (user) {
       for (const badge of newlyUnlocked) {
-        await saveBadgeToSupabase(user.id, badge.id);
+        // Pass the timestamp so it can be queued if save fails
+        await saveBadgeToSupabase(user.id, badge.id, nowStr);
       }
     }
     // Always save to localStorage (for offline access or anonymous users)
@@ -277,7 +336,58 @@ export const useBadges = (): UseBadgesReturn => {
         let badges: UnlockedBadge[];
 
         if (user) {
+          // First, retry syncing any queued badges from previous failed saves
+          const queuedBadges = getQueuedBadges();
+          if (queuedBadges.length > 0 && isSupabaseConfigured()) {
+            console.log('[useBadges] Retrying sync for', queuedBadges.length, 'queued badges');
+            const supabase = getSupabaseClient();
+            for (const queued of queuedBadges) {
+              try {
+                const { error } = await supabase
+                  .from('user_badges')
+                  .insert({
+                    user_id: user.id,
+                    badge_id: queued.badgeId,
+                    unlocked_at: queued.unlockedAt,
+                    seen: false,
+                  });
+
+                if (error) {
+                  // Duplicate key means it's already synced
+                  if (error.code === '23505') {
+                    console.log('[useBadges] Queued badge already exists:', queued.badgeId);
+                    removeFromQueue(queued.badgeId);
+                  } else {
+                    console.warn('[useBadges] Failed to sync queued badge:', queued.badgeId, error);
+                    // Keep in queue for next attempt
+                  }
+                } else {
+                  console.log('[useBadges] Successfully synced queued badge:', queued.badgeId);
+                  removeFromQueue(queued.badgeId);
+                }
+              } catch (err) {
+                console.warn('[useBadges] Error syncing queued badge:', queued.badgeId, err);
+                // Keep in queue for next attempt
+              }
+            }
+          }
+
+          // Now load from Supabase (which should include newly synced badges)
           badges = await loadFromSupabase(user.id);
+
+          // Merge any still-queued badges into local state so they remain visible
+          const remainingQueued = getQueuedBadges();
+          if (remainingQueued.length > 0) {
+            const badgeIds = new Set(badges.map(b => b.id));
+            for (const queued of remainingQueued) {
+              if (!badgeIds.has(queued.badgeId)) {
+                const badge = toUnlockedBadge(queued.badgeId, new Date(queued.unlockedAt), false);
+                if (badge) {
+                  badges.push(badge);
+                }
+              }
+            }
+          }
         } else {
           badges = loadFromLocalStorage();
         }

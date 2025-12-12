@@ -12,6 +12,7 @@ import ActionPlan from '../reports/ActionPlan';
 interface ReportsViewProps {
   sessions: Session[];
   userTier: UserTier;
+  isPremiumVerified: boolean; // Server-verified premium status
   onBack: () => void;
   onUpgrade: () => void;
   onNavigate: (view: View) => void;
@@ -28,12 +29,18 @@ interface ReportsViewProps {
 const ReportsView: React.FC<ReportsViewProps> = ({
   sessions,
   userTier,
+  isPremiumVerified,
   onBack,
   onUpgrade,
   onNavigate,
 }) => {
-  const reportData = useReportData(sessions);
-  const isPremium = userTier === UserTier.Premium;
+  // SECURITY: Use server-verified premium status for gating premium features
+  // Client-side userTier is only used for optimistic UI hints
+  const reportData = useReportData(sessions, isPremiumVerified);
+  
+  // Premium status must be server-verified to access premium data
+  // Don't trust userTier alone - it can be spoofed via localStorage
+  const isPremium = isPremiumVerified;
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-primary)] pb-24">

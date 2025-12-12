@@ -96,38 +96,41 @@ const SkillBar: React.FC<{ skillName: string; score: number; maxScore: number; t
     );
 };
 
-// Achievement seal/badge component
-const AchievementSeal: React.FC<{ sessions: number; dateRange: string }> = ({ sessions, dateRange }) => (
-    <div className="relative flex flex-col items-center print:mb-8">
-        {/* Outer decorative ring */}
+// McKinsey-style seal/badge component
+const CertificateSeal: React.FC<{ sessions: number; dateRange: string }> = ({ sessions, dateRange }) => (
+    <div className="flex flex-col items-center">
+        {/* Seal with double ring design */}
         <div className="relative">
-            <div className="w-32 h-32 rounded-full border-4 border-double border-[var(--color-primary)] flex items-center justify-center bg-gradient-to-br from-[var(--color-primary-lighter)] via-white to-[var(--color-primary-lighter)] shadow-lg">
-                <div className="w-24 h-24 rounded-full border-2 border-[var(--color-primary-light)] flex flex-col items-center justify-center bg-white">
-                    <i className="fa-solid fa-award text-3xl text-[var(--color-primary)] mb-1" aria-hidden="true"></i>
-                    <span className="text-xs font-bold text-[var(--color-primary-dark)] uppercase tracking-wide">Certified</span>
+            <div className="w-36 h-36 rounded-full border-4 border-[var(--color-primary-dark)] flex items-center justify-center bg-white shadow-lg">
+                <div className="w-28 h-28 rounded-full border-2 border-[var(--color-primary)] flex flex-col items-center justify-center bg-gradient-to-br from-[var(--color-primary-lighter)] to-white">
+                    <i className="fa-solid fa-award text-4xl text-[var(--color-primary-dark)] mb-1" aria-hidden="true"></i>
+                    <span className="text-xs font-bold text-[var(--color-primary-darker)] uppercase tracking-widest">Certified</span>
                 </div>
             </div>
-            {/* Ribbon tails */}
-            <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 flex gap-1">
-                <div className="w-4 h-8 bg-[var(--color-primary)] transform -skew-x-12 rounded-b"></div>
-                <div className="w-4 h-8 bg-[var(--color-primary-dark)] transform skew-x-12 rounded-b"></div>
+            {/* Decorative ribbon */}
+            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 flex gap-0.5">
+                <div className="w-5 h-10 bg-[var(--color-primary)] transform -skew-x-12 rounded-b-sm"></div>
+                <div className="w-5 h-10 bg-[var(--color-primary-dark)] transform skew-x-12 rounded-b-sm"></div>
             </div>
         </div>
-        <p className="mt-6 text-sm font-semibold text-[var(--color-text-primary)]">{sessions} Sessions Completed</p>
-        <p className="text-xs text-[var(--color-text-muted)]">{dateRange}</p>
+        <p className="mt-8 text-base font-bold text-[var(--color-text-primary)]">{sessions} Sessions Completed</p>
+        <p className="text-sm text-[var(--color-text-muted)]">{dateRange}</p>
     </div>
 );
 
 const MarkdownRenderer: React.FC<{ text: string }> = ({ text }) => {
     const renderLine = (line: string, index: number) => {
+        // Handle bold text markers
+        const processedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        
         if (line.startsWith('* ')) {
             return (
-                <li key={index} className="text-[var(--color-text-secondary)] leading-relaxed">
-                    {line.substring(2)}
-                </li>
+                <li key={index} className="text-[var(--color-text-secondary)] leading-relaxed" 
+                    dangerouslySetInnerHTML={{ __html: processedLine.substring(2) }} />
             );
         }
-        return <p key={index} className="text-[var(--color-text-secondary)] leading-relaxed">{line}</p>;
+        return <p key={index} className="text-[var(--color-text-secondary)] leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: processedLine }} />;
     };
 
     const lines = text.split('\n').filter(line => line.trim() !== '');
@@ -163,7 +166,7 @@ const SectionCard: React.FC<{
     <Card 
         variant={variant === 'accent' ? 'accent' : 'elevated'} 
         padding="md" 
-        className={`print:shadow-none print:border print:border-gray-200 ${variant === 'accent' ? 'border-2 border-[var(--color-primary)]' : ''}`}
+        className={`${variant === 'accent' ? 'border-2 border-[var(--color-primary)]' : ''}`}
     >
         <h2 className="text-lg font-bold text-[var(--color-text-primary)] mb-4 flex items-center gap-3">
             <span className="inline-flex h-10 w-10 items-center justify-center bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)] rounded-lg">
@@ -175,6 +178,17 @@ const SectionCard: React.FC<{
             {children}
         </div>
     </Card>
+);
+
+// Stat card for metrics display
+const StatCard: React.FC<{ icon: string; value: string | number; label: string; colorClass: string }> = ({
+    icon, value, label, colorClass
+}) => (
+    <div className={`${colorClass} rounded-xl p-4 text-center border border-opacity-20`}>
+        <i className={`${icon} text-2xl mb-2`} aria-hidden="true"></i>
+        <p className="text-2xl font-bold text-[var(--color-text-primary)]">{value}</p>
+        <p className="text-xs text-[var(--color-text-muted)]">{label}</p>
+    </div>
 );
 
 const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, summary, error, onBack }) => {
@@ -190,14 +204,6 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
         if (avg >= 1) return 3;
         if (avg >= 0.5) return 2;
         return 1;
-    };
-
-    const getScoreLabel = (score: number): string => {
-        if (score === 5) return 'Excellent';
-        if (score === 4) return 'Good';
-        if (score === 3) return 'Developing';
-        if (score === 2) return 'Needs Work';
-        return 'Needs Focus';
     };
 
     if (isLoading) {
@@ -290,29 +296,78 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
 
     return (
         <>
-            {/* Print styles */}
+            {/* Print-specific styles */}
             <style>{`
                 @media print {
-                    body { background: white !important; }
-                    .no-print { display: none !important; }
-                    .print-break { page-break-before: always; }
-                    .printable-certificate {
-                        background: white !important;
-                        padding: 40px !important;
-                        border: 3px double var(--color-primary) !important;
-                        margin: 20px !important;
+                    /* Reset visibility for printable area */
+                    .printable-area,
+                    .printable-area * {
+                        visibility: visible !important;
                     }
-                    .print-header {
-                        text-align: center;
-                        border-bottom: 2px solid var(--color-primary);
-                        padding-bottom: 20px;
-                        margin-bottom: 30px;
+                    
+                    /* Hide non-print elements */
+                    .no-print {
+                        display: none !important;
+                    }
+                    
+                    /* Certificate container */
+                    .printable-area {
+                        position: absolute !important;
+                        left: 0 !important;
+                        top: 0 !important;
+                        width: 100% !important;
+                        background: white !important;
+                        padding: 24px !important;
+                    }
+                    
+                    /* Page setup */
+                    @page {
+                        size: A4;
+                        margin: 0.5in;
+                    }
+                    
+                    /* Certificate header band */
+                    .certificate-header-band {
+                        background: linear-gradient(135deg, #2C4A44 0%, #4A6B66 100%) !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                        color: white !important;
+                        padding: 24px 32px !important;
+                        border-radius: 8px 8px 0 0 !important;
+                    }
+                    
+                    .certificate-header-band * {
+                        color: white !important;
+                    }
+                    
+                    /* Card styling for print */
+                    .print-card {
+                        background: white !important;
+                        border: 1px solid #e5e7eb !important;
+                        box-shadow: none !important;
+                        page-break-inside: avoid;
+                    }
+                    
+                    /* Ensure colors print */
+                    .print-color {
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+                    
+                    /* Page breaks */
+                    .print-break-before {
+                        page-break-before: always;
+                    }
+                    
+                    /* Hide collapsible sections */
+                    .print-hide {
+                        display: none !important;
                     }
                 }
             `}</style>
 
-            <div className="min-h-screen bg-gradient-to-b from-[var(--color-bg-main)] to-white pb-24 print:bg-white">
-                {/* Header Bar - Hidden on print */}
+            <div className="min-h-screen bg-gradient-to-b from-[var(--color-bg-main)] to-white pb-24 print:bg-white print:pb-0">
+                {/* Screen Header - Hidden on print */}
                 <header className="px-6 py-4 flex items-center justify-between max-w-4xl mx-auto no-print">
                     <div className="flex items-center">
                         <BackButton onClick={onBack} className="mr-3" />
@@ -331,60 +386,69 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
                     </Button>
                 </header>
 
-                <main className="px-6 max-w-4xl mx-auto printable-certificate">
-                    {/* Certificate Header - Visible on print */}
-                    <div className="hidden print:block print-header mb-8">
-                        <h1 className="text-3xl font-bold text-[var(--color-primary)] mb-2">MI Practice Coach</h1>
-                        <p className="text-lg text-[var(--color-text-secondary)]">Certificate of Achievement</p>
+                {/* Main Printable Content */}
+                <main className="px-6 max-w-4xl mx-auto printable-area">
+                    {/* Certificate Header Band - McKinsey Style */}
+                    <div className="certificate-header-band bg-gradient-to-r from-[var(--color-text-primary)] to-[var(--color-text-secondary)] text-white rounded-t-2xl p-6 mb-0 print-color">
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div className="text-center sm:text-left">
+                                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">MI Practice Coach</h1>
+                                <p className="text-sm sm:text-base opacity-90 mt-1">Certificate of Achievement</p>
+                            </div>
+                            <div className="text-center sm:text-right">
+                                <p className="text-sm opacity-80">Report Period</p>
+                                <p className="text-base font-semibold">{summary.dateRange}</p>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Hero Section with Seal and Stats */}
-                    <div className="mb-8">
-                        <Card variant="elevated" padding="lg" className="border-2 border-[var(--color-primary)] print:border-none print:shadow-none">
-                            <div className="flex flex-col lg:flex-row items-center gap-8">
-                                {/* Achievement Seal */}
-                                <AchievementSeal sessions={summary.totalSessions} dateRange={summary.dateRange} />
+                    <div className="bg-white rounded-b-2xl shadow-lg border border-t-0 border-[var(--color-neutral-200)] p-6 sm:p-8 mb-6 print-card">
+                        <div className="flex flex-col lg:flex-row items-center gap-8">
+                            {/* Certificate Seal */}
+                            <CertificateSeal sessions={summary.totalSessions} dateRange={summary.dateRange} />
 
-                                {/* Stats Grid */}
-                                <div className="flex-1 w-full">
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                        {/* Overall Score */}
-                                        <div className="col-span-2 sm:col-span-1 flex justify-center">
-                                            <RadialProgress
-                                                value={overallScore}
-                                                max={5}
-                                                size={100}
-                                                strokeWidth={8}
-                                                color={overallScore >= 4 ? '#10b981' : overallScore >= 3 ? '#f59e0b' : '#ef4444'}
-                                                label="Overall"
-                                            />
-                                        </div>
-
-                                        {/* Sessions Count */}
-                                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 text-center border border-blue-100">
-                                            <i className="fa-solid fa-clipboard-check text-2xl text-blue-600 mb-2" aria-hidden="true"></i>
-                                            <p className="text-2xl font-bold text-[var(--color-text-primary)]">{summary.totalSessions}</p>
-                                            <p className="text-xs text-[var(--color-text-muted)]">Sessions</p>
-                                        </div>
-
-                                        {/* Skills Practiced */}
-                                        <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 text-center border border-purple-100">
-                                            <i className="fa-solid fa-brain text-2xl text-purple-600 mb-2" aria-hidden="true"></i>
-                                            <p className="text-2xl font-bold text-[var(--color-text-primary)]">{practicedSkills.length}</p>
-                                            <p className="text-xs text-[var(--color-text-muted)]">Skills Used</p>
-                                        </div>
+                            {/* Stats Grid */}
+                            <div className="flex-1 w-full">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                    {/* Overall Score */}
+                                    <div className="col-span-2 sm:col-span-1 flex justify-center">
+                                        <RadialProgress
+                                            value={overallScore}
+                                            max={5}
+                                            size={100}
+                                            strokeWidth={8}
+                                            color={overallScore >= 4 ? '#10b981' : overallScore >= 3 ? '#f59e0b' : '#ef4444'}
+                                            label="Overall"
+                                        />
                                     </div>
+
+                                    {/* Sessions Count */}
+                                    <StatCard
+                                        icon="fa-solid fa-clipboard-check text-blue-600"
+                                        value={summary.totalSessions}
+                                        label="Sessions"
+                                        colorClass="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100 print-color"
+                                    />
+
+                                    {/* Skills Practiced */}
+                                    <StatCard
+                                        icon="fa-solid fa-brain text-purple-600"
+                                        value={practicedSkills.length}
+                                        label="Skills Used"
+                                        colorClass="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-100 print-color"
+                                    />
                                 </div>
                             </div>
-                        </Card>
+                        </div>
                     </div>
 
-                    {/* Skills Chart Section */}
+                    {/* Skills Performance Section */}
                     {summary.skillProgression && summary.skillProgression.length > 0 && (
-                        <div className="mb-8">
-                            <Card variant="elevated" padding="lg" className="print:shadow-none print:border print:border-gray-200">
+                        <div className="mb-6">
+                            <Card variant="elevated" padding="lg" className="print-card">
                                 <h2 className="text-lg font-bold text-[var(--color-text-primary)] mb-6 flex items-center gap-3">
-                                    <span className="inline-flex h-10 w-10 items-center justify-center bg-gradient-to-br from-[var(--color-primary-lighter)] to-[var(--color-primary-light)] text-[var(--color-primary-dark)] rounded-lg">
+                                    <span className="inline-flex h-10 w-10 items-center justify-center bg-gradient-to-br from-[var(--color-primary-lighter)] to-[var(--color-primary-light)] text-[var(--color-primary-dark)] rounded-lg print-color">
                                         <i className="fa-solid fa-chart-simple" aria-hidden="true"></i>
                                     </span>
                                     MI Skills Performance
@@ -409,7 +473,7 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
                                     </div>
                                 )}
 
-                                {/* Needs Focus */}
+                                {/* Areas for Growth */}
                                 {needsFocus.length > 0 && (
                                     <div className="mb-6">
                                         <h3 className="text-sm font-semibold text-amber-700 mb-3 flex items-center gap-2">
@@ -428,9 +492,9 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
                                     </div>
                                 )}
 
-                                {/* Not Yet Practiced (Collapsible) */}
+                                {/* Not Yet Practiced (Collapsible - hidden on print) */}
                                 {notPracticed.length > 0 && (
-                                    <div className="no-print">
+                                    <div className="no-print print-hide">
                                         <button
                                             onClick={() => setShowNotPracticed(!showNotPracticed)}
                                             className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
@@ -455,23 +519,23 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
                     )}
 
                     {/* Content Sections */}
-                    <div className="space-y-6 print-break">
-                        {/* Strengths */}
+                    <div className="space-y-6">
+                        {/* Strengths & Positive Trends */}
                         <SectionCard title="Strengths & Positive Trends" icon="fa-solid fa-trophy">
                             <MarkdownRenderer text={summary.strengthsAndTrends} />
                         </SectionCard>
 
-                        {/* Areas for Focus */}
+                        {/* Areas for Continued Focus */}
                         <SectionCard title="Areas for Continued Focus" icon="fa-solid fa-bullseye">
                             <MarkdownRenderer text={summary.areasForFocus} />
                         </SectionCard>
 
-                        {/* Next Steps & Focus Areas */}
+                        {/* Action Plan */}
                         {(summary.topSkillsToImprove?.length || summary.specificNextSteps?.length) ? (
                             <SectionCard title="Your Action Plan" icon="fa-solid fa-rocket" variant="accent">
                                 {/* Priority Skills */}
                                 {summary.topSkillsToImprove && summary.topSkillsToImprove.length > 0 && (
-                                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-500 p-4 mb-4 rounded-r-lg">
+                                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-500 p-4 mb-4 rounded-r-lg print-color">
                                         <div className="flex items-start gap-3">
                                             <i className="fa-solid fa-lightbulb text-amber-600 text-lg mt-0.5" aria-hidden="true"></i>
                                             <div>
@@ -499,7 +563,7 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
                                         <ol className="space-y-3">
                                             {summary.specificNextSteps.map((step, index) => (
                                                 <li key={index} className="flex items-start gap-3">
-                                                    <span className="flex-shrink-0 w-7 h-7 bg-[var(--color-primary)] text-white font-bold flex items-center justify-center text-sm rounded-full">
+                                                    <span className="flex-shrink-0 w-7 h-7 bg-[var(--color-primary)] text-white font-bold flex items-center justify-center text-sm rounded-full print-color">
                                                         {index + 1}
                                                     </span>
                                                     <span className="text-[var(--color-text-secondary)] leading-relaxed flex-1">{step}</span>
@@ -521,15 +585,17 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
                         )}
                     </div>
 
-                    {/* Certificate Footer - Print only */}
-                    <div className="hidden print:block mt-12 pt-8 border-t-2 border-[var(--color-primary)]">
-                        <div className="flex justify-between items-end">
+                    {/* Certificate Footer */}
+                    <div className="mt-8 pt-6 border-t-2 border-[var(--color-primary)]">
+                        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
                             <div>
-                                <p className="text-sm text-[var(--color-text-muted)]">Generated on</p>
-                                <p className="text-base font-semibold text-[var(--color-text-primary)]">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">Generated on</p>
+                                <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                                    {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                </p>
                             </div>
-                            <div className="text-right">
-                                <p className="text-sm text-[var(--color-text-muted)]">MI Practice Coach</p>
+                            <div className="sm:text-right">
+                                <p className="text-sm font-bold text-[var(--color-primary-dark)]">MI Practice Coach</p>
                                 <p className="text-xs text-[var(--color-text-muted)]">AI-Powered Training Platform</p>
                             </div>
                         </div>

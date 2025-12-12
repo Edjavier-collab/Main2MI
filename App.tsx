@@ -33,6 +33,7 @@ import { useBadges } from './hooks/useBadges';
 import { useAuthCallback } from './hooks/useAuthCallback';
 import { useStripeCallback } from './hooks/useStripeCallback';
 import { useAppRouter } from './hooks/useAppRouter';
+import { useOnlineSync } from './hooks/useOnlineSync';
 
 const AppContent: React.FC = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -68,17 +69,24 @@ const AppContent: React.FC = () => {
     setLoggingOut,
   } = appState;
 
-  // Use tier manager hook
-  const { userTier, setUserTier, refreshTier } = useTierManager();
+  // Use tier manager hook with server-side premium verification
+  const { userTier, setUserTier, refreshTier, isPremiumVerified } = useTierManager();
 
   // Use streak hook for gamification
-  const { currentStreak, updateStreak } = useStreak();
+  const { currentStreak, updateStreak, processQueue: processStreakQueue } = useStreak();
 
   // Use XP hook for gamification
-  const { addXP } = useXP();
+  const { addXP, processQueue: processXPQueue } = useXP();
 
   // Use badges hook for gamification
   const { checkAndUnlockBadges, newlyUnlockedBadges, markBadgeAsSeen } = useBadges();
+
+  // Use online sync hook to process queued operations when connectivity is restored
+  useOnlineSync({
+    processStreakQueue,
+    processXPQueue,
+    isAuthenticated: !!user,
+  });
 
   // Track which badge to show in toast (one at a time)
   const [badgeToastQueue, setBadgeToastQueue] = useState<string[]>([]);
@@ -382,6 +390,7 @@ const AppContent: React.FC = () => {
                     coachingSummaryError={coachingSummaryError}
                     isGeneratingSummary={isGeneratingSummary}
                     confirmationEmail={confirmationEmail}
+                    isPremiumVerified={isPremiumVerified}
                     onNavigate={handleNavigate}
                     onStartPractice={handleStartPractice}
                     onStartFilteredPractice={handleStartFilteredPractice}
@@ -411,6 +420,7 @@ const AppContent: React.FC = () => {
             coachingSummaryError={coachingSummaryError}
             isGeneratingSummary={isGeneratingSummary}
             confirmationEmail={confirmationEmail}
+            isPremiumVerified={isPremiumVerified}
             onNavigate={handleNavigate}
             onStartPractice={handleStartPractice}
             onStartFilteredPractice={handleStartFilteredPractice}

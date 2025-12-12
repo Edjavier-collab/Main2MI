@@ -41,6 +41,7 @@ interface ViewRendererProps {
   coachingSummaryError: string | null;
   isGeneratingSummary: boolean;
   confirmationEmail: string;
+  isPremiumVerified: boolean; // Server-verified premium status
   onNavigate: (view: View) => void;
   onStartPractice: () => void;
   onStartFilteredPractice: (filters: PatientProfileFilters) => void;
@@ -65,6 +66,7 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
   coachingSummaryError,
   isGeneratingSummary,
   confirmationEmail,
+  isPremiumVerified,
   onNavigate,
   onStartPractice,
   onStartFilteredPractice,
@@ -211,6 +213,7 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
           <ReportsView
             sessions={sessions}
             userTier={userTier}
+            isPremiumVerified={isPremiumVerified}
             onBack={() => onNavigate(View.Dashboard)}
             onUpgrade={() => onNavigate(View.Paywall)}
             onNavigate={onNavigate}
