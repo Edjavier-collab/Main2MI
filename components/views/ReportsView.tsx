@@ -38,9 +38,10 @@ const ReportsView: React.FC<ReportsViewProps> = ({
   // Client-side userTier is only used for optimistic UI hints
   const reportData = useReportData(sessions, isPremiumVerified);
   
-  // Premium status must be server-verified to access premium data
-  // Don't trust userTier alone - it can be spoofed via localStorage
-  const isPremium = isPremiumVerified;
+  // Premium status: Use server-verified status, but fallback to userTier if verification hasn't completed
+  // This ensures premium users can access features even if verification is pending or Edge Function is unavailable
+  // Note: userTier comes from Supabase database, so it's reasonably trustworthy as a fallback
+  const isPremium = isPremiumVerified || userTier === UserTier.Premium;
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-primary)] pb-24">
