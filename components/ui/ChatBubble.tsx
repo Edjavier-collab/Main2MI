@@ -11,7 +11,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isTyping = false }) =>
     const isUser = message.author === 'user';
 
     const bubbleClasses = isUser
-        ? 'bg-primary text-white self-end rounded-l-xl rounded-t-xl'
+        ? 'text-white self-end rounded-l-xl rounded-t-xl'
         : 'bg-neutral-200 text-neutral-800 self-start rounded-r-xl rounded-t-xl';
 
     const typingIndicator = (
@@ -24,7 +24,10 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isTyping = false }) =>
 
     return (
         <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-slide-fade-in`}>
-            <div className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-3 shadow-sm ${bubbleClasses}`}>
+            <div 
+                className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-3 shadow-sm ${bubbleClasses}`}
+                style={isUser ? { backgroundColor: '#7FD4C1' } : undefined}
+            >
                 {isTyping ? typingIndicator : <p className="whitespace-pre-wrap">{message.text}</p>}
             </div>
         </div>
