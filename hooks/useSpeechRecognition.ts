@@ -3,6 +3,22 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 // Fix: Cast window to any to access non-standard SpeechRecognition APIs and rename the variable to avoid type name collision.
 const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
+/**
+ * Detect if the current device is a mobile device
+ * Mobile devices have unreliable continuous mode, so we use single utterance mode instead
+ */
+const isMobileDevice = (): boolean => {
+    // Check user agent for mobile devices
+    const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+    const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
+    
+    // Also check for touch capability and screen size
+    const hasTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const isSmallScreen = window.innerWidth <= 768;
+    
+    return mobileRegex.test(userAgent.toLowerCase()) || (hasTouchScreen && isSmallScreen);
+};
+
 // Define event types for better type safety, as they are not standard on the SpeechRecognition object type.
 interface SpeechRecognitionEvent extends Event {
     results: SpeechRecognitionResultList;
@@ -37,6 +53,8 @@ export const useSpeechRecognition = () => {
     const lastProcessedIndexRef = useRef<number>(-1); // Track last processed result index to prevent duplicates
     const sessionIdRef = useRef<number>(0); // Track recognition sessions to reset index tracking
     const processedFinalTextsRef = useRef<Set<string>>(new Set()); // Track processed final texts to prevent duplicates
+    const isMobileRef = useRef(isMobileDevice()); // Cache mobile detection result
+    const isContinuousModeRef = useRef(!isMobileRef.current); // Use continuous mode only on desktop
 
 
     useEffect(() => {
@@ -65,9 +83,13 @@ export const useSpeechRecognition = () => {
         }
 
         const recognition: SpeechRecognition = new SpeechRecognitionAPI();
-        recognition.continuous = true;
+        // On mobile, use single utterance mode (continuous = false) to prevent duplicates
+        // Mobile devices have unreliable continuous mode that causes re-transcription
+        recognition.continuous = isContinuousModeRef.current;
         recognition.interimResults = true;
         recognition.lang = 'en-US';
+        
+        console.log('[useSpeechRecognition] Initialized with continuous mode:', isContinuousModeRef.current, '(mobile:', isMobileRef.current, ')');
 
         recognition.onresult = (event: SpeechRecognitionEvent) => {
             // If stop was triggered, ignore any lingering results to prevent race conditions
@@ -75,15 +97,26 @@ export const useSpeechRecognition = () => {
                 return;
             }
 
-            // On mobile, continuous mode can restart and reset resultIndex to 0
-            // Check if this is a new session by comparing resultIndex to our last processed index
-            // If resultIndex is less than lastProcessedIndex, it's a restart - reset tracking
-            if (event.resultIndex < lastProcessedIndexRef.current) {
-                console.log('[useSpeechRecognition] Recognition restarted, resetting index tracking');
-                lastProcessedIndexRef.current = -1;
-                sessionIdRef.current += 1;
-                // Clear processed texts tracking on restart to allow same text in new session
-                processedFinalTextsRef.current.clear();
+            // On mobile (single utterance mode), each recognition session is independent
+            // On desktop (continuous mode), we need to track restarts
+            if (isContinuousModeRef.current) {
+                // On desktop continuous mode, check if recognition restarted
+                if (event.resultIndex < lastProcessedIndexRef.current) {
+                    console.log('[useSpeechRecognition] Recognition restarted, resetting index tracking');
+                    lastProcessedIndexRef.current = -1;
+                    sessionIdRef.current += 1;
+                    // Clear processed texts tracking on restart to allow same text in new session
+                    processedFinalTextsRef.current.clear();
+                }
+            } else {
+                // On mobile single utterance mode, each result event is a fresh start
+                // Reset tracking for each new utterance to prevent cross-utterance duplicates
+                if (event.resultIndex === 0) {
+                    console.log('[useSpeechRecognition] New utterance on mobile, resetting tracking');
+                    lastProcessedIndexRef.current = -1;
+                    sessionIdRef.current += 1;
+                    // Don't clear processed texts - we want to prevent duplicates within the same session
+                }
             }
 
             // Build interim transcript from ONLY the latest interim results in this event
@@ -106,7 +139,13 @@ export const useSpeechRecognition = () => {
                         // Use a normalized key (lowercase, trimmed) to catch duplicates
                         const normalizedText = final_text.toLowerCase();
                         
-                        if (!processedFinalTextsRef.current.has(normalizedText)) {
+                        // Also check if this text already exists at the end of the current transcript
+                        // This catches cases where mobile re-transcribes the same audio
+                        const currentTranscriptLower = finalTranscriptRef.current.toLowerCase();
+                        const textAlreadyAtEnd = currentTranscriptLower.endsWith(normalizedText) || 
+                                                 currentTranscriptLower.endsWith(' ' + normalizedText);
+                        
+                        if (!processedFinalTextsRef.current.has(normalizedText) && !textAlreadyAtEnd) {
                             // Mark as processed BEFORE adding to prevent race conditions
                             processedFinalTextsRef.current.add(normalizedText);
                             
@@ -118,7 +157,10 @@ export const useSpeechRecognition = () => {
                             // Clear interim when we get final results (they're now part of final)
                             newInterimTranscript = '';
                         } else {
-                            console.log('[useSpeechRecognition] Skipping duplicate final result:', final_text);
+                            console.log('[useSpeechRecognition] Skipping duplicate final result:', final_text, {
+                                inSet: processedFinalTextsRef.current.has(normalizedText),
+                                atEnd: textAlreadyAtEnd
+                            });
                         }
                     }
                 } else {
@@ -155,8 +197,13 @@ export const useSpeechRecognition = () => {
             setFinalTranscript(finalTranscriptRef.current);
             // Reset index tracking for next session
             lastProcessedIndexRef.current = -1;
-            // Clear processed texts tracking for next session
-            processedFinalTextsRef.current.clear();
+            
+            // On mobile (single utterance mode), clear processed texts on end
+            // This allows the same text in a new utterance session
+            // On desktop (continuous mode), keep tracking to prevent duplicates within the same session
+            if (!isContinuousModeRef.current) {
+                processedFinalTextsRef.current.clear();
+            }
         };
 
         recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
@@ -219,11 +266,18 @@ export const useSpeechRecognition = () => {
         try {
             stopTriggeredRef.current = false; // Ensure we are ready for new results
             setError(null); // Clear any previous errors
+            
             // Reset tracking for new session
             lastProcessedIndexRef.current = -1;
             sessionIdRef.current += 1;
-            // Clear processed texts tracking for new session
-            processedFinalTextsRef.current.clear();
+            
+            // On mobile (single utterance mode), clear processed texts for new utterance
+            // This allows building up text across multiple taps, but prevents duplicates within each utterance
+            // On desktop (continuous mode), keep tracking to prevent duplicates within the same session
+            if (!isContinuousModeRef.current) {
+                processedFinalTextsRef.current.clear();
+            }
+            
             // Clear interim when starting new session
             setInterimTranscript('');
             recognitionRef.current.start();
