@@ -46,6 +46,7 @@ export const useSpeechRecognition = () => {
     const [finalTranscript, setFinalTranscript] = useState(''); // Only FINAL confirmed text
     const [interimTranscript, setInterimTranscript] = useState(''); // Live preview of interim results
     const [error, setError] = useState<string | null>(null);
+    const [isWaitingToRestart, setIsWaitingToRestart] = useState(false); // Mobile auto-restart delay indicator
     // Fix: The type SpeechRecognition is now correctly resolved via the interface definition above.
     const recognitionRef = useRef<SpeechRecognition | null>(null);
     const finalTranscriptRef = useRef(''); // Ref to hold only the FINAL transcript text
@@ -55,6 +56,8 @@ export const useSpeechRecognition = () => {
     const processedFinalTextsRef = useRef<Set<string>>(new Set()); // Track processed final texts to prevent duplicates
     const isMobileRef = useRef(isMobileDevice()); // Cache mobile detection result
     const isContinuousModeRef = useRef(!isMobileRef.current); // Use continuous mode only on desktop
+    const autoRestartTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Track auto-restart timeout
+    const userExplicitlyStoppedRef = useRef(false); // Track if user explicitly stopped (don't auto-restart)
 
 
     useEffect(() => {
@@ -198,18 +201,59 @@ export const useSpeechRecognition = () => {
             // Reset index tracking for next session
             lastProcessedIndexRef.current = -1;
             
-            // On mobile (single utterance mode), clear processed texts on end
-            // This allows the same text in a new utterance session
-            // On desktop (continuous mode), keep tracking to prevent duplicates within the same session
-            if (!isContinuousModeRef.current) {
+            // On mobile (single utterance mode), auto-restart after a delay unless user explicitly stopped
+            if (!isContinuousModeRef.current && !userExplicitlyStoppedRef.current) {
+                // Clear any existing timeout
+                if (autoRestartTimeoutRef.current) {
+                    clearTimeout(autoRestartTimeoutRef.current);
+                }
+                
+                // Show "listening..." indicator during delay
+                setIsWaitingToRestart(true);
+                
+                // Auto-restart after 600ms delay (between 500-800ms as requested)
+                autoRestartTimeoutRef.current = setTimeout(() => {
+                    // Check again if user hasn't explicitly stopped
+                    if (!userExplicitlyStoppedRef.current && recognitionRef.current) {
+                        console.log('[useSpeechRecognition] Auto-restarting recognition on mobile after pause');
+                        try {
+                            recognitionRef.current.start();
+                            setIsListening(true);
+                            setIsWaitingToRestart(false);
+                        } catch (err) {
+                            // If start fails (e.g., already started), just clear the waiting state
+                            console.log('[useSpeechRecognition] Auto-restart failed (may already be running):', err);
+                            setIsWaitingToRestart(false);
+                        }
+                    } else {
+                        setIsWaitingToRestart(false);
+                    }
+                    autoRestartTimeoutRef.current = null;
+                }, 600);
+                
+                // Clear processed texts on end to allow same text in new utterance
                 processedFinalTextsRef.current.clear();
+            } else {
+                // Desktop (continuous mode) or user explicitly stopped - don't auto-restart
+                if (!isContinuousModeRef.current) {
+                    processedFinalTextsRef.current.clear();
+                }
+                setIsWaitingToRestart(false);
             }
         };
 
         recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+            // Clear any pending auto-restart timeout on error
+            if (autoRestartTimeoutRef.current) {
+                clearTimeout(autoRestartTimeoutRef.current);
+                autoRestartTimeoutRef.current = null;
+            }
+            
             console.error('Speech recognition error', event.error);
             setIsListening(false);
+            setIsWaitingToRestart(false);
             stopTriggeredRef.current = false; // Reset on error too
+            userExplicitlyStoppedRef.current = false; // Reset on error
             // Clear interim on error
             setInterimTranscript('');
             // Reset index tracking
@@ -247,6 +291,12 @@ export const useSpeechRecognition = () => {
         recognitionRef.current = recognition;
 
         return () => {
+            // Clear any pending auto-restart timeout
+            if (autoRestartTimeoutRef.current) {
+                clearTimeout(autoRestartTimeoutRef.current);
+                autoRestartTimeoutRef.current = null;
+            }
+            // Stop recognition if running
             if (recognitionRef.current) {
                 recognitionRef.current.stop();
             }
@@ -264,8 +314,16 @@ export const useSpeechRecognition = () => {
         }
 
         try {
+            // Clear any pending auto-restart timeout
+            if (autoRestartTimeoutRef.current) {
+                clearTimeout(autoRestartTimeoutRef.current);
+                autoRestartTimeoutRef.current = null;
+            }
+            
             stopTriggeredRef.current = false; // Ensure we are ready for new results
+            userExplicitlyStoppedRef.current = false; // Reset explicit stop flag
             setError(null); // Clear any previous errors
+            setIsWaitingToRestart(false); // Clear waiting state
             
             // Reset tracking for new session
             lastProcessedIndexRef.current = -1;
@@ -286,10 +344,21 @@ export const useSpeechRecognition = () => {
             console.error('Failed to start speech recognition:', err);
             setError('Failed to start microphone. Please check your browser permissions.');
             setIsListening(false);
+            setIsWaitingToRestart(false);
         }
     };
 
     const stopListening = () => {
+        // Clear any pending auto-restart timeout
+        if (autoRestartTimeoutRef.current) {
+            clearTimeout(autoRestartTimeoutRef.current);
+            autoRestartTimeoutRef.current = null;
+        }
+        
+        // Mark that user explicitly stopped (don't auto-restart)
+        userExplicitlyStoppedRef.current = true;
+        setIsWaitingToRestart(false);
+        
         if (recognitionRef.current && isListening) {
             stopTriggeredRef.current = true; // Signal to ignore subsequent results
             recognitionRef.current.stop();
@@ -305,6 +374,14 @@ export const useSpeechRecognition = () => {
 
     // This function allows components to reset the transcript and ensures the ref is also cleared.
     const customSetTranscript = useCallback((text: string) => {
+        // Clear any pending auto-restart timeout when transcript is manually set (e.g., message sent)
+        if (autoRestartTimeoutRef.current) {
+            clearTimeout(autoRestartTimeoutRef.current);
+            autoRestartTimeoutRef.current = null;
+        }
+        userExplicitlyStoppedRef.current = true; // Don't auto-restart after sending
+        setIsWaitingToRestart(false);
+        
         finalTranscriptRef.current = text;
         setFinalTranscript(text);
         setInterimTranscript('');
@@ -329,6 +406,7 @@ export const useSpeechRecognition = () => {
         transcript, // Combined (backward compatibility)
         finalTranscript, // Only final confirmed text
         interimTranscript, // Live preview (temporary)
+        isWaitingToRestart, // Mobile auto-restart delay indicator
         startListening, 
         stopListening, 
         hasSupport, 
