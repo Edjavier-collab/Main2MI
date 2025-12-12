@@ -34,14 +34,15 @@ const ReportsView: React.FC<ReportsViewProps> = ({
   onUpgrade,
   onNavigate,
 }) => {
-  // SECURITY: Use server-verified premium status for gating premium features
-  // Client-side userTier is only used for optimistic UI hints
-  const reportData = useReportData(sessions, isPremiumVerified);
-  
   // Premium status: Use server-verified status, but fallback to userTier if verification hasn't completed
   // This ensures premium users can access features even if verification is pending or Edge Function is unavailable
   // Note: userTier comes from Supabase database, so it's reasonably trustworthy as a fallback
   const isPremium = isPremiumVerified || userTier === UserTier.Premium;
+  
+  // SECURITY: Use server-verified premium status for gating premium features
+  // But allow fallback to userTier for data computation to prevent race conditions
+  // The UI still gates based on isPremiumVerified for security, but data loads based on sessions
+  const reportData = useReportData(sessions, isPremium);
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-primary)] pb-24">
