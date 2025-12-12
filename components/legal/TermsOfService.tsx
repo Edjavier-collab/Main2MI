@@ -44,10 +44,58 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
                     </section>
 
                     <section>
+                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">3.5. Educational Purpose Only</h2>
+                        <p className="mb-3">
+                            MI Practice Coach is an educational and practice tool designed to help healthcare professionals improve their Motivational Interviewing skills. The Service is:
+                        </p>
+                        <ul className="list-disc list-inside space-y-2 ml-4">
+                            <li><strong>NOT a substitute</strong> for professional MI training, certification, or clinical supervision.</li>
+                            <li><strong>NOT a clinical tool</strong> and must not be used for actual patient care or clinical decision-making.</li>
+                            <li><strong>NOT accredited</strong> for continuing education credits or professional certification.</li>
+                        </ul>
+                        <p className="mt-3">
+                            Users are strongly encouraged to seek supervision from qualified MI trainers and to complete formal MI training programs for professional development.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">3.6. Not Medical or Clinical Advice</h2>
+                        <p className="mb-3">
+                            MI Practice Coach does not provide medical, clinical, or therapeutic advice. The Service:
+                        </p>
+                        <ul className="list-disc list-inside space-y-2 ml-4">
+                            <li>Is for educational and practice purposes only.</li>
+                            <li>Does not diagnose, treat, or provide recommendations for actual patients.</li>
+                            <li>Should not be used as a substitute for professional clinical judgment or supervision.</li>
+                            <li>Does not establish a patient-provider relationship.</li>
+                        </ul>
+                        <p className="mt-3">
+                            If you are a healthcare provider, you are solely responsible for ensuring compliance with all applicable professional standards, regulations, and laws in your jurisdiction.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">3.7. AI Feedback Limitations</h2>
+                        <p className="mb-3">
+                            The AI-generated feedback and patient responses are provided for practice purposes only and may contain errors, inaccuracies, or limitations. The AI:
+                        </p>
+                        <ul className="list-disc list-inside space-y-2 ml-4">
+                            <li>Is not a substitute for feedback from qualified MI trainers or supervisors.</li>
+                            <li>May not accurately reflect real-world patient interactions.</li>
+                            <li>Should be used as a learning tool, not as definitive guidance.</li>
+                            <li>May produce responses that require professional judgment to evaluate.</li>
+                        </ul>
+                        <p className="mt-3">
+                            We make no warranties regarding the accuracy, completeness, or usefulness of AI-generated content.
+                        </p>
+                    </section>
+
+                    <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">4. Acceptable Use</h2>
                         <p className="mb-3">You agree not to use the Service for:</p>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                             <li>Entering real or sensitive medical, mental health, or personal health information ("PHI"). The Service is for training only and does not provide medical care.</li>
+                            <li><strong>IMPORTANT - HIPAA Non-Compliance:</strong> This Service is NOT designed for Protected Health Information (PHI) and is NOT HIPAA-compliant. By using this Service, you acknowledge that you will NOT enter any real patient data, PHI, or identifiable health information. Any such data entered is at your own risk and violates these Terms.</li>
                             <li>Any illegal or unauthorized purpose.</li>
                             <li>Harassment, abuse, or threats toward others.</li>
                             <li>Spam, malware, or unauthorized access attempts.</li>
@@ -72,6 +120,46 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
                             <li>Training our AI models (anonymized).</li>
                             <li>Analytics and research (with anonymization).</li>
                         </ul>
+                    </section>
+
+                    <section>
+                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">6.5. Subscriptions and Billing</h2>
+                        <p className="mb-3">
+                            MI Practice Coach offers both free and premium subscription tiers:
+                        </p>
+                        <ul className="list-disc list-inside space-y-2 ml-4">
+                            <li><strong>Free Tier:</strong> Limited to 3 practice sessions per month. Access to basic features and feedback.</li>
+                            <li><strong>Premium Tier:</strong> Unlimited practice sessions, advanced AI feedback, detailed analytics, and coaching summaries. Available as monthly ($9.99/month) or annual ($99.99/year) subscriptions.</li>
+                        </ul>
+                        <p className="mt-3 mb-3">
+                            <strong>Billing:</strong> Premium subscriptions are billed automatically on a recurring basis (monthly or annually) until cancelled. All billing is processed securely through Stripe, our third-party payment processor. You will be charged at the beginning of each billing cycle.
+                        </p>
+                        <p className="mb-3">
+                            <strong>Price Changes:</strong> We reserve the right to modify subscription prices. Existing subscribers will be notified at least 30 days in advance of any price increase.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">6.6. Cancellation</h2>
+                        <p className="mb-3">
+                            You may cancel your premium subscription at any time through your account settings (Settings → Manage Subscription) or by contacting support. Upon cancellation:
+                        </p>
+                        <ul className="list-disc list-inside space-y-2 ml-4">
+                            <li>Your subscription will remain active until the end of your current billing period.</li>
+                            <li>You will retain access to premium features until the period ends.</li>
+                            <li>No further charges will be made after the current period ends.</li>
+                            <li>Your account will automatically revert to the free tier after cancellation.</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">6.7. Refund Policy</h2>
+                        <p className="mb-3">
+                            We do not offer refunds for subscription fees already paid, except as required by law or at our sole discretion. If you cancel mid-cycle, you will retain access until the end of your paid period. No partial refunds will be provided for unused time remaining in your billing period.
+                        </p>
+                        <p>
+                            If you believe you are entitled to a refund due to an error or exceptional circumstances, please contact us at <strong>support@mipracticecoach.com</strong> with details of your request.
+                        </p>
                     </section>
 
                     <section>
@@ -115,14 +203,14 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">12. Governing Law</h2>
+                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">14. Governing Law</h2>
                         <p>
                             These Terms are governed by and construed in accordance with the laws of the jurisdiction where the Company is registered, without regard to its conflict of law provisions. You agree to submit to the exclusive jurisdiction of the courts in that jurisdiction.
                         </p>
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">13. Contact</h2>
+                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">15. Contact</h2>
                         <p>
                             For questions or concerns about these Terms, please contact us at: <strong>support@mipracticecoach.com</strong>
                         </p>

@@ -25,12 +25,28 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
                     </section>
 
                     <section>
+                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">1.5. Healthcare Disclaimer</h2>
+                        <p className="mb-3">
+                            <strong>IMPORTANT:</strong> MI Practice Coach is an educational and practice tool, NOT a medical or clinical service. The Service:
+                        </p>
+                        <ul className="list-disc list-inside space-y-2 ml-4">
+                            <li>Does not provide medical, clinical, or therapeutic advice.</li>
+                            <li>Is NOT HIPAA-compliant and is NOT designed for Protected Health Information (PHI).</li>
+                            <li>Must NOT be used with real patient data or identifiable health information.</li>
+                            <li>Uses AI-generated feedback that may contain errors and is for practice purposes only.</li>
+                        </ul>
+                        <p className="mt-3">
+                            By using this Service, you acknowledge that you will NOT enter any real patient data, PHI, or identifiable health information. Any such data entered is at your own risk and violates our Terms of Service.
+                        </p>
+                    </section>
+
+                    <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">2. Information We Collect</h2>
                         <p className="mb-3">We collect information in the following ways:</p>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                             <li><strong>Account Information:</strong> Email, password, age confirmation.</li>
                             <li><strong>Profile Data:</strong> Subscription tier, tier acceptance timestamps, created and updated dates.</li>
-                            <li><strong>Session Data:</strong> Practice sessions, feedback, transcripts, and timestamps. This is training data only and not medical records.</li>
+                            <li><strong>Session Data:</strong> Practice sessions, feedback, transcripts, and timestamps. This is training data only and not medical records. <strong>You must NOT enter real patient data or Protected Health Information (PHI).</strong></li>
                             <li><strong>Billing Information:</strong> Name, address, billing email, processed by Stripe (our payment processor).</li>
                             <li><strong>Usage Data:</strong> App interactions, features accessed, timestamps.</li>
                             <li><strong>Device & Technical Data:</strong> IP address, browser type, device type, operating system.</li>
@@ -55,7 +71,7 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
                         <ul className="list-disc list-inside space-y-2 ml-4">
                             <li><strong>Stripe:</strong> Payment processor; they handle billing and subscription management.</li>
                             <li><strong>Supabase:</strong> Backend provider; manages authentication and data storage.</li>
-                            <li><strong>Google Gemini AI:</strong> Processes practice session text to generate AI patient responses and feedback (no personal identifiers sent).</li>
+                            <li><strong>Google Gemini AI:</strong> Processes practice session text to generate AI patient responses and feedback (no personal identifiers sent). <strong>Note:</strong> AI-generated feedback is for practice purposes only and may contain errors or inaccuracies. It is not a substitute for feedback from qualified MI trainers or supervisors.</li>
                             <li><strong>Legal Requirement:</strong> We may disclose data if required by law or to protect rights/safety.</li>
                         </ul>
                     </section>
