@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserTier, View } from '../../types';
 import { User } from '@supabase/supabase-js';
-import { restoreSubscription, getUserSubscription } from '../../services/stripeService';
+import { restoreSubscription, getUserSubscription, createBillingPortalSession } from '../../services/stripeService';
 import { submitFeedback } from '../../services/feedbackService';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
@@ -69,8 +69,11 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
     const [subscriptionPlan, setSubscriptionPlan] = useState<'monthly' | 'annual' | 'unknown' | null>(null);
     const [subscriptionLoading, setSubscriptionLoading] = useState(false);
     const [subscriptionCancelled, setSubscriptionCancelled] = useState(false);
+    const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
+    const [currentPeriodEnd, setCurrentPeriodEnd] = useState<string | null>(null);
     const [hasPremiumMismatch, setHasPremiumMismatch] = useState(false);
     const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+    const [billingPortalLoading, setBillingPortalLoading] = useState(false);
     const { toasts, showToast, removeToast, ToastContainer } = useToast();
 
     const handleFeedbackSubmit = async (rating: number, comment: string) => {
@@ -115,20 +118,22 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                 if (subscription) {
                     // Check if subscription is cancelled AND period hasn't ended
                     const isCancelled = subscription.cancelAtPeriodEnd === true;
-                    const currentPeriodEnd = subscription.currentPeriodEnd;
-                    const periodHasEnded = currentPeriodEnd ? new Date(currentPeriodEnd) <= new Date() : false;
+                    const periodEndDate = subscription.currentPeriodEnd;
+                    const periodHasEnded = periodEndDate ? new Date(periodEndDate) <= new Date() : false;
                     
                     // Only mark as cancelled if subscription exists, is cancelled, and period hasn't ended
                     const cancelled = isCancelled && !periodHasEnded;
                     
                     console.log('[SettingsView] Cancellation check:', {
                         cancelAtPeriodEnd: isCancelled,
-                        currentPeriodEnd,
+                        currentPeriodEnd: periodEndDate,
                         periodHasEnded,
                         cancelled
                     });
                     
                     setSubscriptionCancelled(cancelled);
+                    setCancelAtPeriodEnd(isCancelled);
+                    setCurrentPeriodEnd(periodEndDate || null);
                     setHasPremiumMismatch(false);
                     
                     // Extract plan type from subscription
@@ -195,6 +200,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                     console.log('[SettingsView] No subscription found');
                     setHasPremiumMismatch(false);
                     setSubscriptionCancelled(false);
+                    setCancelAtPeriodEnd(false);
+                    setCurrentPeriodEnd(null);
                     setSubscriptionPlan(null);
                 }
             } catch (err) {
@@ -202,6 +209,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                 // On error, don't set plan (will show just "Premium Member")
                 setSubscriptionPlan(null);
                 setSubscriptionCancelled(false);
+                setCancelAtPeriodEnd(false);
+                setCurrentPeriodEnd(null);
                 setHasPremiumMismatch(false);
                 // Show error toast for subscription fetch failures (except network errors which are expected offline)
                 const errorMessage = err instanceof Error ? err.message : 'Unknown error';
@@ -267,6 +276,23 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
         }
     };
 
+    const handleManageBilling = async () => {
+        if (!user || billingPortalLoading) return;
+        
+        setBillingPortalLoading(true);
+        try {
+            const returnUrl = `${window.location.origin}/settings`;
+            const portalUrl = await createBillingPortalSession(user.id, returnUrl);
+            // Redirect to Stripe Customer Portal
+            window.location.href = portalUrl;
+        } catch (err) {
+            console.error('[SettingsView] Error creating billing portal session:', err);
+            const message = err instanceof Error ? err.message : 'Unable to open billing portal. Please try again.';
+            showToast(message, 'error');
+            setBillingPortalLoading(false);
+        }
+    };
+
     const isPremium = userTier === UserTier.Premium;
     const isAnonymous = !user;
 
@@ -306,11 +332,13 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                                             isPremium ? 'bg-[var(--color-warning-light)] text-[var(--color-warning-dark)] border border-[var(--color-warning)]' : 'bg-[var(--color-neutral-100)] text-[var(--color-neutral-600)] border border-[var(--color-neutral-200)]'
                                         }`}>
                                             {isPremium
-                                                ? subscriptionPlan === 'monthly'
-                                                    ? 'Premium Monthly'
-                                                    : subscriptionPlan === 'annual'
-                                                        ? 'Premium Annual'
-                                                        : 'Premium'
+                                                ? cancelAtPeriodEnd && currentPeriodEnd
+                                                    ? `Premium - cancels ${new Date(currentPeriodEnd).toLocaleDateString()}`
+                                                    : subscriptionPlan === 'monthly'
+                                                        ? 'Premium Monthly'
+                                                        : subscriptionPlan === 'annual'
+                                                            ? 'Premium Annual'
+                                                            : 'Premium'
                                                 : 'Free Plan'
                                             }
                                         </span>
@@ -368,7 +396,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                                             </p>
                                         ) : (
                                             <p className="text-sm font-semibold text-[var(--color-text-primary)] mt-1">
-                                                Premium{subscriptionPlan === 'monthly' ? ' (Monthly)' : subscriptionPlan === 'annual' ? ' (Annual)' : ''}
+                                                {cancelAtPeriodEnd && currentPeriodEnd
+                                                    ? `Premium - cancels on ${new Date(currentPeriodEnd).toLocaleDateString()}`
+                                                    : `Premium${subscriptionPlan === 'monthly' ? ' (Monthly)' : subscriptionPlan === 'annual' ? ' (Annual)' : ''}`
+                                                }
                                             </p>
                                         )}
                                     </div>
@@ -384,6 +415,19 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                                 <span className="text-[var(--color-primary)]">Manage Subscription</span>
                                 <i className="fa fa-chevron-right text-[var(--color-text-muted)]" aria-hidden="true"></i>
                             </SettingsRow>
+                            {user && (
+                                <SettingsRow onClick={handleManageBilling}>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[var(--color-primary)]">Manage Billing</span>
+                                        {billingPortalLoading && (
+                                            <i className="fa fa-spinner fa-spin text-[var(--color-text-muted)]" aria-hidden="true"></i>
+                                        )}
+                                    </div>
+                                    {!billingPortalLoading && (
+                                        <i className="fa fa-chevron-right text-[var(--color-text-muted)]" aria-hidden="true"></i>
+                                    )}
+                                </SettingsRow>
+                            )}
                             {/* Only show Restore Purchase if subscription exists, is cancelled, and period hasn't ended */}
                             {subscriptionCancelled && (
                                 <SettingsRow onClick={handleRestorePurchase} isLast>

@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { corsHeaders, handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
-import { getStripe } from '../_shared/stripe.ts';
+import { getStripe, getSubscriptionTierStatus } from '../_shared/stripe.ts';
 import { getUserEmail, updateUserTier } from '../_shared/supabase.ts';
 
 serve(async (req: Request) => {
@@ -91,10 +91,13 @@ serve(async (req: Request) => {
         cancel_at_period_end: true,
       });
 
-      // Update user tier to free in Supabase
+      // Update user tier based on subscription status
+      // When cancel_at_period_end is true, status is still 'active' until period ends
+      // So user should remain premium until the billing period ends
       try {
-        await updateUserTier(userId, 'free');
-        console.log('[cancel-subscription] Updated user tier to free');
+        const targetTier = getSubscriptionTierStatus(cancelledSubscription);
+        await updateUserTier(userId, targetTier);
+        console.log('[cancel-subscription] Updated user tier to:', targetTier, '(subscription status:', cancelledSubscription.status, ')');
       } catch (tierError) {
         console.error('[cancel-subscription] Failed to update tier:', tierError);
         // Don't fail the request - webhook will handle it
@@ -107,6 +110,7 @@ serve(async (req: Request) => {
         subscriptionId: cancelledSubscription.id,
         cancelAtPeriodEnd: cancelledSubscription.cancel_at_period_end,
         currentPeriodEnd: new Date(cancelledSubscription.current_period_end * 1000).toISOString(),
+        status: cancelledSubscription.status,
         message: 'Subscription will be cancelled at the end of the billing period',
       });
     }

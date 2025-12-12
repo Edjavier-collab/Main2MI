@@ -1,0 +1,59 @@
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { corsHeaders, handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
+import { getStripe } from '../_shared/stripe.ts';
+import { getUserEmail } from '../_shared/supabase.ts';
+
+serve(async (req: Request) => {
+  // Handle CORS preflight
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
+
+  try {
+    // Only allow POST
+    if (req.method !== 'POST') {
+      return errorResponse('Method not allowed', 405);
+    }
+
+    const { userId, returnUrl } = await req.json();
+
+    if (!userId) {
+      return errorResponse('Missing userId', 400);
+    }
+
+    console.log('[create-billing-portal-session] Creating billing portal session for user:', userId);
+
+    const stripe = getStripe();
+
+    // Get user email and find customer
+    const userEmail = await getUserEmail(userId);
+    const customers = await stripe.customers.list({
+      email: userEmail,
+      limit: 1,
+    });
+
+    if (customers.data.length === 0) {
+      return errorResponse('No Stripe customer found', 404);
+    }
+
+    const customer = customers.data[0];
+
+    // Create billing portal session
+    // The return_url should be the app URL where users will be redirected after managing billing
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: customer.id,
+      return_url: returnUrl || `${Deno.env.get('SITE_URL') || 'http://localhost:3000'}/settings`,
+    });
+
+    console.log('[create-billing-portal-session] Created portal session:', portalSession.id);
+
+    return jsonResponse({
+      url: portalSession.url,
+    });
+  } catch (error) {
+    console.error('[create-billing-portal-session] Error:', error);
+    return errorResponse(
+      error instanceof Error ? error.message : 'Failed to create billing portal session',
+      500
+    );
+  }
+});
