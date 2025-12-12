@@ -2,6 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
 import { XP_LEVELS } from '../constants';
+import {
+  queueOperation,
+  processSyncQueue,
+  XPSyncData,
+  QueuedOperation,
+} from '../utils/syncQueue';
 
 interface LevelInfo {
   level: number;
@@ -18,6 +24,7 @@ interface UseXPReturn {
   xpProgress: number; // 0-100 percentage within current level
   addXP: (amount: number, reason: string) => Promise<void>;
   isLoading: boolean;
+  processQueue: () => Promise<void>; // Process queued operations (for online sync)
 }
 
 // Storage key for anonymous/fallback XP data
@@ -151,12 +158,20 @@ export const useXP = (): UseXPReturn => {
 
   /**
    * Save XP to Supabase
+   * On failure, queues the XP delta for retry when connectivity is restored
    */
-  const saveToSupabase = useCallback(async (userId: string, xp: number): Promise<void> => {
+  const saveToSupabase = useCallback(async (userId: string, xp: number, xpDelta: number, reason: string): Promise<boolean> => {
+    // Always save to localStorage first for offline access
+    saveToLocalStorage(xp);
+
     if (!isSupabaseConfigured()) {
-      console.warn('[useXP] Supabase not configured, saving to localStorage only');
-      saveToLocalStorage(xp);
-      return;
+      console.warn('[useXP] Supabase not configured, queuing for later sync');
+      queueOperation('xp', userId, {
+        xpDelta,
+        reason,
+        timestamp: new Date().toISOString(),
+      });
+      return false;
     }
 
     try {
@@ -171,17 +186,79 @@ export const useXP = (): UseXPReturn => {
 
       if (error) {
         console.error('[useXP] Failed to save XP to Supabase:', error);
-        saveToLocalStorage(xp);
-      } else {
-        console.log('[useXP] XP saved to Supabase successfully');
-        // Also save to localStorage for offline access
-        saveToLocalStorage(xp);
+        // Queue the delta for retry
+        queueOperation('xp', userId, {
+          xpDelta,
+          reason,
+          timestamp: new Date().toISOString(),
+        });
+        return false;
       }
+      
+      console.log('[useXP] XP saved to Supabase successfully');
+      return true;
     } catch (error) {
       console.error('[useXP] Error saving XP to Supabase:', error);
-      saveToLocalStorage(xp);
+      // Queue the delta for retry
+      queueOperation('xp', userId, {
+        xpDelta,
+        reason,
+        timestamp: new Date().toISOString(),
+      });
+      return false;
     }
   }, [saveToLocalStorage]);
+
+  /**
+   * Handler for processing queued XP operations
+   * Applies the XP delta to the current server value
+   */
+  const handleQueuedXPSync = useCallback(async (operation: QueuedOperation): Promise<boolean> => {
+    if (!isSupabaseConfigured()) {
+      return false;
+    }
+
+    const xpData = operation.data as XPSyncData;
+
+    try {
+      const supabase = getSupabaseClient();
+      
+      // First, get current XP from Supabase
+      const { data: profile, error: readError } = await supabase
+        .from('profiles')
+        .select('current_xp')
+        .eq('user_id', operation.userId)
+        .single();
+
+      if (readError) {
+        console.error('[useXP] Failed to read current XP for sync:', readError);
+        return false;
+      }
+
+      const currentServerXP = profile?.current_xp ?? 0;
+      const newXP = currentServerXP + xpData.xpDelta;
+
+      // Apply the delta
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          current_xp: newXP,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', operation.userId);
+
+      if (updateError) {
+        console.error('[useXP] Failed to sync queued XP:', updateError);
+        return false;
+      }
+
+      console.log(`[useXP] Successfully synced queued XP: +${xpData.xpDelta} (${xpData.reason})`);
+      return true;
+    } catch (error) {
+      console.error('[useXP] Error syncing queued XP:', error);
+      return false;
+    }
+  }, []);
 
   /**
    * Add XP to the user's total
@@ -209,13 +286,30 @@ export const useXP = (): UseXPReturn => {
       newLevel: newLevel.name,
     });
 
-    // Persist to storage
+    // Persist to storage (pass the delta for queue if it fails)
     if (user) {
-      await saveToSupabase(user.id, newXP);
+      await saveToSupabase(user.id, newXP, amount, reason);
     } else {
       saveToLocalStorage(newXP);
     }
   }, [user, currentXP, saveToSupabase, saveToLocalStorage]);
+
+  /**
+   * Process any queued XP operations (called on load and when online)
+   */
+  const processQueue = useCallback(async (): Promise<void> => {
+    if (!user || !isSupabaseConfigured()) {
+      return;
+    }
+
+    const synced = await processSyncQueue('xp', user.id, handleQueuedXPSync);
+    if (synced > 0) {
+      console.log(`[useXP] Synced ${synced} queued XP operations`);
+      // Reload XP from Supabase to get the updated value
+      const updatedXP = await loadFromSupabase(user.id);
+      setCurrentXP(updatedXP);
+    }
+  }, [user, handleQueuedXPSync, loadFromSupabase]);
 
   // Load XP on mount or when user changes
   useEffect(() => {
@@ -226,6 +320,11 @@ export const useXP = (): UseXPReturn => {
     const loadXP = async () => {
       setIsLoading(true);
       try {
+        // First, try to sync any queued operations from previous failures
+        if (user) {
+          await processQueue();
+        }
+
         let xp: number;
 
         if (user) {
@@ -244,7 +343,7 @@ export const useXP = (): UseXPReturn => {
     };
 
     loadXP();
-  }, [user, authLoading, loadFromSupabase, loadFromLocalStorage]);
+  }, [user, authLoading, loadFromSupabase, loadFromLocalStorage, processQueue]);
 
   // Calculate derived values
   const levelInfo = getLevelFromXP(currentXP);
@@ -257,5 +356,6 @@ export const useXP = (): UseXPReturn => {
     xpProgress: getXPProgress(currentXP),
     addXP,
     isLoading,
+    processQueue, // Expose for online sync hook
   };
 };

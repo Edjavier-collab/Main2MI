@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
+import { 
+  queueOperation, 
+  processSyncQueue, 
+  StreakSyncData,
+  QueuedOperation 
+} from '../utils/syncQueue';
 
 interface StreakData {
   currentStreak: number;
@@ -10,7 +16,8 @@ interface StreakData {
 
 interface UseStreakReturn extends StreakData {
   isLoading: boolean;
-  updateStreak: () => Promise<void>;
+  updateStreak: () => Promise<number>;
+  processQueue: () => Promise<void>; // Process queued operations (for online sync)
 }
 
 // Storage key for anonymous/fallback streak data
@@ -132,12 +139,20 @@ export const useStreak = (): UseStreakReturn => {
 
   /**
    * Save streak data to Supabase
+   * On failure, queues the operation for retry when connectivity is restored
    */
-  const saveToSupabase = useCallback(async (userId: string, data: StreakData): Promise<void> => {
+  const saveToSupabase = useCallback(async (userId: string, data: StreakData): Promise<boolean> => {
+    // Always save to localStorage first for offline access
+    saveToLocalStorage(data);
+
     if (!isSupabaseConfigured()) {
-      console.warn('[useStreak] Supabase not configured, saving to localStorage only');
-      saveToLocalStorage(data);
-      return;
+      console.warn('[useStreak] Supabase not configured, queuing for later sync');
+      queueOperation('streak', userId, {
+        currentStreak: data.currentStreak,
+        longestStreak: data.longestStreak,
+        lastPracticeDate: data.lastPracticeDate ? data.lastPracticeDate.toISOString().split('T')[0] : null,
+      });
+      return false;
     }
 
     try {
@@ -154,18 +169,63 @@ export const useStreak = (): UseStreakReturn => {
 
       if (error) {
         console.error('[useStreak] Failed to save streak to Supabase:', error);
-        // Fallback to localStorage
-        saveToLocalStorage(data);
-      } else {
-        console.log('[useStreak] Streak saved to Supabase successfully');
-        // Also save to localStorage for offline access
-        saveToLocalStorage(data);
+        // Queue for retry
+        queueOperation('streak', userId, {
+          currentStreak: data.currentStreak,
+          longestStreak: data.longestStreak,
+          lastPracticeDate: data.lastPracticeDate ? data.lastPracticeDate.toISOString().split('T')[0] : null,
+        });
+        return false;
       }
+      
+      console.log('[useStreak] Streak saved to Supabase successfully');
+      return true;
     } catch (error) {
       console.error('[useStreak] Error saving streak to Supabase:', error);
-      saveToLocalStorage(data);
+      // Queue for retry
+      queueOperation('streak', userId, {
+        currentStreak: data.currentStreak,
+        longestStreak: data.longestStreak,
+        lastPracticeDate: data.lastPracticeDate ? data.lastPracticeDate.toISOString().split('T')[0] : null,
+      });
+      return false;
     }
   }, [saveToLocalStorage]);
+
+  /**
+   * Handler for processing queued streak operations
+   */
+  const handleQueuedStreakSync = useCallback(async (operation: QueuedOperation): Promise<boolean> => {
+    if (!isSupabaseConfigured()) {
+      return false;
+    }
+
+    const streakData = operation.data as StreakSyncData;
+
+    try {
+      const supabase = getSupabaseClient();
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          current_streak: streakData.currentStreak,
+          longest_streak: streakData.longestStreak,
+          last_practice_date: streakData.lastPracticeDate,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', operation.userId);
+
+      if (error) {
+        console.error('[useStreak] Failed to sync queued streak:', error);
+        return false;
+      }
+
+      console.log('[useStreak] Successfully synced queued streak');
+      return true;
+    } catch (error) {
+      console.error('[useStreak] Error syncing queued streak:', error);
+      return false;
+    }
+  }, []);
 
   /**
    * Check if streak is still valid (practiced yesterday or today)
@@ -197,7 +257,7 @@ export const useStreak = (): UseStreakReturn => {
    * Update streak when a session is completed
    * Call this after a practice session finishes
    */
-  const updateStreak = useCallback(async (): Promise<void> => {
+  const updateStreak = useCallback(async (): Promise<number> => {
     const todayStr = getTodayUTC();
     const todayDate = parseUTCDate(todayStr);
 
@@ -206,7 +266,7 @@ export const useStreak = (): UseStreakReturn => {
       const lastPracticeDateStr = lastPracticeDate.toISOString().split('T')[0];
       if (lastPracticeDateStr === todayStr) {
         console.log('[useStreak] Already practiced today, streak unchanged');
-        return;
+        return currentStreak;
       }
     }
 
@@ -249,7 +309,23 @@ export const useStreak = (): UseStreakReturn => {
       longestStreak: newLongestStreak,
       lastPracticeDate: todayStr,
     });
+
+    return newCurrentStreak;
   }, [user, currentStreak, longestStreak, lastPracticeDate, saveToSupabase, saveToLocalStorage]);
+
+  /**
+   * Process any queued streak operations (called on load and when online)
+   */
+  const processQueue = useCallback(async (): Promise<void> => {
+    if (!user || !isSupabaseConfigured()) {
+      return;
+    }
+
+    const synced = await processSyncQueue('streak', user.id, handleQueuedStreakSync);
+    if (synced > 0) {
+      console.log(`[useStreak] Synced ${synced} queued streak operations`);
+    }
+  }, [user, handleQueuedStreakSync]);
 
   // Load streak data on mount or when user changes
   useEffect(() => {
@@ -260,6 +336,11 @@ export const useStreak = (): UseStreakReturn => {
     const loadStreak = async () => {
       setIsLoading(true);
       try {
+        // First, try to sync any queued operations from previous failures
+        if (user) {
+          await processQueue();
+        }
+
         let data: StreakData;
 
         if (user) {
@@ -297,7 +378,7 @@ export const useStreak = (): UseStreakReturn => {
     };
 
     loadStreak();
-  }, [user, authLoading, loadFromSupabase, loadFromLocalStorage, validateStreak, saveToSupabase, saveToLocalStorage]);
+  }, [user, authLoading, loadFromSupabase, loadFromLocalStorage, validateStreak, saveToSupabase, saveToLocalStorage, processQueue]);
 
   return {
     currentStreak,
@@ -305,5 +386,6 @@ export const useStreak = (): UseStreakReturn => {
     lastPracticeDate,
     isLoading,
     updateStreak,
+    processQueue, // Expose for online sync hook
   };
 };
