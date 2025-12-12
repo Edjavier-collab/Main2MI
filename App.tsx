@@ -164,14 +164,21 @@ const AppContent: React.FC = () => {
   }, [setShowOnboarding, setView]);
 
   const handleStartPractice = useCallback(async () => {
+    // Require authentication to start practice
+    if (!user) {
+      console.log('[App] User not authenticated, redirecting to login');
+      setView(View.Login);
+      return;
+    }
+
     // Guard: wait until userTier is loaded (avoid using stale tier from state)
     if (!userTier || userTier === '') {
       console.warn('[App] User tier not yet loaded, waiting...');
       return;
     }
 
-    // Check if user can start a new session (works for both authenticated and anonymous)
-    const canStart = await canStartSession(user?.id || null, userTier);
+    // Check if user can start a new session
+    const canStart = await canStartSession(user.id, userTier);
     if (!canStart) {
       console.log('[App] User cannot start session (limit reached), showing paywall');
       setView(View.Paywall);
@@ -188,10 +195,17 @@ const AppContent: React.FC = () => {
   }, [user, userTier, setView, setCurrentPatient]);
   
   const handleStartFilteredPractice = useCallback((filters: PatientProfileFilters) => {
+    // Require authentication to start practice
+    if (!user) {
+      console.log('[App] User not authenticated, redirecting to login');
+      setView(View.Login);
+      return;
+    }
+
     const patient = generatePatientProfile(filters);
     setCurrentPatient(patient);
     setView(View.Practice);
-  }, [setCurrentPatient, setView]);
+  }, [user, setCurrentPatient, setView]);
 
   // Save the new session when practice is finished
   const handleFinishPractice = useCallback(async (transcript: ChatMessage[], feedback: Feedback) => {

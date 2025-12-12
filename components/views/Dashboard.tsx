@@ -100,29 +100,57 @@ const Dashboard: React.FC<DashboardProps> = ({
                         <div className="mb-4">
                             <i className="fa-solid fa-user-doctor text-4xl text-[var(--color-primary)]" aria-hidden="true"></i>
                         </div>
-                        <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">
-                            Start Practicing
-                        </h2>
-                        <p className="text-sm text-[var(--color-text-secondary)] mb-6">
-                            Kick off a new MI scenario now
-                        </p>
-                        
-                        <Button
-                            onClick={onStartPractice}
-                            disabled={!isPremium && displayRemaining === 0}
-                            variant="primary"
-                            size="lg"
-                            fullWidth
-                            icon={<i className="fa-solid fa-play" aria-hidden="true"></i>}
-                            aria-label="Start a new practice session"
-                        >
-                            Start a New Practice
-                        </Button>
-                        
-                        {!isPremium && (
-                            <p className={`text-center text-xs font-semibold mt-3 ${displayRemaining === 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-text-muted)]'}`}>
-                                {displayRemaining} of 3 free sessions remaining this month
-                            </p>
+                        {user ? (
+                            <>
+                                <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">
+                                    Start Practicing
+                                </h2>
+                                <p className="text-sm text-[var(--color-text-secondary)] mb-6">
+                                    Kick off a new MI scenario now
+                                </p>
+                                
+                                <Button
+                                    onClick={onStartPractice}
+                                    disabled={!isPremium && displayRemaining === 0}
+                                    variant="primary"
+                                    size="lg"
+                                    fullWidth
+                                    icon={<i className="fa-solid fa-play" aria-hidden="true"></i>}
+                                    aria-label="Start a new practice session"
+                                >
+                                    Start a New Practice
+                                </Button>
+                                
+                                {!isPremium && (
+                                    <p className={`text-center text-xs font-semibold mt-3 ${displayRemaining === 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-text-muted)]'}`}>
+                                        {displayRemaining} of 3 free sessions remaining this month
+                                    </p>
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">
+                                    Sign in to Start Practicing
+                                </h2>
+                                <p className="text-sm text-[var(--color-text-secondary)] mb-6">
+                                    Create a free account to practice Motivational Interviewing with AI-powered patient simulations
+                                </p>
+                                
+                                <Button
+                                    onClick={() => onNavigate && onNavigate(View.Login)}
+                                    variant="primary"
+                                    size="lg"
+                                    fullWidth
+                                    icon={<i className="fa-solid fa-sign-in-alt" aria-hidden="true"></i>}
+                                    aria-label="Sign in to start practicing"
+                                >
+                                    Sign in to Start
+                                </Button>
+                                
+                                <p className="text-center text-xs text-[var(--color-text-muted)] mt-3">
+                                    Free account includes 3 practice sessions per month
+                                </p>
+                            </>
                         )}
 
                         {hasSessions && onNavigate && (

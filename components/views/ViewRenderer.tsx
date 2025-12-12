@@ -114,8 +114,18 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
           />
         );
       case View.ScenarioSelection:
+        // Scenario selection requires authentication (Premium feature)
+        if (!user) {
+          // Redirect handled by useAppRouter, but add safety check here too
+          return null;
+        }
         return <ScenarioSelectionView onBack={() => onNavigate(View.Dashboard)} onStartPractice={onStartFilteredPractice} />;
       case View.Practice:
+        // Practice view requires authentication
+        if (!user) {
+          // Redirect handled by useAppRouter, but add safety check here too
+          return null;
+        }
         return currentPatient && <PracticeView patient={currentPatient} userTier={userTier} onFinish={onFinishPractice} onUpgrade={() => onNavigate(View.Paywall)} />;
       case View.Feedback:
         return currentSession && (

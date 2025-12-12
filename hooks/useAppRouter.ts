@@ -31,6 +31,12 @@ export const useAppRouter = ({ user, authLoading, view, setView }: UseAppRouterO
         // Already on auth screens, stay there
         return;
       }
+      // Practice-related views require authentication - redirect to login
+      if (view === View.Practice || view === View.Feedback || view === View.ScenarioSelection) {
+        console.log('[useAppRouter] Practice view requires authentication, redirecting to login');
+        setView(View.Login);
+        return;
+      }
       // Anonymous users can access Dashboard, Paywall (shows login prompt), Settings (shows sign up), and other free tier views
       // Only redirect premium-only views that require authentication
       if (view === View.Calendar || view === View.CoachingSummary || view === View.CancelSubscription) {
