@@ -27,12 +27,16 @@ interface SpeechRecognition {
 
 export const useSpeechRecognition = () => {
     const [isListening, setIsListening] = useState(false);
-    const [transcript, setTranscript] = useState('');
+    const [finalTranscript, setFinalTranscript] = useState(''); // Only FINAL confirmed text
+    const [interimTranscript, setInterimTranscript] = useState(''); // Live preview of interim results
     const [error, setError] = useState<string | null>(null);
     // Fix: The type SpeechRecognition is now correctly resolved via the interface definition above.
     const recognitionRef = useRef<SpeechRecognition | null>(null);
     const finalTranscriptRef = useRef(''); // Ref to hold only the FINAL transcript text
     const stopTriggeredRef = useRef(false); // Flag to ignore late-coming results after stop is called
+    const lastProcessedIndexRef = useRef<number>(-1); // Track last processed result index to prevent duplicates
+    const sessionIdRef = useRef<number>(0); // Track recognition sessions to reset index tracking
+    const processedFinalTextsRef = useRef<Set<string>>(new Set()); // Track processed final texts to prevent duplicates
 
 
     useEffect(() => {
@@ -71,41 +75,100 @@ export const useSpeechRecognition = () => {
                 return;
             }
 
-            let interim_transcript = '';
-            // Iterate from the last known result index to process only new results.
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                const result = event.results[i];
-                if (result.isFinal) {
-                    // Append final results to our ref, ensuring proper spacing.
-                    const final_text = result[0].transcript.trim();
-                    if (final_text) {
-                        finalTranscriptRef.current += (finalTranscriptRef.current ? ' ' : '') + final_text;
-                    }
-                } else {
-                    // Accumulate interim results.
-                    interim_transcript += result[0].transcript;
-                }
+            // On mobile, continuous mode can restart and reset resultIndex to 0
+            // Check if this is a new session by comparing resultIndex to our last processed index
+            // If resultIndex is less than lastProcessedIndex, it's a restart - reset tracking
+            if (event.resultIndex < lastProcessedIndexRef.current) {
+                console.log('[useSpeechRecognition] Recognition restarted, resetting index tracking');
+                lastProcessedIndexRef.current = -1;
+                sessionIdRef.current += 1;
+                // Clear processed texts tracking on restart to allow same text in new session
+                processedFinalTextsRef.current.clear();
             }
 
-            // Update the display with the final text plus the current interim text.
-            // Ensure proper spacing between final and interim parts.
-            const currentFinal = finalTranscriptRef.current;
-            const currentInterim = interim_transcript.trim();
-            setTranscript(currentFinal + (currentInterim ? (currentFinal ? ' ' : '') + currentInterim : ''));
+            // Build interim transcript from ONLY the latest interim results in this event
+            // Don't accumulate - rebuild from scratch each time
+            let newInterimTranscript = '';
+            let hasNewFinal = false;
+
+            // Process only NEW results (from resultIndex onwards, but skip already processed ones)
+            const startIndex = Math.max(event.resultIndex, lastProcessedIndexRef.current + 1);
+            
+            for (let i = startIndex; i < event.results.length; ++i) {
+                const result = event.results[i];
+                
+                if (result.isFinal) {
+                    // Only append final results - these are confirmed transcriptions
+                    const final_text = result[0].transcript.trim();
+                    if (final_text) {
+                        // Prevent duplicate final results by tracking processed texts
+                        // This handles cases where the same audio gets transcribed multiple times
+                        // Use a normalized key (lowercase, trimmed) to catch duplicates
+                        const normalizedText = final_text.toLowerCase();
+                        
+                        if (!processedFinalTextsRef.current.has(normalizedText)) {
+                            // Mark as processed BEFORE adding to prevent race conditions
+                            processedFinalTextsRef.current.add(normalizedText);
+                            
+                            // Add to final transcript
+                            const textToAdd = finalTranscriptRef.current ? ' ' + final_text : final_text;
+                            finalTranscriptRef.current += textToAdd;
+                            hasNewFinal = true;
+                            
+                            // Clear interim when we get final results (they're now part of final)
+                            newInterimTranscript = '';
+                        } else {
+                            console.log('[useSpeechRecognition] Skipping duplicate final result:', final_text);
+                        }
+                    }
+                } else {
+                    // Build interim transcript from ONLY interim results in current event
+                    // Don't accumulate - each event rebuilds interim from scratch
+                    // Only include interim results from the current processing range
+                    if (i >= startIndex) {
+                        newInterimTranscript += result[0].transcript;
+                    }
+                }
+                
+                // Update last processed index
+                lastProcessedIndexRef.current = i;
+            }
+
+            // Update final transcript state only if we got new final results
+            if (hasNewFinal) {
+                setFinalTranscript(finalTranscriptRef.current);
+                // Always clear interim when we get final results
+                setInterimTranscript('');
+            } else {
+                // Update interim transcript (this replaces previous interim, doesn't append)
+                // Only show interim if we don't have new final results
+                setInterimTranscript(newInterimTranscript.trim());
+            }
         };
 
         recognition.onend = () => {
             setIsListening(false);
             stopTriggeredRef.current = false;
-            // On end, ensure the displayed transcript is only the final, confirmed text.
-            // This cleans up any lingering interim results if recognition ends abruptly.
-            setTranscript(finalTranscriptRef.current);
+            // On end, clear any interim results and ensure we only show final transcript
+            // This cleans up any lingering interim results if recognition ends abruptly
+            setInterimTranscript('');
+            setFinalTranscript(finalTranscriptRef.current);
+            // Reset index tracking for next session
+            lastProcessedIndexRef.current = -1;
+            // Clear processed texts tracking for next session
+            processedFinalTextsRef.current.clear();
         };
 
         recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
             console.error('Speech recognition error', event.error);
             setIsListening(false);
             stopTriggeredRef.current = false; // Reset on error too
+            // Clear interim on error
+            setInterimTranscript('');
+            // Reset index tracking
+            lastProcessedIndexRef.current = -1;
+            // Clear processed texts tracking on error
+            processedFinalTextsRef.current.clear();
 
             // Provide user-friendly error messages
             let errorMessage = 'Microphone error occurred.';
@@ -156,6 +219,13 @@ export const useSpeechRecognition = () => {
         try {
             stopTriggeredRef.current = false; // Ensure we are ready for new results
             setError(null); // Clear any previous errors
+            // Reset tracking for new session
+            lastProcessedIndexRef.current = -1;
+            sessionIdRef.current += 1;
+            // Clear processed texts tracking for new session
+            processedFinalTextsRef.current.clear();
+            // Clear interim when starting new session
+            setInterimTranscript('');
             recognitionRef.current.start();
             setIsListening(true);
         } catch (err) {
@@ -170,14 +240,28 @@ export const useSpeechRecognition = () => {
             stopTriggeredRef.current = true; // Signal to ignore subsequent results
             recognitionRef.current.stop();
             setIsListening(false);
+            // Clear interim when stopping
+            setInterimTranscript('');
+            // Reset index tracking
+            lastProcessedIndexRef.current = -1;
+            // Clear processed texts tracking when stopping
+            processedFinalTextsRef.current.clear();
         }
     };
 
     // This function allows components to reset the transcript and ensures the ref is also cleared.
     const customSetTranscript = useCallback((text: string) => {
         finalTranscriptRef.current = text;
-        setTranscript(text);
+        setFinalTranscript(text);
+        setInterimTranscript('');
+        // Reset tracking when manually setting transcript
+        lastProcessedIndexRef.current = -1;
+        // Clear processed texts tracking when manually setting transcript
+        processedFinalTextsRef.current.clear();
     }, []);
+
+    // Combined transcript for backward compatibility (final + interim)
+    const transcript = finalTranscript + (interimTranscript ? (finalTranscript ? ' ' : '') + interimTranscript : '');
 
     // Check if Speech Recognition API is supported and we're in a secure context
     const isSecureContext = window.isSecureContext ||
@@ -186,5 +270,15 @@ export const useSpeechRecognition = () => {
                             window.location.hostname === '127.0.0.1';
     const hasSupport = !!SpeechRecognitionAPI && isSecureContext;
 
-    return { isListening, transcript, startListening, stopListening, hasSupport, error, setTranscript: customSetTranscript };
+    return { 
+        isListening, 
+        transcript, // Combined (backward compatibility)
+        finalTranscript, // Only final confirmed text
+        interimTranscript, // Live preview (temporary)
+        startListening, 
+        stopListening, 
+        hasSupport, 
+        error, 
+        setTranscript: customSetTranscript 
+    };
 };

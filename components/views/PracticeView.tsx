@@ -36,7 +36,9 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
     const [sendError, setSendError] = useState<string | null>(null);
     
     const { user } = useAuth();
-    const { isListening, transcript: speechTranscript, startListening, stopListening, hasSupport, error: micError, setTranscript: setSpeechTranscript } = useSpeechRecognition();
+    const { isListening, finalTranscript, interimTranscript, startListening, stopListening, hasSupport, error: micError, setTranscript: setSpeechTranscript } = useSpeechRecognition();
+    // Combine final and interim for display (interim shows as live preview)
+    const speechTranscript = finalTranscript + (interimTranscript ? (finalTranscript ? ' ' : '') + interimTranscript : '');
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
