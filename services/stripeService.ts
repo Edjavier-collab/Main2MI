@@ -267,6 +267,42 @@ export const upgradeToAnnual = async (userId: string): Promise<any> => {
 };
 
 /**
+ * Create a Stripe Customer Portal session for managing billing
+ */
+export const createBillingPortalSession = async (userId: string, returnUrl?: string): Promise<string> => {
+    console.log('[stripeService] createBillingPortalSession called for user:', userId);
+    
+    try {
+        const body: Record<string, unknown> = { userId };
+        if (returnUrl) {
+            body.returnUrl = returnUrl;
+        }
+
+        const response = await callEdgeFunction('create-billing-portal-session', {
+            method: 'POST',
+            body,
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Failed to create billing portal session' }));
+            const errorMessage = errorData.error || errorData.message || 'Failed to create billing portal session';
+            throw new Error(errorMessage);
+        }
+
+        const data = await response.json();
+        if (!data.url) {
+            throw new Error('No portal URL returned from server');
+        }
+
+        console.log('[stripeService] Billing portal session created successfully');
+        return data.url;
+    } catch (error) {
+        console.error('[stripeService] createBillingPortalSession error:', error);
+        throw error;
+    }
+};
+
+/**
  * Create a mock subscription (development only)
  * Note: This functionality is no longer supported with Edge Functions.
  * Use real Stripe test mode instead.
