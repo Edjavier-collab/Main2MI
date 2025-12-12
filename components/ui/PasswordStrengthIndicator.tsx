@@ -40,7 +40,7 @@ const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({
                             className={`h-1.5 flex-1 rounded-full transition-colors duration-200 ${
                                 index < strength.score
                                     ? strength.color
-                                    : 'bg-gray-200'
+                                    : 'bg-neutral-200'
                             }`}
                         />
                     ))}
@@ -48,10 +48,10 @@ const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({
                 <span 
                     className={`text-xs font-medium ${
                         strength.score >= 3 
-                            ? 'text-green-600' 
+                            ? 'text-success-dark' 
                             : strength.score >= 2 
-                                ? 'text-yellow-600' 
-                                : 'text-red-600'
+                                ? 'text-warning-dark' 
+                                : 'text-error'
                     }`}
                 >
                     {strength.label}
@@ -66,11 +66,11 @@ const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({
 
             {/* Feedback suggestions */}
             {showFeedback && strength.feedback.length > 0 && (
-                <ul className="text-xs text-gray-500 space-y-0.5 mt-1">
+                <ul className="text-xs text-neutral-500 space-y-0.5 mt-1">
                     {strength.feedback.map((suggestion, index) => (
                         <li key={index} className="flex items-center gap-1">
                             <svg 
-                                className="w-3 h-3 text-gray-400" 
+                                className="w-3 h-3 text-neutral-400" 
                                 fill="none" 
                                 stroke="currentColor" 
                                 viewBox="0 0 24 24"
@@ -91,7 +91,7 @@ const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({
 
             {/* Success message when password is strong enough */}
             {strength.isValid && strength.score >= 3 && (
-                <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
+                <p className="text-xs text-success-dark flex items-center gap-1 mt-1">
                     <svg 
                         className="w-3 h-3" 
                         fill="none" 

@@ -11,14 +11,14 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isTyping = false }) =>
     const isUser = message.author === 'user';
 
     const bubbleClasses = isUser
-        ? 'bg-blue-600 text-white self-end rounded-l-xl rounded-t-xl'
-        : 'bg-gray-200 text-gray-800 self-start rounded-r-xl rounded-t-xl';
+        ? 'bg-primary text-white self-end rounded-l-xl rounded-t-xl'
+        : 'bg-neutral-200 text-neutral-800 self-start rounded-r-xl rounded-t-xl';
 
     const typingIndicator = (
         <div className="flex items-center space-x-1">
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+            <div className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce"></div>
         </div>
     );
 

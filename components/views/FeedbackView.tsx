@@ -114,7 +114,7 @@ const SkillsChecklist: React.FC<{ skillsUsed: string[] }> = ({ skillsUsed }) => 
                 const wasUsed = skillsUsed.includes(skill);
                 return (
                     <div key={skill} className={`flex items-center transition-colors duration-300 ${wasUsed ? 'text-slate-800' : 'text-slate-400'}`}>
-                        <i className={`fa-solid ${wasUsed ? 'fa-check-square text-green-500' : 'fa-square'} mr-3 text-lg`}></i>
+                        <i className={`fa-solid ${wasUsed ? 'fa-check-square text-success' : 'fa-square'} mr-3 text-lg`}></i>
                         <span className="font-medium">{skill}</span>
                     </div>
                 );
@@ -268,7 +268,7 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                                         <i className="fa-solid fa-seedling mr-3 text-sky-500"></i>
                                         Key Areas for Growth
                                     </h3>
-                                    <p className="text-gray-700 leading-relaxed pl-8 whitespace-pre-wrap">{areasForGrowthContent}</p>
+                                    <p className="text-neutral-700 leading-relaxed pl-8 whitespace-pre-wrap">{areasForGrowthContent}</p>
                                 </div>
                             </LockedSection>
                         </section>
@@ -281,8 +281,8 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                         {isFeedbackError ? (
                             // Show error message when feedback generation failed
                             <div className="flex flex-col items-center gap-3 text-center py-4">
-                                <i className="fa-solid fa-circle-exclamation text-yellow-500 text-2xl"></i>
-                                <p className="text-gray-600 text-sm">
+                                <i className="fa-solid fa-circle-exclamation text-warning text-2xl"></i>
+                                <p className="text-neutral-600 text-sm">
                                     Skills analysis couldn't be completed due to a technical issue. Please try another practice session.
                                 </p>
                             </div>

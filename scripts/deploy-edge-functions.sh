@@ -105,6 +105,8 @@ FUNCTIONS=(
     "apply-retention-discount"
     "restore-subscription"
     "upgrade-subscription"
+    "update-tier-from-session"
+    "verify-premium-status"
 )
 
 for func in "${FUNCTIONS[@]}"; do

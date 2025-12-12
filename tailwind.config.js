@@ -8,14 +8,70 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Custom brand colors
+        // Theme colors using CSS variables for consistency
+        primary: {
+          DEFAULT: 'var(--color-primary)',
+          light: 'var(--color-primary-light)',
+          lighter: 'var(--color-primary-lighter)',
+          dark: 'var(--color-primary-dark)',
+          darker: 'var(--color-primary-darker)',
+        },
+        // Semantic colors
+        success: {
+          DEFAULT: 'var(--color-success)',
+          light: 'var(--color-success-light)',
+          dark: 'var(--color-success-dark)',
+        },
+        warning: {
+          DEFAULT: 'var(--color-warning)',
+          light: 'var(--color-warning-light)',
+          dark: 'var(--color-warning-dark)',
+        },
+        error: {
+          DEFAULT: 'var(--color-error)',
+          light: 'var(--color-error-light)',
+          dark: 'var(--color-error-dark)',
+        },
+        info: {
+          DEFAULT: 'var(--color-info)',
+          light: 'var(--color-info-light)',
+          dark: 'var(--color-info-dark)',
+        },
+        // Neutral scale
+        neutral: {
+          50: 'var(--color-neutral-50)',
+          100: 'var(--color-neutral-100)',
+          200: 'var(--color-neutral-200)',
+          300: 'var(--color-neutral-300)',
+          400: 'var(--color-neutral-400)',
+          500: 'var(--color-neutral-500)',
+          600: 'var(--color-neutral-600)',
+          700: 'var(--color-neutral-700)',
+          800: 'var(--color-neutral-800)',
+          900: 'var(--color-neutral-900)',
+        },
+        // Text colors
+        text: {
+          primary: 'var(--color-text-primary)',
+          secondary: 'var(--color-text-secondary)',
+          muted: 'var(--color-text-muted)',
+          light: 'var(--color-text-light)',
+        },
+        // Background colors
+        bg: {
+          main: 'var(--color-bg-main)',
+          card: 'var(--color-bg-card)',
+          accent: 'var(--color-bg-accent)',
+          warm: 'var(--color-bg-warm)',
+        },
+        // Legacy brand colors (deprecated - use primary instead)
         brand: {
           50: '#f0f9ff',
           100: '#e0f2fe',
           200: '#bae6fd',
           300: '#7dd3fc',
           400: '#38bdf8',
-          500: '#0ea5e9', // Primary brand color
+          500: '#0ea5e9',
           600: '#0284c7',
           700: '#0369a1',
           800: '#075985',

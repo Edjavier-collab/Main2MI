@@ -172,7 +172,7 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                         aria-label="Subscribe to Annual Plan for $99.99 per year"
                         aria-disabled={loading !== null}
                     >
-                        <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2 bg-yellow-400 border-4 border-white text-[var(--color-text-primary)] text-base font-extrabold px-6 py-2 rounded-full uppercase shadow-xl flex items-center gap-2 whitespace-nowrap z-10">
+                        <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2 bg-warning border-4 border-white text-[var(--color-text-primary)] text-base font-extrabold px-6 py-2 rounded-full uppercase shadow-xl flex items-center gap-2 whitespace-nowrap z-10">
                             <i className="fa-solid fa-star text-sm"></i>
                             Best Value
                         </div>

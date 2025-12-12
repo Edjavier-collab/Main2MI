@@ -10,19 +10,19 @@ interface FeedbackCardProps {
 
 const colorClasses = {
     green: {
-        bg: 'bg-green-50',
-        iconBg: 'bg-green-100',
-        iconText: 'text-green-600',
+        bg: 'bg-success-light',
+        iconBg: 'bg-success/20',
+        iconText: 'text-success-dark',
     },
     yellow: {
-        bg: 'bg-yellow-50',
-        iconBg: 'bg-yellow-100',
-        iconText: 'text-yellow-600',
+        bg: 'bg-warning-light',
+        iconBg: 'bg-warning/20',
+        iconText: 'text-warning-dark',
     },
     blue: {
-        bg: 'bg-blue-50',
-        iconBg: 'bg-blue-100',
-        iconText: 'text-blue-600',
+        bg: 'bg-info-light',
+        iconBg: 'bg-info/20',
+        iconText: 'text-info-dark',
     },
 };
 
@@ -36,8 +36,8 @@ const FeedbackCard: React.FC<FeedbackCardProps> = ({ title, icon, color, childre
                     <i className={`fa ${icon} text-xl ${classes.iconText}`}></i>
                 </div>
                 <div>
-                    <h4 className="text-lg font-bold text-gray-800 mb-2">{title}</h4>
-                    <div className="text-gray-700 leading-relaxed">
+                    <h4 className="text-lg font-bold text-neutral-800 mb-2">{title}</h4>
+                    <div className="text-neutral-700 leading-relaxed">
                         {children}
                     </div>
                 </div>

@@ -113,7 +113,7 @@ const OfflineIndicator: React.FC<OfflineIndicatorProps> = ({
             )}
             
             {showOnlineMessage && (
-                <div className="bg-green-500 text-white px-4 py-3 shadow-lg animate-slide-fade-in">
+                <div className="bg-success text-white px-4 py-3 shadow-lg animate-slide-fade-in">
                     <div className="max-w-4xl mx-auto flex items-center justify-center gap-3">
                         {/* Online Icon */}
                         <svg 

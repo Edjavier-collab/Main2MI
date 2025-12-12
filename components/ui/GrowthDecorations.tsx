@@ -203,31 +203,31 @@ export const GrowthLogo: React.FC<{ className?: string; size?: number }> = ({
     fill="none" 
     className={className}
   >
-    {/* Outer ring - Primary ring: #A8C5B5 */}
-    <circle cx="40" cy="40" r="36" stroke="#A8C5B5" strokeWidth="3" fill="none"/>
+    {/* Outer ring */}
+    <circle cx="40" cy="40" r="36" stroke="var(--color-primary-light)" strokeWidth="3" fill="none"/>
     
-    {/* Inner circle - Inner circle: #EBF4EE */}
-    <circle cx="40" cy="40" r="28" fill="#EBF4EE"/>
+    {/* Inner circle */}
+    <circle cx="40" cy="40" r="28" fill="var(--color-primary-lighter)"/>
     
-    {/* Stylized plant/growth symbol - Plant stem: #7BA390 */}
+    {/* Stylized plant/growth symbol - Plant stem */}
     <path 
       d="M40 58V35" 
-      stroke="#7BA390" 
+      stroke="var(--color-primary-dark)" 
       strokeWidth="3" 
       strokeLinecap="round"
     />
-    {/* Left leaf - Leaves: #A8C5B5 */}
+    {/* Left leaf */}
     <path 
       d="M40 45C40 45 30 43 28 35C26 27 32 23 40 28" 
-      fill="#A8C5B5"
+      fill="var(--color-primary-light)"
     />
-    {/* Right leaf - Leaves: #7BA390 */}
+    {/* Right leaf */}
     <path 
       d="M40 40C40 40 50 38 52 30C54 22 48 18 40 23" 
-      fill="#7BA390"
+      fill="var(--color-primary-dark)"
     />
-    {/* Top bud/flower - Top bud/flower: #E8B87D (warm accent) */}
-    <circle cx="40" cy="28" r="5" fill="#E8B87D"/>
+    {/* Top bud/flower */}
+    <circle cx="40" cy="28" r="5" fill="var(--color-accent-warm)"/>
     
     {/* Small accent dot */}
     <circle cx="40" cy="28" r="2" fill="white" opacity="0.6"/>

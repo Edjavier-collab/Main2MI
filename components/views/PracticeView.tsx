@@ -134,7 +134,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
                     <button
                         onClick={handleEndSession}
                         disabled={isEndingSession}
-                        className="px-4 min-h-[var(--touch-target-min)] bg-red-500 text-white font-semibold border-2 border-black hover:bg-red-600 disabled:opacity-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+                        className="px-4 min-h-[var(--touch-target-min)] bg-error text-white font-semibold border-2 border-black hover:bg-error-dark disabled:opacity-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-error focus-visible:ring-offset-2"
                     >
                         {isEndingSession ? (
                             <span className="flex items-center gap-2">
