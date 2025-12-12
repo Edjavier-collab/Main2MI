@@ -131,16 +131,26 @@
           visibility: hidden;
         }
         .printable-area, .printable-area * {
-          visibility: visible;
+          visibility: visible !important;
         }
         .printable-area {
           position: absolute;
           left: 0;
           top: 0;
           width: 100%;
+          background: white !important;
         }
         .no-print {
           display: none !important;
+        }
+        body {
+          background: white !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        .print-color {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
       }
       

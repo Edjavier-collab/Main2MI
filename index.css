@@ -224,24 +224,53 @@
 
 /* Print styles */
 @media print {
+  /* Hide everything by default */
   body * {
     visibility: hidden;
   }
   
+  /* Show printable area and all its children */
   .printable-area,
   .printable-area * {
-    visibility: visible;
+    visibility: visible !important;
   }
   
+  /* Position printable area at top */
   .printable-area {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
+    background: white !important;
   }
   
+  /* Hide non-print elements */
   .no-print {
     display: none !important;
+  }
+  
+  /* Reset body background for print */
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* Ensure backgrounds print */
+  .print-color {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 0.5in;
+  }
+  
+  /* Prevent page breaks inside cards */
+  .print-card {
+    page-break-inside: avoid;
   }
 }
 

@@ -48,6 +48,7 @@ export interface ReportData {
 export interface UseReportDataReturn extends ReportData {
   isLoading: boolean;
   error: string | null;
+  isPremiumDataAvailable: boolean; // True only if premium data was computed (server-verified)
 }
 
 /**
@@ -152,7 +153,20 @@ const calculateDailyScores = (sessions: Session[]): DailyScorePoint[] => {
   const byDate: Record<string, { scores: number[]; count: number }> = {};
 
   for (const session of sessions) {
-    const dateKey = new Date(session.date).toISOString().split('T')[0];
+    // Guard against invalid dates
+    let dateKey: string;
+    try {
+      const parsed = new Date(session.date);
+      if (isNaN(parsed.getTime())) {
+        console.warn('[useReportData] Skipping session with invalid date:', session.date);
+        continue;
+      }
+      dateKey = parsed.toISOString().split('T')[0];
+    } catch (error) {
+      console.warn('[useReportData] Skipping session with unparseable date:', session.date);
+      continue;
+    }
+
     const empathyScore = session.feedback?.empathyScore;
 
     if (!byDate[dateKey]) {
@@ -214,9 +228,16 @@ const generatePerformanceSummary = (
 /**
  * Hook to calculate report data from user sessions
  * Provides overall score, trends, skill breakdown, and insights
+ * 
+ * SECURITY: Premium data (skill breakdown, trends, insights) is only computed
+ * when isPremiumVerified is true (verified server-side via Edge Function).
+ * This prevents users from spoofing premium status via dev tools.
+ * 
+ * @param sessions - User's practice sessions
+ * @param isPremiumVerified - Whether premium status has been verified server-side
  */
-export const useReportData = (sessions: Session[]): UseReportDataReturn => {
-  const reportData = useMemo<ReportData>(() => {
+export const useReportData = (sessions: Session[], isPremiumVerified = false): UseReportDataReturn => {
+  const reportData = useMemo<ReportData & { isPremiumDataAvailable: boolean }>(() => {
     // Handle empty sessions
     if (!sessions || sessions.length === 0) {
       return {
@@ -233,6 +254,7 @@ export const useReportData = (sessions: Session[]): UseReportDataReturn => {
         topStrength: null,
         areaToImprove: null,
         performanceSummary: 'Complete your first practice session to see your MI competency report.',
+        isPremiumDataAvailable: false,
       };
     }
 
@@ -278,32 +300,43 @@ export const useReportData = (sessions: Session[]): UseReportDataReturn => {
     if (scoreDiff >= 5) trend = 'improving';
     else if (scoreDiff <= -5) trend = 'declining';
 
-    // Calculate skill scores
-    const skillScores = calculateSkillScores(sortedSessions, recentSessions, olderSessions);
-    const currentSkillScores = calculateSkillScores(recentSessions, recentSessions, []);
-    const previousSkillScores = calculateSkillScores(olderSessions, olderSessions, []);
+    // SECURITY: Only compute premium data if server-verified premium status
+    // This prevents users from accessing premium analytics by spoofing localStorage
+    let skillScores: SkillScore[] = [];
+    let currentSkillScores: SkillScore[] = [];
+    let previousSkillScores: SkillScore[] = [];
+    let dailyScores: DailyScorePoint[] = [];
+    let topStrength: SkillScore | null = null;
+    let areaToImprove: SkillScore | null = null;
 
-    // Calculate daily scores for trend chart
-    const dailyScores = calculateDailyScores(sortedSessions);
+    if (isPremiumVerified) {
+      // Calculate skill scores (PREMIUM)
+      skillScores = calculateSkillScores(sortedSessions, recentSessions, olderSessions);
+      currentSkillScores = calculateSkillScores(recentSessions, recentSessions, []);
+      previousSkillScores = calculateSkillScores(olderSessions, olderSessions, []);
 
-    // Find top strength (highest score) and area to improve (lowest score with usage)
-    const sortedSkills = [...skillScores].sort((a, b) => b.score - a.score);
-    const topStrength = sortedSkills.length > 0 ? sortedSkills[0] : null;
-    
-    // Area to improve: lowest score among skills that have been used at least once
-    const usedSkills = sortedSkills.filter(s => s.count > 0);
-    const areaToImprove = usedSkills.length > 0 
-      ? usedSkills[usedSkills.length - 1] 
-      : sortedSkills.length > 0 
-        ? sortedSkills[sortedSkills.length - 1]
-        : null;
+      // Calculate daily scores for trend chart (PREMIUM)
+      dailyScores = calculateDailyScores(sortedSessions);
 
-    // Generate summary
+      // Find top strength (highest score) and area to improve (lowest score with usage) (PREMIUM)
+      const sortedSkills = [...skillScores].sort((a, b) => b.score - a.score);
+      topStrength = sortedSkills.length > 0 ? sortedSkills[0] : null;
+      
+      // Area to improve: lowest score among skills that have been used at least once
+      const usedSkills = sortedSkills.filter(s => s.count > 0);
+      areaToImprove = usedSkills.length > 0 
+        ? usedSkills[usedSkills.length - 1] 
+        : sortedSkills.length > 0 
+          ? sortedSkills[sortedSkills.length - 1]
+          : null;
+    }
+
+    // Generate summary (available to all users)
     const performanceSummary = generatePerformanceSummary(
       overallScore,
       trend,
       sortedSessions.length,
-      topStrength
+      isPremiumVerified ? topStrength : null
     );
 
     return {
@@ -320,12 +353,14 @@ export const useReportData = (sessions: Session[]): UseReportDataReturn => {
       topStrength,
       areaToImprove,
       performanceSummary,
+      isPremiumDataAvailable: isPremiumVerified,
     };
-  }, [sessions]);
+  }, [sessions, isPremiumVerified]);
 
   return {
     ...reportData,
     isLoading: false,
     error: null,
+    isPremiumDataAvailable: reportData.isPremiumDataAvailable,
   };
 };
