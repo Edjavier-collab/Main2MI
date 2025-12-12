@@ -19,6 +19,26 @@ const isMobileDevice = (): boolean => {
     return mobileRegex.test(userAgent.toLowerCase()) || (hasTouchScreen && isSmallScreen);
 };
 
+/**
+ * Remove overlapping text at the boundary between existing and new text
+ * Used on mobile to prevent duplicate words when recognition re-transcribes overlapping audio
+ */
+function removeOverlap(existing: string, newText: string): string {
+    const existingWords = existing.trim().split(/\s+/);
+    const newWords = newText.trim().split(/\s+/);
+    
+    // Check for overlap at the boundary (last N words of existing = first N words of new)
+    for (let overlap = Math.min(10, newWords.length); overlap > 0; overlap--) {
+        const existingEnd = existingWords.slice(-overlap).join(' ').toLowerCase();
+        const newStart = newWords.slice(0, overlap).join(' ').toLowerCase();
+        if (existingEnd === newStart) {
+            // Remove the overlapping portion from new text
+            return newWords.slice(overlap).join(' ');
+        }
+    }
+    return newText;
+}
+
 // Define event types for better type safety, as they are not standard on the SpeechRecognition object type.
 interface SpeechRecognitionEvent extends Event {
     results: SpeechRecognitionResultList;
@@ -135,8 +155,27 @@ export const useSpeechRecognition = () => {
                 
                 if (result.isFinal) {
                     // Only append final results - these are confirmed transcriptions
-                    const final_text = result[0].transcript.trim();
+                    let final_text = result[0].transcript.trim();
                     if (final_text) {
+                        // On mobile, remove overlapping text at the boundary to prevent duplicates
+                        // This handles cases where mobile re-transcribes overlapping audio segments
+                        if (!isContinuousModeRef.current && finalTranscriptRef.current) {
+                            const textWithoutOverlap = removeOverlap(finalTranscriptRef.current, final_text);
+                            if (textWithoutOverlap !== final_text) {
+                                console.log('[useSpeechRecognition] Removed overlap on mobile:', {
+                                    original: final_text,
+                                    afterOverlapRemoval: textWithoutOverlap
+                                });
+                            }
+                            final_text = textWithoutOverlap;
+                        }
+                        
+                        // Skip if overlap removal resulted in empty text
+                        if (!final_text) {
+                            console.log('[useSpeechRecognition] Skipping empty text after overlap removal');
+                            continue;
+                        }
+                        
                         // Prevent duplicate final results by tracking processed texts
                         // This handles cases where the same audio gets transcribed multiple times
                         // Use a normalized key (lowercase, trimmed) to catch duplicates
