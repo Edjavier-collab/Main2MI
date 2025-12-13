@@ -69,7 +69,7 @@ const AppContent: React.FC = () => {
   } = appState;
 
   // Use tier manager hook with server-side premium verification
-  const { userTier, setUserTier, refreshTier, isPremiumVerified } = useTierManager();
+  const { userTier, setUserTier, refreshTier, isPremiumVerified, isVerifying: isTierVerifying } = useTierManager();
 
   // Use streak hook for gamification
   const { currentStreak, updateStreak, processQueue: processStreakQueue } = useStreak();
@@ -165,9 +165,9 @@ const AppContent: React.FC = () => {
       return;
     }
 
-    // Guard: wait until userTier is loaded (avoid using stale tier from state)
-    if (!userTier || userTier === '') {
-      console.warn('[App] User tier not yet loaded, waiting...');
+    // Guard: wait until userTier is loaded and verification is complete
+    if (!userTier || userTier === '' || isTierVerifying) {
+      console.warn('[App] User tier not yet loaded or still verifying, waiting...');
       return;
     }
 
@@ -186,7 +186,7 @@ const AppContent: React.FC = () => {
       setCurrentPatient(patient);
       setView(View.Practice);
     }
-  }, [user, userTier, setView, setCurrentPatient]);
+  }, [user, userTier, isTierVerifying, setView, setCurrentPatient]);
   
   const handleStartFilteredPractice = useCallback((filters: PatientProfileFilters) => {
     // Require authentication to start practice
@@ -462,6 +462,7 @@ const AppContent: React.FC = () => {
                     isGeneratingSummary={isGeneratingSummary}
                     confirmationEmail={confirmationEmail}
                     isPremiumVerified={isPremiumVerified}
+                    isTierVerifying={isTierVerifying}
                     onNavigate={handleNavigate}
                     onStartPractice={handleStartPractice}
                     onStartFilteredPractice={handleStartFilteredPractice}
@@ -492,6 +493,7 @@ const AppContent: React.FC = () => {
             isGeneratingSummary={isGeneratingSummary}
             confirmationEmail={confirmationEmail}
             isPremiumVerified={isPremiumVerified}
+            isTierVerifying={isTierVerifying}
             onNavigate={handleNavigate}
             onStartPractice={handleStartPractice}
             onStartFilteredPractice={handleStartFilteredPractice}

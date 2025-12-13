@@ -83,11 +83,11 @@ export const checkPasswordStrength = (password: string): PasswordStrength => {
     score = Math.min(4, Math.max(0, Math.round(score)));
 
     const strengthMap: Record<number, { label: PasswordStrength['label']; color: string }> = {
-        0: { label: 'Very Weak', color: 'bg-red-500' },
-        1: { label: 'Weak', color: 'bg-orange-500' },
-        2: { label: 'Fair', color: 'bg-yellow-500' },
-        3: { label: 'Strong', color: 'bg-green-400' },
-        4: { label: 'Very Strong', color: 'bg-green-500' }
+        0: { label: 'Very Weak', color: 'bg-[var(--color-error)]' },
+        1: { label: 'Weak', color: 'bg-[var(--color-error)]' },
+        2: { label: 'Fair', color: 'bg-[var(--color-warning)]' },
+        3: { label: 'Strong', color: 'bg-[var(--color-success)]' },
+        4: { label: 'Very Strong', color: 'bg-[var(--color-success)]' }
     };
 
     const { label, color } = strengthMap[score];

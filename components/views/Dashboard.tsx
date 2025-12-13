@@ -342,44 +342,55 @@ const Dashboard: React.FC<DashboardProps> = ({
                 {!hasSessions && (
                     <Card variant="accent" padding="lg" className="text-center">
                         <div className="mb-4">
-                            <div className="mx-auto w-16 h-16 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center">
-                                <i className="fa-regular fa-lightbulb text-3xl text-[var(--color-primary)]" aria-hidden="true"></i>
+                            <div className="mx-auto w-20 h-20 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center">
+                                <i className="fa-regular fa-lightbulb text-4xl text-[var(--color-primary)]" aria-hidden="true"></i>
                             </div>
                         </div>
-                        <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">
-                            Welcome to MI Practice Coach!
+                        <h3 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">
+                            No Sessions Yet
                         </h3>
-                        <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-                            Here's how to get started:
+                        <p className="text-base text-[var(--color-text-secondary)] mb-6">
+                            Start your first practice to track your progress and improve your MI skills!
                         </p>
-                        <ul className="text-sm text-[var(--color-text-secondary)] text-left space-y-2 mb-4">
-                            <li className="flex items-start gap-2">
-                                <span className="text-[var(--color-primary)] font-bold">1.</span>
-                                <span>Tap "Start a New Practice" above</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                                <span className="text-[var(--color-primary)] font-bold">2.</span>
-                                <span>Review your patient's profile</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                                <span className="text-[var(--color-primary)] font-bold">3.</span>
-                                <span>Practice your MI conversation skills</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                                <span className="text-[var(--color-primary)] font-bold">4.</span>
-                                <span>Get AI-powered feedback to improve</span>
-                            </li>
-                        </ul>
-                        {onNavigate && (
+                        <div className="bg-[var(--color-bg-card)] border border-[var(--color-primary-light)] rounded-lg p-4 mb-6">
+                            <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">How it works:</p>
+                            <ul className="text-sm text-[var(--color-text-secondary)] text-left space-y-2">
+                                <li className="flex items-start gap-2">
+                                    <i className="fa-solid fa-play text-[var(--color-primary)] mt-0.5" aria-hidden="true"></i>
+                                    <span>Start a practice session with an AI patient</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <i className="fa-solid fa-comments text-[var(--color-primary)] mt-0.5" aria-hidden="true"></i>
+                                    <span>Practice your MI conversation skills</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <i className="fa-solid fa-chart-line text-[var(--color-primary)] mt-0.5" aria-hidden="true"></i>
+                                    <span>Get AI-powered feedback to improve</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div className="space-y-3">
                             <Button
-                                onClick={() => onNavigate(View.ResourceLibrary)}
-                                variant="ghost"
-                                size="sm"
-                                icon={<i className="fa-solid fa-book-open" aria-hidden="true"></i>}
+                                onClick={onStartPractice}
+                                variant="primary"
+                                size="lg"
+                                fullWidth
+                                icon={<i className="fa-solid fa-play" aria-hidden="true"></i>}
                             >
-                                Browse Learning Resources
+                                Start Your First Practice
                             </Button>
-                        )}
+                            {onNavigate && (
+                                <Button
+                                    onClick={() => onNavigate(View.ResourceLibrary)}
+                                    variant="ghost"
+                                    size="md"
+                                    fullWidth
+                                    icon={<i className="fa-solid fa-book-open" aria-hidden="true"></i>}
+                                >
+                                    Browse Learning Resources
+                                </Button>
+                            )}
+                        </div>
                     </Card>
                 )}
             </main>

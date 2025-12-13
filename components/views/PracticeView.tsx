@@ -35,6 +35,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
     const [feedbackError, setFeedbackError] = useState<string | null>(null);
     const [isRetryingFeedback, setIsRetryingFeedback] = useState(false);
     const [sendError, setSendError] = useState<string | null>(null);
+    const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
     const [sessionExpired, setSessionExpired] = useState(false);
     
     const { user } = useAuth();
@@ -73,6 +74,52 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
             }
         };
     }, []);
+
+    // Warn user before leaving the page if session is in progress
+    useEffect(() => {
+        const hasUnsavedSession = isSessionStarted && transcript.length > 0 && !isEndingSession;
+
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (hasUnsavedSession) {
+                // Auto-save before leaving
+                autoSaveSession({
+                    transcript,
+                    patient,
+                    timestamp: Date.now(),
+                });
+                e.preventDefault();
+                e.returnValue = 'You have an active practice session. Are you sure you want to leave?';
+                return e.returnValue;
+            }
+        };
+
+        const handlePopState = (e: PopStateEvent) => {
+            if (hasUnsavedSession) {
+                const shouldLeave = window.confirm(
+                    'You have an active practice session. Your progress will be saved. Are you sure you want to leave?'
+                );
+                if (!shouldLeave) {
+                    // Prevent navigation by pushing the current state back
+                    window.history.pushState({ view: 'Practice' }, '', '/practice');
+                } else {
+                    // Save before leaving
+                    autoSaveSession({
+                        transcript,
+                        patient,
+                        timestamp: Date.now(),
+                    });
+                }
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        window.addEventListener('popstate', handlePopState);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, [isSessionStarted, transcript, patient, isEndingSession]);
 
     // Auto-save session data every 30 seconds
     useEffect(() => {
@@ -199,9 +246,10 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
         return data.response as string;
     }, [transcript, patient, user]);
 
-    const handleSendMessage = useCallback(async (text: string) => {
+    const handleSendMessage = useCallback(async (text: string, isRetry = false) => {
         // Clear any previous send error
         setSendError(null);
+        setLastFailedMessage(null);
 
         if (!text.trim()) return;
 
@@ -210,8 +258,11 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
             return;
         }
 
-        const newUserMessage: ChatMessage = { author: 'user', text };
-        setTranscript(prev => [...prev, newUserMessage]);
+        // Only add user message if not a retry (retry means we already have the message)
+        if (!isRetry) {
+            const newUserMessage: ChatMessage = { author: 'user', text };
+            setTranscript(prev => [...prev, newUserMessage]);
+        }
         setIsPatientTyping(true);
 
         try {
@@ -219,16 +270,47 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
             const patientResponse = await getPatientResponseFromEdgeFunction(text);
             const newPatientMessage: ChatMessage = { author: 'patient', text: patientResponse };
             setTranscript(prev => [...prev, newPatientMessage]);
+            
+            // Auto-save after successful response
+            autoSaveSession({
+                transcript: [...transcript, { author: 'user', text }, { author: 'patient', text: patientResponse }],
+                patient,
+                timestamp: Date.now(),
+            });
         } catch (error) {
             console.error('[PracticeView] Failed to get patient response:', error);
-            const errorMessage = error instanceof Error ? error.message : 'Failed to get patient response. Please try again.';
-            setSendError(errorMessage);
-            const fallbackMessage: ChatMessage = { author: 'patient', text: "I'm sorry, I'm having trouble focusing right now." };
-            setTranscript(prev => [...prev, fallbackMessage]);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to get patient response.';
+            
+            // Check if it's a network error
+            const isNetworkError = errorMessage.includes('Failed to fetch') || 
+                                   errorMessage.includes('NetworkError') || 
+                                   errorMessage.includes('network');
+            
+            if (isNetworkError) {
+                setSendError('Network connection lost. Check your connection and tap Retry.');
+            } else {
+                setSendError(errorMessage);
+            }
+            
+            // Store the failed message for retry
+            setLastFailedMessage(text);
+            
+            // Auto-save transcript on error (don't add fallback message, let user retry)
+            autoSaveSession({
+                transcript: [...transcript, { author: 'user', text }],
+                patient,
+                timestamp: Date.now(),
+            });
         } finally {
             setIsPatientTyping(false);
         }
-    }, [getPatientResponseFromEdgeFunction, isPatientTyping]);
+    }, [getPatientResponseFromEdgeFunction, isPatientTyping, transcript, patient]);
+
+    const handleRetryLastMessage = useCallback(() => {
+        if (lastFailedMessage) {
+            handleSendMessage(lastFailedMessage, true);
+        }
+    }, [lastFailedMessage, handleSendMessage]);
     
     const handleVoiceSend = () => {
         // Clear any previous send error when user interacts with mic
@@ -475,9 +557,22 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
                 )}
                 {(micError || sendError) && !sessionExpired && (
                     <Card variant="accent" padding="sm" className="mb-3 border-l-4 border-[var(--color-error)]">
-                        <div className="flex items-center gap-2 text-[var(--color-error)] text-sm" role="alert">
-                            <i className="fa fa-exclamation-circle" aria-hidden="true"></i>
-                            <span>{micError || sendError}</span>
+                        <div className="flex items-start justify-between gap-2" role="alert">
+                            <div className="flex items-start gap-2 text-[var(--color-error)] text-sm flex-1">
+                                <i className="fa fa-exclamation-circle mt-0.5" aria-hidden="true"></i>
+                                <span>{micError || sendError}</span>
+                            </div>
+                            {sendError && lastFailedMessage && (
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={handleRetryLastMessage}
+                                    disabled={isPatientTyping}
+                                    icon={<i className="fa-solid fa-redo" aria-hidden="true"></i>}
+                                >
+                                    Retry
+                                </Button>
+                            )}
                         </div>
                     </Card>
                 )}

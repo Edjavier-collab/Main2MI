@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { View } from '../types';
 
 interface UseAppRouterOptions {
@@ -8,11 +8,120 @@ interface UseAppRouterOptions {
   setView: (view: View) => void;
 }
 
+// Map views to URL paths for history management
+const VIEW_TO_PATH: Partial<Record<View, string>> = {
+  [View.Dashboard]: '/',
+  [View.Login]: '/login',
+  [View.ForgotPassword]: '/forgot-password',
+  [View.ResetPassword]: '/reset-password',
+  [View.EmailConfirmation]: '/confirm-email',
+  [View.Practice]: '/practice',
+  [View.Feedback]: '/feedback',
+  [View.ScenarioSelection]: '/scenarios',
+  [View.Settings]: '/settings',
+  [View.Paywall]: '/upgrade',
+  [View.Reports]: '/reports',
+  [View.Calendar]: '/calendar',
+  [View.CoachingSummary]: '/coaching-summary',
+  [View.ResourceLibrary]: '/resources',
+  [View.History]: '/history',
+  [View.CancelSubscription]: '/cancel-subscription',
+  [View.PrivacyPolicy]: '/privacy',
+  [View.TermsOfService]: '/terms',
+  [View.SubscriptionTerms]: '/subscription-terms',
+  [View.CookiePolicy]: '/cookies',
+  [View.Disclaimer]: '/disclaimer',
+  [View.Support]: '/support',
+};
+
+// Map URL paths back to views
+const PATH_TO_VIEW: Record<string, View> = Object.entries(VIEW_TO_PATH).reduce(
+  (acc, [view, path]) => {
+    if (path) acc[path] = view as View;
+    return acc;
+  },
+  {} as Record<string, View>
+);
+
 /**
  * Hook to handle view routing based on authentication state
  * Navigates to dashboard when user logs in, allows anonymous access to free tier features
+ * Also manages browser history for back button support
  */
 export const useAppRouter = ({ user, authLoading, view, setView }: UseAppRouterOptions) => {
+  const previousViewRef = useRef<View | null>(null);
+  const isHandlingPopStateRef = useRef(false);
+
+  // Update URL when view changes
+  useEffect(() => {
+    if (authLoading) return;
+
+    const path = VIEW_TO_PATH[view];
+    if (path && window.location.pathname !== path) {
+      // Only push to history if this is a new navigation (not from popstate)
+      if (!isHandlingPopStateRef.current) {
+        window.history.pushState({ view }, '', path);
+      }
+      isHandlingPopStateRef.current = false;
+    }
+
+    previousViewRef.current = view;
+  }, [view, authLoading]);
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      isHandlingPopStateRef.current = true;
+      
+      if (event.state?.view) {
+        // Navigate to the view from history state
+        setView(event.state.view);
+      } else {
+        // If no state, try to parse the URL
+        const path = window.location.pathname;
+        const viewFromPath = PATH_TO_VIEW[path];
+        if (viewFromPath) {
+          setView(viewFromPath);
+        } else {
+          // Default to dashboard
+          setView(View.Dashboard);
+        }
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [setView]);
+
+  // Set initial view from URL on mount
+  useEffect(() => {
+    const path = window.location.pathname;
+    const viewFromPath = PATH_TO_VIEW[path];
+    
+    // Don't change view during auth loading or if already on the correct view
+    if (authLoading) return;
+    
+    // Handle auth callback URLs (they have special query params)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('access_token') || urlParams.has('type')) {
+      // Auth callback - let useAuthCallback handle it
+      return;
+    }
+    
+    // Handle Stripe callback
+    if (urlParams.has('session_id')) {
+      // Stripe callback - let useStripeCallback handle it
+      return;
+    }
+
+    // Initialize history state on mount
+    if (!window.history.state?.view) {
+      const initialView = viewFromPath || View.Dashboard;
+      window.history.replaceState({ view: initialView }, '', VIEW_TO_PATH[initialView] || '/');
+    }
+  }, [authLoading]);
+
+  // Auth-based redirects
   useEffect(() => {
     if (authLoading) {
       return; // Don't change view while loading

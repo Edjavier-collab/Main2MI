@@ -43,6 +43,7 @@ interface ViewRendererProps {
   isGeneratingSummary: boolean;
   confirmationEmail: string;
   isPremiumVerified: boolean; // Server-verified premium status
+  isTierVerifying: boolean; // Whether tier verification is in progress
   onNavigate: (view: View) => void;
   onStartPractice: () => void;
   onStartFilteredPractice: (filters: PatientProfileFilters) => void;
@@ -68,6 +69,7 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
   isGeneratingSummary,
   confirmationEmail,
   isPremiumVerified,
+  isTierVerifying,
   onNavigate,
   onStartPractice,
   onStartFilteredPractice,
@@ -205,6 +207,17 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
           />
         );
       case View.Paywall:
+        // If tier is still being verified, show loading state to prevent flash
+        if (user && isTierVerifying) {
+          return (
+            <div className="min-h-screen bg-transparent flex items-center justify-center p-6">
+              <div className="text-center">
+                <div className="w-16 h-16 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-[var(--color-text-secondary)]">Verifying subscription...</p>
+              </div>
+            </div>
+          );
+        }
         return (
           <PaywallView 
             onBack={() => onNavigate(View.Dashboard)} 

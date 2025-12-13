@@ -364,16 +364,28 @@ const ReportsView: React.FC<ReportsViewProps> = ({
 
         {/* Empty state CTA */}
         {reportData.sessionCount === 0 && (
-          <div className="text-center">
+          <Card variant="accent" padding="lg" className="text-center">
+            <div className="mb-6">
+              <div className="mx-auto w-20 h-20 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center mb-4">
+                <i className="fa-solid fa-chart-line text-4xl text-[var(--color-primary)]" aria-hidden="true"></i>
+              </div>
+            </div>
+            <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">
+              No Reports Yet
+            </h2>
+            <p className="text-[var(--color-text-secondary)] mb-6">
+              Complete a few practice sessions to see your skill analytics and progress over time.
+            </p>
             <Button
               variant="primary"
               size="lg"
+              fullWidth
               onClick={() => onNavigate(View.ScenarioSelection)}
+              icon={<i className="fa-solid fa-play" aria-hidden="true" />}
             >
-              <i className="fa-solid fa-play mr-2" aria-hidden="true" />
               Start Your First Session
             </Button>
-          </div>
+          </Card>
         )}
       </div>
     </div>

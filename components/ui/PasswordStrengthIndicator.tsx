@@ -37,21 +37,21 @@ const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({
                     {[0, 1, 2, 3].map((index) => (
                         <div
                             key={index}
-                            className={`h-1.5 flex-1 rounded-full transition-colors duration-200 ${
+                            className={`h-2 flex-1 rounded-full transition-colors duration-200 ${
                                 index < strength.score
                                     ? strength.color
-                                    : 'bg-neutral-200'
+                                    : 'bg-[var(--color-neutral-200)]'
                             }`}
                         />
                     ))}
                 </div>
                 <span 
-                    className={`text-xs font-medium ${
+                    className={`text-sm font-semibold ${
                         strength.score >= 3 
-                            ? 'text-success-dark' 
+                            ? 'text-[var(--color-success-dark)]' 
                             : strength.score >= 2 
-                                ? 'text-warning-dark' 
-                                : 'text-error'
+                                ? 'text-[var(--color-warning-dark)]' 
+                                : 'text-[var(--color-error)]'
                     }`}
                 >
                     {strength.label}
@@ -66,23 +66,10 @@ const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({
 
             {/* Feedback suggestions */}
             {showFeedback && strength.feedback.length > 0 && (
-                <ul className="text-xs text-neutral-500 space-y-0.5 mt-1">
+                <ul className="text-sm text-[var(--color-text-muted)] space-y-1 mt-2">
                     {strength.feedback.map((suggestion, index) => (
-                        <li key={index} className="flex items-center gap-1">
-                            <svg 
-                                className="w-3 h-3 text-neutral-400" 
-                                fill="none" 
-                                stroke="currentColor" 
-                                viewBox="0 0 24 24"
-                                aria-hidden="true"
-                            >
-                                <path 
-                                    strokeLinecap="round" 
-                                    strokeLinejoin="round" 
-                                    strokeWidth={2} 
-                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
-                                />
-                            </svg>
+                        <li key={index} className="flex items-center gap-2">
+                            <i className="fa-solid fa-circle-info text-[var(--color-text-muted)] text-xs" aria-hidden="true"></i>
                             {suggestion}
                         </li>
                     ))}
@@ -91,21 +78,8 @@ const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({
 
             {/* Success message when password is strong enough */}
             {strength.isValid && strength.score >= 3 && (
-                <p className="text-xs text-success-dark flex items-center gap-1 mt-1">
-                    <svg 
-                        className="w-3 h-3" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                    >
-                        <path 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            strokeWidth={2} 
-                            d="M5 13l4 4L19 7" 
-                        />
-                    </svg>
+                <p className="text-sm text-[var(--color-success-dark)] flex items-center gap-2 mt-2 font-medium">
+                    <i className="fa-solid fa-check-circle" aria-hidden="true"></i>
                     Great password choice!
                 </p>
             )}
