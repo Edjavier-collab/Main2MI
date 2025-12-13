@@ -31,13 +31,13 @@ serve(async (req: Request) => {
 
     // Always verify webhook signature - no bypass
     let event: Stripe.Event;
-    try {
-      event = await stripe.webhooks.constructEventAsync(
-        body,
-        signature,
-        webhookSecret
-      );
-    } catch (err) {
+      try {
+        event = await stripe.webhooks.constructEventAsync(
+          body,
+          signature,
+          webhookSecret
+        );
+      } catch (err) {
       console.error('[stripe-webhook] Signature verification failed');
       return errorResponse('Webhook signature verification failed', 400, req);
     }

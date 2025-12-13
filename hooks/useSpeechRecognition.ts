@@ -125,10 +125,10 @@ export const useSpeechRecognition = () => {
             // On desktop (continuous mode), we need to track restarts
             if (isContinuousModeRef.current) {
                 // On desktop continuous mode, check if recognition restarted
-                if (event.resultIndex < lastProcessedIndexRef.current) {
-                    console.log('[useSpeechRecognition] Recognition restarted, resetting index tracking');
-                    lastProcessedIndexRef.current = -1;
-                    sessionIdRef.current += 1;
+            if (event.resultIndex < lastProcessedIndexRef.current) {
+                console.log('[useSpeechRecognition] Recognition restarted, resetting index tracking');
+                lastProcessedIndexRef.current = -1;
+                sessionIdRef.current += 1;
                     // Clear processed texts tracking on restart to allow same text in new session
                     processedFinalTextsRef.current.clear();
                 }
@@ -211,7 +211,7 @@ export const useSpeechRecognition = () => {
                     // Don't accumulate - each event rebuilds interim from scratch
                     // Only include interim results from the current processing range
                     if (i >= startIndex) {
-                        newInterimTranscript += result[0].transcript;
+                    newInterimTranscript += result[0].transcript;
                     }
                 }
                 
@@ -222,14 +222,14 @@ export const useSpeechRecognition = () => {
             // Update final transcript state only if we got new final results
             // Check if component is still mounted before updating state
             if (isMountedRef.current) {
-                if (hasNewFinal) {
-                    setFinalTranscript(finalTranscriptRef.current);
+            if (hasNewFinal) {
+                setFinalTranscript(finalTranscriptRef.current);
                     // Always clear interim when we get final results
-                    setInterimTranscript('');
-                } else {
-                    // Update interim transcript (this replaces previous interim, doesn't append)
-                    // Only show interim if we don't have new final results
-                    setInterimTranscript(newInterimTranscript.trim());
+                setInterimTranscript('');
+            } else {
+                // Update interim transcript (this replaces previous interim, doesn't append)
+                // Only show interim if we don't have new final results
+                setInterimTranscript(newInterimTranscript.trim());
                 }
             }
         };
@@ -370,7 +370,7 @@ export const useSpeechRecognition = () => {
             // Remove all event listeners by stopping recognition
             if (recognitionRef.current) {
                 try {
-                    recognitionRef.current.stop();
+                recognitionRef.current.stop();
                 } catch (err) {
                     // Ignore errors when stopping (may already be stopped)
                 }
@@ -432,8 +432,8 @@ export const useSpeechRecognition = () => {
         } catch (err) {
             console.error('Failed to start speech recognition:', err);
             if (isMountedRef.current) {
-                setError('Failed to start microphone. Please check your browser permissions.');
-                setIsListening(false);
+            setError('Failed to start microphone. Please check your browser permissions.');
+            setIsListening(false);
                 setIsWaitingToRestart(false);
             }
         }

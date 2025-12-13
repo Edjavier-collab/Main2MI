@@ -316,12 +316,19 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                     <SettingsSection title="Profile">
                         <div className="p-6 flex flex-col gap-4">
                             <div className="flex items-center gap-4">
-                                <div
-                                    className="w-16 h-16 rounded-full bg-[var(--color-primary-lighter)] flex items-center justify-center text-[var(--color-primary-dark)] text-2xl font-bold"
-                                    aria-label={`Profile avatar for ${user.email}`}
-                                >
-                                    {displayName?.charAt(0).toUpperCase() || <i className="fa fa-user" aria-hidden="true"></i>}
-                                </div>
+                                {subscriptionLoading ? (
+                                    <div 
+                                        className="w-16 h-16 rounded-full bg-[var(--color-neutral-200)] animate-pulse"
+                                        aria-label="Loading profile..."
+                                    />
+                                ) : (
+                                    <div
+                                        className="w-16 h-16 rounded-full bg-[var(--color-primary-lighter)] flex items-center justify-center text-[var(--color-primary-dark)] text-2xl font-bold"
+                                        aria-label={`Profile avatar for ${user.email}`}
+                                    >
+                                        {displayName?.charAt(0).toUpperCase() || <i className="fa fa-user" aria-hidden="true"></i>}
+                                    </div>
+                                )}
                                 <div className="flex-1 min-w-0">
                                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)] truncate" title={user.email}>
                                         {fullName}

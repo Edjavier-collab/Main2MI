@@ -407,76 +407,76 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                 {showCancellationFlow && !subscription.hasRetentionDiscount && !subscription.cancelAtPeriodEnd && (
                     <>
                         {/* 30% Discount Offer */}
-                        <Card variant="accent" padding="lg" className="mb-6 border-2 border-[var(--color-primary-light)]">
-                            <div className="text-center mb-4">
-                                <div className="inline-block bg-[var(--color-primary)] text-white text-xs font-bold px-3 py-1 rounded-full uppercase mb-2">
-                                    Special Offer
-                                </div>
-                                <h3 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">Stay with us for 30% off!</h3>
-                                <p className="text-[var(--color-text-secondary)] mb-4">
-                                    We'd love to keep you as a member. Accept this offer and pay only{' '}
-                                    <span className="font-bold text-[var(--color-primary-dark)]">{formatPrice(discountedPrice!)}</span> per {periodLabel} instead of{' '}
-                                    <span className="line-through text-[var(--color-text-muted)]">{formatPrice(subscription.originalPrice)}</span>.
-                                </p>
-                                <Card variant="default" padding="md" className="mb-4">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-[var(--color-text-secondary)]">Original Price</span>
-                                        <span className="text-lg font-bold text-[var(--color-text-primary)]">{formatPrice(subscription.originalPrice)}/{periodLabel}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center mt-2">
-                                        <span className="text-[var(--color-text-secondary)]">Your New Price</span>
-                                        <span className="text-2xl font-extrabold text-[var(--color-primary-dark)]">{formatPrice(discountedPrice!)}/{periodLabel}</span>
-                                    </div>
-                                    <div className="text-center mt-3 text-sm text-[var(--color-text-muted)]">
-                                        Save {formatPrice(subscription.originalPrice - discountedPrice!)} per {periodLabel}
-                                    </div>
-                                </Card>
+                    <Card variant="accent" padding="lg" className="mb-6 border-2 border-[var(--color-primary-light)]">
+                        <div className="text-center mb-4">
+                            <div className="inline-block bg-[var(--color-primary)] text-white text-xs font-bold px-3 py-1 rounded-full uppercase mb-2">
+                                Special Offer
                             </div>
-                        </Card>
+                            <h3 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">Stay with us for 30% off!</h3>
+                            <p className="text-[var(--color-text-secondary)] mb-4">
+                                We'd love to keep you as a member. Accept this offer and pay only{' '}
+                                <span className="font-bold text-[var(--color-primary-dark)]">{formatPrice(discountedPrice!)}</span> per {periodLabel} instead of{' '}
+                                <span className="line-through text-[var(--color-text-muted)]">{formatPrice(subscription.originalPrice)}</span>.
+                            </p>
+                            <Card variant="default" padding="md" className="mb-4">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[var(--color-text-secondary)]">Original Price</span>
+                                    <span className="text-lg font-bold text-[var(--color-text-primary)]">{formatPrice(subscription.originalPrice)}/{periodLabel}</span>
+                                </div>
+                                <div className="flex justify-between items-center mt-2">
+                                    <span className="text-[var(--color-text-secondary)]">Your New Price</span>
+                                    <span className="text-2xl font-extrabold text-[var(--color-primary-dark)]">{formatPrice(discountedPrice!)}/{periodLabel}</span>
+                                </div>
+                                <div className="text-center mt-3 text-sm text-[var(--color-text-muted)]">
+                                    Save {formatPrice(subscription.originalPrice - discountedPrice!)} per {periodLabel}
+                                </div>
+                            </Card>
+                        </div>
+                    </Card>
 
                         {/* Annual Upgrade Offer - Only for monthly subscribers */}
-                        {detectedPlan === 'monthly' && (
+                                {detectedPlan === 'monthly' && (
                             <Card variant="accent" padding="lg" className="mb-6 border-2 border-[var(--color-success-light)]">
-                                <div className="text-center mb-4">
+                                        <div className="text-center mb-4">
                                     <div className="inline-block bg-[var(--color-success)] text-white text-xs font-bold px-3 py-1 rounded-full uppercase mb-2">
                                         Save More
                                     </div>
-                                    <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">Switch to Annual Billing</h3>
-                                    <p className="text-[var(--color-text-secondary)] text-sm mb-3">
-                                        Change to annual billing to save <span className="font-bold text-[var(--color-success)]">${(subscription.originalPrice * 12 - 99.99).toFixed(2)}/year</span>.
-                                        <br />
-                                        The change takes effect at the end of your current month.
-                                    </p>
-                                    
-                                    <Button
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
+                                            <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">Switch to Annual Billing</h3>
+                                            <p className="text-[var(--color-text-secondary)] text-sm mb-3">
+                                                Change to annual billing to save <span className="font-bold text-[var(--color-success)]">${(subscription.originalPrice * 12 - 99.99).toFixed(2)}/year</span>.
+                                                <br />
+                                                The change takes effect at the end of your current month.
+                                            </p>
+                                            
+                                            <Button
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
                                             console.log('[CancelSubscriptionView] Annual upgrade clicked in cancellation flow');
-                                            handleUpgradeToAnnual();
-                                        }}
-                                        disabled={upgradeLoading || actionLoading !== null}
-                                        variant="success"
-                                        fullWidth
-                                        loading={upgradeLoading}
-                                        className="mb-4 !text-black !border-2 !border-black"
-                                    >
-                                        Switch to Annual & Save
-                                    </Button>
+                                                    handleUpgradeToAnnual();
+                                                }}
+                                                disabled={upgradeLoading || actionLoading !== null}
+                                                variant="success"
+                                                fullWidth
+                                                loading={upgradeLoading}
+                                                className="mb-4 !text-black !border-2 !border-black"
+                                            >
+                                                Switch to Annual & Save
+                                            </Button>
 
-                                    <Card variant="default" padding="sm" className="mb-3">
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-[var(--color-text-secondary)]">Monthly (current)</span>
-                                            <span className="font-semibold text-[var(--color-text-primary)]">{formatPrice(subscription.originalPrice)}/month</span>
-                                        </div>
-                                        <div className="flex justify-between items-center mt-2 text-sm">
-                                            <span className="text-[var(--color-text-secondary)]">Annual (upgrade)</span>
-                                            <span className="font-semibold text-[var(--color-success)]">$99.99/year</span>
+                                            <Card variant="default" padding="sm" className="mb-3">
+                                                <div className="flex justify-between items-center text-sm">
+                                                    <span className="text-[var(--color-text-secondary)]">Monthly (current)</span>
+                                                    <span className="font-semibold text-[var(--color-text-primary)]">{formatPrice(subscription.originalPrice)}/month</span>
+                                                </div>
+                                                <div className="flex justify-between items-center mt-2 text-sm">
+                                                    <span className="text-[var(--color-text-secondary)]">Annual (upgrade)</span>
+                                                    <span className="font-semibold text-[var(--color-success)]">$99.99/year</span>
+                                                </div>
+                                            </Card>
                                         </div>
                                     </Card>
-                                </div>
-                            </Card>
-                        )}
+                                )}
                     </>
                 )}
 
@@ -485,16 +485,16 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                     <div className="space-y-4">
                         {!showCancellationFlow ? (
                             // Initial view - Show Cancel button only
-                            <div className="space-y-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowCancellationFlow(true)}
-                                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-[var(--color-neutral-300)] rounded-lg shadow-md hover:bg-[var(--color-bg-accent)] hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 text-[var(--color-text-primary)] font-semibold text-sm"
-                                >
-                                    Cancel Subscription
-                                </button>
-                                <BackButton onClick={onBack} label="Go Back to Settings" className="w-full justify-center" />
-                            </div>
+                                <div className="space-y-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCancellationFlow(true)}
+                                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-[var(--color-neutral-300)] rounded-lg shadow-md hover:bg-[var(--color-bg-accent)] hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 text-[var(--color-text-primary)] font-semibold text-sm"
+                                    >
+                                        Cancel Subscription
+                                    </button>
+                                    <BackButton onClick={onBack} label="Go Back to Settings" className="w-full justify-center" />
+                                </div>
                         ) : (
                             // Cancellation flow - Show retention offer buttons
                             <div className="space-y-3">

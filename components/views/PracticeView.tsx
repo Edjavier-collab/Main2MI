@@ -480,20 +480,11 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
                     <button
                         onClick={handleEndSession}
                         disabled={isEndingSession}
-                        className="px-4 min-h-[var(--touch-target-min)] text-white font-semibold border-2 border-black disabled:opacity-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ef4444] focus-visible:ring-offset-2"
-                        style={{ 
-                            backgroundColor: isEndingSession ? '#dc2626' : '#ef4444',
-                        }}
-                        onMouseEnter={(e) => {
-                            if (!isEndingSession) {
-                                e.currentTarget.style.backgroundColor = '#dc2626';
-                            }
-                        }}
-                        onMouseLeave={(e) => {
-                            if (!isEndingSession) {
-                                e.currentTarget.style.backgroundColor = '#ef4444';
-                            }
-                        }}
+                        className={`px-4 min-h-[var(--touch-target-min)] text-white font-semibold border-2 border-black disabled:opacity-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)] focus-visible:ring-offset-2 ${
+                            isEndingSession 
+                                ? 'bg-[var(--color-error-dark)]' 
+                                : 'bg-[var(--color-error)] hover:bg-[var(--color-error-dark)]'
+                        }`}
                     >
                         {isEndingSession ? (
                             <span className="flex items-center gap-2">

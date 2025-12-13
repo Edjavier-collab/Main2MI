@@ -230,7 +230,7 @@ export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ on
                                 ]}
                             />
                             {selectedDifficulty !== 'any' && (
-                                <div className="mt-3 p-3 bg-amber-50 border border-amber-200 text-amber-800 text-sm">
+                                <div className="mt-3 p-3 bg-[var(--color-warning-light)] border border-[var(--color-warning)] text-[var(--color-warning-dark)] text-sm rounded-md">
                                     <i className="fa-solid fa-circle-info mr-2" aria-hidden="true"></i>
                                     {DIFFICULTY_DESCRIPTIONS[selectedDifficulty as DifficultyLevel]}
                                 </div>
@@ -257,7 +257,7 @@ export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ on
                                 ]}
                             />
                             {selectedStage !== 'any' && (
-                                <div className="mt-3 p-3 bg-purple-50 border border-purple-200 text-purple-800 text-sm">
+                                <div className="mt-3 p-3 bg-[var(--color-info-light)] border border-[var(--color-info)] text-[var(--color-info-dark)] text-sm rounded-md">
                                     <i className="fa-solid fa-circle-info mr-2" aria-hidden="true"></i>
                                     {STAGE_DESCRIPTIONS[selectedStage as StageOfChange]}
                                 </div>

@@ -355,19 +355,19 @@ const Dashboard: React.FC<DashboardProps> = ({
                         <div className="bg-[var(--color-bg-card)] border border-[var(--color-primary-light)] rounded-lg p-4 mb-6">
                             <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">How it works:</p>
                             <ul className="text-sm text-[var(--color-text-secondary)] text-left space-y-2">
-                                <li className="flex items-start gap-2">
+                            <li className="flex items-start gap-2">
                                     <i className="fa-solid fa-play text-[var(--color-primary)] mt-0.5" aria-hidden="true"></i>
                                     <span>Start a practice session with an AI patient</span>
-                                </li>
-                                <li className="flex items-start gap-2">
+                            </li>
+                            <li className="flex items-start gap-2">
                                     <i className="fa-solid fa-comments text-[var(--color-primary)] mt-0.5" aria-hidden="true"></i>
-                                    <span>Practice your MI conversation skills</span>
-                                </li>
-                                <li className="flex items-start gap-2">
+                                <span>Practice your MI conversation skills</span>
+                            </li>
+                            <li className="flex items-start gap-2">
                                     <i className="fa-solid fa-chart-line text-[var(--color-primary)] mt-0.5" aria-hidden="true"></i>
-                                    <span>Get AI-powered feedback to improve</span>
-                                </li>
-                            </ul>
+                                <span>Get AI-powered feedback to improve</span>
+                            </li>
+                        </ul>
                         </div>
                         <div className="space-y-3">
                             <Button
@@ -379,17 +379,17 @@ const Dashboard: React.FC<DashboardProps> = ({
                             >
                                 Start Your First Practice
                             </Button>
-                            {onNavigate && (
-                                <Button
-                                    onClick={() => onNavigate(View.ResourceLibrary)}
-                                    variant="ghost"
+                        {onNavigate && (
+                            <Button
+                                onClick={() => onNavigate(View.ResourceLibrary)}
+                                variant="ghost"
                                     size="md"
                                     fullWidth
-                                    icon={<i className="fa-solid fa-book-open" aria-hidden="true"></i>}
-                                >
-                                    Browse Learning Resources
-                                </Button>
-                            )}
+                                icon={<i className="fa-solid fa-book-open" aria-hidden="true"></i>}
+                            >
+                                Browse Learning Resources
+                            </Button>
+                        )}
                         </div>
                     </Card>
                 )}

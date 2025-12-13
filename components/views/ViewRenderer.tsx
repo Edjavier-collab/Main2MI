@@ -181,12 +181,12 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
               </div>
             }
           >
-            <FeedbackView 
-              session={currentSession} 
-              onDone={onDoneFromFeedback} 
-              onUpgrade={() => onNavigate(View.Paywall)} 
-              onStartPractice={onStartPractice} 
-            />
+          <FeedbackView 
+            session={currentSession} 
+            onDone={onDoneFromFeedback} 
+            onUpgrade={() => onNavigate(View.Paywall)} 
+            onStartPractice={onStartPractice} 
+          />
           </ErrorBoundary>
         );
       case View.History:
@@ -286,12 +286,12 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
               </div>
             }
           >
-            <CoachingSummaryView
-              isLoading={isGeneratingSummary}
-              summary={coachingSummary}
-              error={coachingSummaryError}
-              onBack={() => onNavigate(View.Calendar)}
-            />
+          <CoachingSummaryView
+            isLoading={isGeneratingSummary}
+            summary={coachingSummary}
+            error={coachingSummaryError}
+            onBack={() => onNavigate(View.Calendar)}
+          />
           </ErrorBoundary>
         );
       case View.PrivacyPolicy:
@@ -331,14 +331,14 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
               </div>
             }
           >
-            <ReportsView
-              sessions={sessions}
-              userTier={userTier}
-              isPremiumVerified={isPremiumVerified}
-              onBack={() => onNavigate(View.Dashboard)}
-              onUpgrade={() => onNavigate(View.Paywall)}
-              onNavigate={onNavigate}
-            />
+          <ReportsView
+            sessions={sessions}
+            userTier={userTier}
+            isPremiumVerified={isPremiumVerified}
+            onBack={() => onNavigate(View.Dashboard)}
+            onUpgrade={() => onNavigate(View.Paywall)}
+            onNavigate={onNavigate}
+          />
           </ErrorBoundary>
         );
       case View.Dashboard:
