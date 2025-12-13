@@ -41,7 +41,7 @@ serve(async (req: Request) => {
       return errorResponse('Unauthorized: userId mismatch', 403);
     }
 
-    console.log('[restore-subscription] Restoring subscription for user:', userId);
+    console.log('[restore-subscription] Restoring subscription for user:', userId.substring(0, 8) + '...');
 
     const stripe = getStripe();
 

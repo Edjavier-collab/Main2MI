@@ -46,7 +46,7 @@ export function getSupabaseAdmin(): SupabaseClient {
 export async function updateUserTier(userId: string, tier: string): Promise<void> {
   const supabase = getSupabaseAdmin();
 
-  console.log(`[supabase] Updating tier for user ${userId} to ${tier}`);
+  console.log(`[supabase] Updating tier for user ${userId.substring(0, 8)}... to ${tier}`);
 
   // First try to update existing profile
   const { data: updateData, error: updateError } = await supabase
@@ -66,7 +66,7 @@ export async function updateUserTier(userId: string, tier: string): Promise<void
 
   // If no rows updated, try to insert (profile might not exist)
   if (!updateError && (!updateData || updateData.length === 0)) {
-    console.log(`[supabase] No profile found, creating new profile for user ${userId}`);
+    console.log(`[supabase] No profile found, creating new profile for user ${userId.substring(0, 8)}...`);
 
     const { error: insertError } = await supabase
       .from('profiles')
@@ -117,7 +117,7 @@ export async function updateUserPlan(userId: string, plan: string): Promise<void
 
   const supabase = getSupabaseAdmin();
 
-  console.log(`[supabase] Updating plan for user ${userId} to ${plan}`);
+  console.log(`[supabase] Updating plan for user ${userId.substring(0, 8)}... to ${plan}`);
 
   try {
     const { error } = await supabase

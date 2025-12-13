@@ -41,7 +41,7 @@ serve(async (req: Request) => {
       return errorResponse('Unauthorized: userId mismatch', 403);
     }
 
-    console.log('[apply-retention-discount] Applying discount for user:', userId);
+    console.log('[apply-retention-discount] Applying discount for user:', userId.substring(0, 8) + '...');
 
     const stripe = getStripe();
 

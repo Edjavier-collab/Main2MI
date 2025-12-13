@@ -134,7 +134,7 @@ serve(async (req: Request) => {
     }
 
     // Require authenticated user - verify JWT token (no anonymous access)
-    console.log(`[analyze-session] Verifying token (length: ${token.length}, starts with: ${token.substring(0, 20)}...)`);
+    console.log(`[analyze-session] Verifying token (length: ${token.length})`);
     
     // Create Supabase client for Edge Function
     const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
@@ -309,7 +309,7 @@ IMPORTANT: Count every instance of each skill in the transcript. For example, if
       }
     };
 
-    console.log('[analyze-session] Calling Gemini API for user:', userId);
+    console.log('[analyze-session] Calling Gemini API for user:', userId.substring(0, 8) + '...');
 
     // Call Gemini API with timeout
     const geminiUrl = `${GEMINI_API_URL}?key=${geminiApiKey}`;
@@ -393,7 +393,7 @@ IMPORTANT: Count every instance of each skill in the transcript. For example, if
     // Normalize and return feedback
     const normalizedFeedback = normalizeFeedbackOutput(feedbackJson);
 
-    console.log('[analyze-session] Successfully generated feedback for user:', userId);
+    console.log('[analyze-session] Successfully generated feedback for user:', userId.substring(0, 8) + '...');
 
     return jsonResponse(normalizedFeedback);
 

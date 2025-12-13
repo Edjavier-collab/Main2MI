@@ -77,7 +77,7 @@ serve(async (req: Request) => {
       return errorResponse('Unauthorized: session userId does not match authenticated user', 403);
     }
 
-    console.log('[update-tier-from-session] Updating tier for user:', userId, 'plan:', plan);
+    console.log('[update-tier-from-session] Updating tier for user:', userId.substring(0, 8) + '...', 'plan:', plan);
 
     // Update subscription metadata if available
     if (session.subscription) {

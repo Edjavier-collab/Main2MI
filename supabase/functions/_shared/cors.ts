@@ -1,6 +1,46 @@
-// CORS headers for Edge Functions
+// Allowed origins for CORS
+const ALLOWED_ORIGINS = [
+  'https://mi-practice-coach.vercel.app', // Production
+  'http://localhost:5173', // Local dev (Vite default)
+  'http://localhost:3000', // Alternative local dev port
+];
+
+// Get allowed origin for request
+function getAllowedOrigin(origin: string | null): string | null {
+  if (!origin) {
+    return null;
+  }
+  
+  // Check if origin is in allowed list
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    return origin;
+  }
+  
+  // Allow localhost with any port for development
+  if (origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:')) {
+    return origin;
+  }
+  
+  return null;
+}
+
+// Get CORS headers for a specific request
+export function getCorsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get('origin');
+  const allowedOrigin = getAllowedOrigin(origin);
+  
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin || 'null',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+    'Access-Control-Allow-Credentials': 'true',
+  };
+}
+
+// Legacy export for backward compatibility (safer default - no wildcard)
+// Note: Functions should use getCorsHeaders(req) for proper origin checking
 export const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'null', // Safer default - no wildcard
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
 };
@@ -8,21 +48,22 @@ export const corsHeaders = {
 // Handle CORS preflight requests
 export function handleCors(req: Request): Response | null {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: getCorsHeaders(req) });
   }
   return null;
 }
 
 // Create JSON response with CORS headers
-export function jsonResponse(data: unknown, status = 200): Response {
+export function jsonResponse(data: unknown, status = 200, req?: Request): Response {
+  const headers = req ? getCorsHeaders(req) : corsHeaders;
   return new Response(JSON.stringify(data), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...headers, 'Content-Type': 'application/json' },
   });
 }
 
 // Create error response with CORS headers
-export function errorResponse(message: string, status = 400): Response {
-  return jsonResponse({ error: message }, status);
+export function errorResponse(message: string, status = 400, req?: Request): Response {
+  return jsonResponse({ error: message }, status, req);
 }
 

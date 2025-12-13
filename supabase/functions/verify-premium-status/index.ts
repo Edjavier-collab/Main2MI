@@ -60,7 +60,7 @@ serve(async (req: Request) => {
       return errorResponse('Invalid or expired token', 401);
     }
 
-    console.log('[verify-premium-status] Verified user:', user.id);
+    console.log('[verify-premium-status] Verified user:', user.id.substring(0, 8) + '...');
 
     // Now use service role to get the actual tier from profiles table
     // This ensures we're reading the true server-side value
@@ -87,7 +87,7 @@ serve(async (req: Request) => {
     if (profileError) {
       // Profile might not exist yet
       if (profileError.code === 'PGRST116') {
-        console.log('[verify-premium-status] No profile found for user:', user.id);
+        console.log('[verify-premium-status] No profile found for user:', user.id.substring(0, 8) + '...');
         return jsonResponse({
           isPremium: false,
           tier: 'free',

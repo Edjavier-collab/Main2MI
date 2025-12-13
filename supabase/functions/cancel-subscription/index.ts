@@ -45,7 +45,7 @@ serve(async (req: Request) => {
       return errorResponse('Invalid action. Must be "accept_offer" or "cancel"', 400);
     }
 
-    console.log('[cancel-subscription] Processing request:', { userId, action });
+    console.log('[cancel-subscription] Processing request:', { userId: userId.substring(0, 8) + '...', action });
 
     const stripe = getStripe();
 

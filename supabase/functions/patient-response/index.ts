@@ -289,7 +289,7 @@ serve(async (req: Request) => {
     }
 
     const userId = user.id;
-    console.log('[patient-response] Verified authenticated user:', userId);
+    console.log('[patient-response] Verified authenticated user:', userId.substring(0, 8) + '...');
 
     // Parse request body
     const { transcript, patient, message } = await req.json();
@@ -365,7 +365,7 @@ Your response must feel fresh and varied, not repetitive.`;
       }
     };
 
-    console.log('[patient-response] Calling Gemini API for user:', userId);
+    console.log('[patient-response] Calling Gemini API for user:', userId.substring(0, 8) + '...');
 
     // Call Gemini API with timeout
     const geminiUrl = `${GEMINI_API_URL}?key=${geminiApiKey}`;
@@ -439,7 +439,7 @@ Your response must feel fresh and varied, not repetitive.`;
       return errorResponse('AI service returned empty response', 500);
     }
 
-    console.log('[patient-response] Successfully generated patient response for user:', userId);
+    console.log('[patient-response] Successfully generated patient response for user:', userId.substring(0, 8) + '...');
 
     return jsonResponse({ response: responseText });
 

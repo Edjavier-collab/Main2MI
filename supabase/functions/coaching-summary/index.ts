@@ -198,7 +198,7 @@ serve(async (req: Request) => {
     }
 
     const userId = user.id;
-    console.log('[coaching-summary] Verified authenticated user:', userId);
+    console.log('[coaching-summary] Verified authenticated user:', userId.substring(0, 8) + '...');
 
     // Parse request body
     const { sessions } = await req.json();
@@ -303,7 +303,7 @@ serve(async (req: Request) => {
       }
     };
 
-    console.log('[coaching-summary] Calling Gemini API for user:', userId, 'sessions:', sessionSummaries.length);
+    console.log('[coaching-summary] Calling Gemini API for user:', userId.substring(0, 8) + '...', 'sessions:', sessionSummaries.length);
 
     // Call Gemini API with timeout
     const geminiUrl = `${GEMINI_API_URL}?key=${geminiApiKey}`;
@@ -386,7 +386,7 @@ serve(async (req: Request) => {
       lastSessionDate
     );
 
-    console.log('[coaching-summary] Successfully generated coaching summary for user:', userId);
+    console.log('[coaching-summary] Successfully generated coaching summary for user:', userId.substring(0, 8) + '...');
 
     return jsonResponse(normalizedSummary);
 

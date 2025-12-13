@@ -11,13 +11,13 @@ serve(async (req: Request) => {
   try {
     // Only allow POST
     if (req.method !== 'POST') {
-      return errorResponse('Method not allowed', 405);
+      return errorResponse('Method not allowed', 405, req);
     }
 
     // Verify JWT token
     const authHeader = req.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return errorResponse('Missing or invalid authorization header', 401);
+      return errorResponse('Missing or invalid authorization header', 401, req);
     }
 
     const token = authHeader.replace('Bearer ', '');
@@ -26,7 +26,7 @@ serve(async (req: Request) => {
       authenticatedUser = await verifyJWT(token);
     } catch (authError) {
       console.error('[create-checkout-session] Auth error:', authError);
-      return errorResponse('Invalid or expired token. Please log in and try again.', 401);
+      return errorResponse('Invalid or expired token. Please log in and try again.', 401, req);
     }
 
     const { userId, plan, email } = await req.json();
@@ -34,18 +34,18 @@ serve(async (req: Request) => {
     // Validate required fields
     if (!userId || !plan) {
       console.error('[create-checkout-session] Missing userId or plan:', { userId, plan });
-      return errorResponse('Missing userId or plan', 400);
+      return errorResponse('Missing userId or plan', 400, req);
     }
 
     // Verify userId matches authenticated user
     if (userId !== authenticatedUser.id) {
       console.error('[create-checkout-session] UserId mismatch:', { requested: userId, authenticated: authenticatedUser.id });
-      return errorResponse('Unauthorized: userId mismatch', 403);
+      return errorResponse('Unauthorized: userId mismatch', 403, req);
     }
 
     if (!['monthly', 'annual'].includes(plan)) {
       console.error('[create-checkout-session] Invalid plan:', plan);
-      return errorResponse('Invalid plan. Must be "monthly" or "annual"', 400);
+      return errorResponse('Invalid plan. Must be "monthly" or "annual"', 400, req);
     }
 
     // Get Stripe instance and price IDs
@@ -56,10 +56,10 @@ serve(async (req: Request) => {
     if (!priceId) {
       const errorMsg = `Price ID not configured for plan: ${plan}`;
       console.error('[create-checkout-session]', errorMsg);
-      return errorResponse(errorMsg, 500);
+      return errorResponse(errorMsg, 500, req);
     }
 
-    console.log('[create-checkout-session] Creating session for user:', userId, 'plan:', plan);
+    console.log('[create-checkout-session] Creating session for user:', userId.substring(0, 8) + '...', 'plan:', plan);
 
     // Get the origin for success/cancel URLs
     const origin = req.headers.get('origin') || Deno.env.get('FRONTEND_URL') || 'http://localhost:3000';
@@ -98,12 +98,13 @@ serve(async (req: Request) => {
     return jsonResponse({
       sessionId: session.id,
       url: session.url,
-    });
+    }, 200, req);
   } catch (error) {
     console.error('[create-checkout-session] Error:', error);
     return errorResponse(
       error instanceof Error ? error.message : 'Failed to create checkout session',
-      500
+      500,
+      req
     );
   }
 });

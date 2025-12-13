@@ -41,7 +41,7 @@ serve(async (req: Request) => {
       return errorResponse('Unauthorized: userId mismatch', 403);
     }
 
-    console.log('[create-billing-portal-session] Creating billing portal session for user:', userId);
+    console.log('[create-billing-portal-session] Creating billing portal session for user:', userId.substring(0, 8) + '...');
 
     const stripe = getStripe();
 

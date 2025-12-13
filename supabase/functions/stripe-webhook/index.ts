@@ -14,28 +14,32 @@ serve(async (req: Request) => {
     const stripe = getStripe();
     const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
 
+    // Require webhook secret - no bypass for development
+    if (!webhookSecret) {
+      console.error('[stripe-webhook] STRIPE_WEBHOOK_SECRET not configured');
+      return errorResponse('Webhook secret not configured', 500);
+    }
+
     // Get the raw body for signature verification
     const body = await req.text();
     const signature = req.headers.get('stripe-signature');
 
-    let event: Stripe.Event;
+    if (!signature) {
+      console.error('[stripe-webhook] Missing stripe-signature header');
+      return errorResponse('Missing stripe-signature header', 400);
+    }
 
-    // Verify webhook signature
-    if (webhookSecret && signature) {
-      try {
-        event = await stripe.webhooks.constructEventAsync(
-          body,
-          signature,
-          webhookSecret
-        );
-      } catch (err) {
-        console.error('[stripe-webhook] Signature verification failed:', err);
-        return errorResponse(`Webhook signature verification failed: ${err}`, 400);
-      }
-    } else {
-      // Development mode - parse without verification
-      console.warn('[stripe-webhook] No webhook secret or signature - parsing without verification');
-      event = JSON.parse(body);
+    // Always verify webhook signature - no bypass
+    let event: Stripe.Event;
+    try {
+      event = await stripe.webhooks.constructEventAsync(
+        body,
+        signature,
+        webhookSecret
+      );
+    } catch (err) {
+      console.error('[stripe-webhook] Signature verification failed');
+      return errorResponse('Webhook signature verification failed', 400);
     }
 
     console.log(`[stripe-webhook] Received event: ${event.type}`);
@@ -51,7 +55,7 @@ serve(async (req: Request) => {
           return errorResponse('Missing userId in metadata', 400);
         }
 
-        console.log('[stripe-webhook] Checkout completed for user:', userId);
+        console.log('[stripe-webhook] Checkout completed for user:', userId.substring(0, 8) + '...');
         const plan = session.metadata?.plan || 'monthly';
 
         // Update subscription metadata with plan information
@@ -93,7 +97,7 @@ serve(async (req: Request) => {
           break;
         }
 
-        console.log('[stripe-webhook] Subscription deleted for user:', userId);
+        console.log('[stripe-webhook] Subscription deleted for user:', userId.substring(0, 8) + '...');
 
         try {
           await updateUserTier(userId, 'free');
@@ -113,7 +117,7 @@ serve(async (req: Request) => {
           break;
         }
 
-        console.log('[stripe-webhook] Subscription updated for user:', userId);
+        console.log('[stripe-webhook] Subscription updated for user:', userId.substring(0, 8) + '...');
         console.log('[stripe-webhook] Status:', subscription.status);
         console.log('[stripe-webhook] Cancel at period end:', subscription.cancel_at_period_end);
 
@@ -130,8 +134,8 @@ serve(async (req: Request) => {
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
-        console.log('[stripe-webhook] Payment failed for customer:', invoice.customer);
-        console.log('[stripe-webhook] Invoice ID:', invoice.id);
+        console.log('[stripe-webhook] Payment failed for customer:', typeof invoice.customer === 'string' ? invoice.customer.substring(0, 8) + '...' : 'customer_id');
+        console.log('[stripe-webhook] Invoice ID:', invoice.id.substring(0, 8) + '...');
         console.log('[stripe-webhook] Attempt count:', invoice.attempt_count);
         // User retains premium access until subscription status changes
         break;
@@ -139,7 +143,7 @@ serve(async (req: Request) => {
 
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice;
-        console.log('[stripe-webhook] Payment succeeded for customer:', invoice.customer);
+        console.log('[stripe-webhook] Payment succeeded for customer:', typeof invoice.customer === 'string' ? invoice.customer.substring(0, 8) + '...' : 'customer_id');
         console.log('[stripe-webhook] Billing reason:', invoice.billing_reason);
 
         // Optionally confirm tier is premium
