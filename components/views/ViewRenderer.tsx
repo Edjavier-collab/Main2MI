@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { View, UserTier, Session, PatientProfile, CoachingSummary, PatientProfileFilters } from '../../types';
 import { User } from '@supabase/supabase-js';
 import { PageLoader } from '../ui/LoadingSpinner';
+import ErrorBoundary from '../ui/ErrorBoundary';
 import { ScenarioSelectionView } from './ScenarioSelectionView';
 
 // Lazy-loaded view components for code splitting
@@ -126,15 +127,65 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
           // Redirect handled by useAppRouter, but add safety check here too
           return null;
         }
-        return currentPatient && <PracticeView patient={currentPatient} userTier={userTier} onFinish={onFinishPractice} onUpgrade={() => onNavigate(View.Paywall)} />;
+        return currentPatient && (
+          <ErrorBoundary
+            fallback={
+              <div className="min-h-screen bg-transparent flex items-center justify-center p-6">
+                <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
+                  <div className="mx-auto w-16 h-16 bg-error-light rounded-full flex items-center justify-center mb-6">
+                    <i className="fa-solid fa-exclamation-triangle text-2xl text-error" aria-hidden="true"></i>
+                  </div>
+                  <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">
+                    Practice Session Error
+                  </h2>
+                  <p className="text-[var(--color-text-secondary)] mb-6">
+                    Something went wrong during your practice session. Your progress has been saved.
+                  </p>
+                  <button
+                    onClick={() => onNavigate(View.Dashboard)}
+                    className="w-full bg-[var(--color-primary)] text-white font-semibold py-3 px-6 rounded-xl hover:bg-[var(--color-primary-dark)] transition-colors"
+                  >
+                    Return to Dashboard
+                  </button>
+                </div>
+              </div>
+            }
+          >
+            <PracticeView patient={currentPatient} userTier={userTier} onFinish={onFinishPractice} onUpgrade={() => onNavigate(View.Paywall)} />
+          </ErrorBoundary>
+        );
       case View.Feedback:
         return currentSession && (
-          <FeedbackView 
-            session={currentSession} 
-            onDone={onDoneFromFeedback} 
-            onUpgrade={() => onNavigate(View.Paywall)} 
-            onStartPractice={onStartPractice} 
-          />
+          <ErrorBoundary
+            fallback={
+              <div className="min-h-screen bg-transparent flex items-center justify-center p-6">
+                <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
+                  <div className="mx-auto w-16 h-16 bg-error-light rounded-full flex items-center justify-center mb-6">
+                    <i className="fa-solid fa-exclamation-triangle text-2xl text-error" aria-hidden="true"></i>
+                  </div>
+                  <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">
+                    Feedback Error
+                  </h2>
+                  <p className="text-[var(--color-text-secondary)] mb-6">
+                    Unable to display feedback. Your session has been saved.
+                  </p>
+                  <button
+                    onClick={onDoneFromFeedback}
+                    className="w-full bg-[var(--color-primary)] text-white font-semibold py-3 px-6 rounded-xl hover:bg-[var(--color-primary-dark)] transition-colors"
+                  >
+                    Continue
+                  </button>
+                </div>
+              </div>
+            }
+          >
+            <FeedbackView 
+              session={currentSession} 
+              onDone={onDoneFromFeedback} 
+              onUpgrade={() => onNavigate(View.Paywall)} 
+              onStartPractice={onStartPractice} 
+            />
+          </ErrorBoundary>
         );
       case View.History:
         return (
@@ -199,12 +250,36 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
         );
       case View.CoachingSummary:
         return (
-          <CoachingSummaryView
-            isLoading={isGeneratingSummary}
-            summary={coachingSummary}
-            error={coachingSummaryError}
-            onBack={() => onNavigate(View.Calendar)}
-          />
+          <ErrorBoundary
+            fallback={
+              <div className="min-h-screen bg-transparent flex items-center justify-center p-6">
+                <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
+                  <div className="mx-auto w-16 h-16 bg-error-light rounded-full flex items-center justify-center mb-6">
+                    <i className="fa-solid fa-exclamation-triangle text-2xl text-error" aria-hidden="true"></i>
+                  </div>
+                  <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">
+                    Summary Error
+                  </h2>
+                  <p className="text-[var(--color-text-secondary)] mb-6">
+                    Unable to generate coaching summary. Please try again later.
+                  </p>
+                  <button
+                    onClick={() => onNavigate(View.Calendar)}
+                    className="w-full bg-[var(--color-primary)] text-white font-semibold py-3 px-6 rounded-xl hover:bg-[var(--color-primary-dark)] transition-colors"
+                  >
+                    Back to Calendar
+                  </button>
+                </div>
+              </div>
+            }
+          >
+            <CoachingSummaryView
+              isLoading={isGeneratingSummary}
+              summary={coachingSummary}
+              error={coachingSummaryError}
+              onBack={() => onNavigate(View.Calendar)}
+            />
+          </ErrorBoundary>
         );
       case View.PrivacyPolicy:
         return <PrivacyPolicy onBack={() => onNavigate(View.Settings)} />;
@@ -220,14 +295,38 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
         return <SupportView onBack={() => onNavigate(View.Settings)} />;
       case View.Reports:
         return (
-          <ReportsView
-            sessions={sessions}
-            userTier={userTier}
-            isPremiumVerified={isPremiumVerified}
-            onBack={() => onNavigate(View.Dashboard)}
-            onUpgrade={() => onNavigate(View.Paywall)}
-            onNavigate={onNavigate}
-          />
+          <ErrorBoundary
+            fallback={
+              <div className="min-h-screen bg-transparent flex items-center justify-center p-6">
+                <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
+                  <div className="mx-auto w-16 h-16 bg-error-light rounded-full flex items-center justify-center mb-6">
+                    <i className="fa-solid fa-exclamation-triangle text-2xl text-error" aria-hidden="true"></i>
+                  </div>
+                  <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">
+                    Reports Error
+                  </h2>
+                  <p className="text-[var(--color-text-secondary)] mb-6">
+                    Unable to load reports. Please try again later.
+                  </p>
+                  <button
+                    onClick={() => onNavigate(View.Dashboard)}
+                    className="w-full bg-[var(--color-primary)] text-white font-semibold py-3 px-6 rounded-xl hover:bg-[var(--color-primary-dark)] transition-colors"
+                  >
+                    Back to Dashboard
+                  </button>
+                </div>
+              </div>
+            }
+          >
+            <ReportsView
+              sessions={sessions}
+              userTier={userTier}
+              isPremiumVerified={isPremiumVerified}
+              onBack={() => onNavigate(View.Dashboard)}
+              onUpgrade={() => onNavigate(View.Paywall)}
+              onNavigate={onNavigate}
+            />
+          </ErrorBoundary>
         );
       case View.Dashboard:
       default:

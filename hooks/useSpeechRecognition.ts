@@ -67,6 +67,7 @@ export const useSpeechRecognition = () => {
     const [interimTranscript, setInterimTranscript] = useState(''); // Live preview of interim results
     const [error, setError] = useState<string | null>(null);
     const [isWaitingToRestart, setIsWaitingToRestart] = useState(false); // Mobile auto-restart delay indicator
+    const isMountedRef = useRef(true); // Track if component is mounted
     // Fix: The type SpeechRecognition is now correctly resolved via the interface definition above.
     const recognitionRef = useRef<SpeechRecognition | null>(null);
     const finalTranscriptRef = useRef(''); // Ref to hold only the FINAL transcript text
@@ -219,18 +220,26 @@ export const useSpeechRecognition = () => {
             }
 
             // Update final transcript state only if we got new final results
-            if (hasNewFinal) {
-                setFinalTranscript(finalTranscriptRef.current);
-                // Always clear interim when we get final results
-                setInterimTranscript('');
-            } else {
-                // Update interim transcript (this replaces previous interim, doesn't append)
-                // Only show interim if we don't have new final results
-                setInterimTranscript(newInterimTranscript.trim());
+            // Check if component is still mounted before updating state
+            if (isMountedRef.current) {
+                if (hasNewFinal) {
+                    setFinalTranscript(finalTranscriptRef.current);
+                    // Always clear interim when we get final results
+                    setInterimTranscript('');
+                } else {
+                    // Update interim transcript (this replaces previous interim, doesn't append)
+                    // Only show interim if we don't have new final results
+                    setInterimTranscript(newInterimTranscript.trim());
+                }
             }
         };
 
         recognition.onend = () => {
+            // Check if component is still mounted before updating state
+            if (!isMountedRef.current) {
+                return;
+            }
+
             setIsListening(false);
             stopTriggeredRef.current = false;
             // On end, clear any interim results and ensure we only show final transcript
@@ -241,7 +250,7 @@ export const useSpeechRecognition = () => {
             lastProcessedIndexRef.current = -1;
             
             // On mobile (single utterance mode), auto-restart after a delay unless user explicitly stopped
-            if (!isContinuousModeRef.current && !userExplicitlyStoppedRef.current) {
+            if (!isContinuousModeRef.current && !userExplicitlyStoppedRef.current && isMountedRef.current) {
                 // Clear any existing timeout
                 if (autoRestartTimeoutRef.current) {
                     clearTimeout(autoRestartTimeoutRef.current);
@@ -252,7 +261,11 @@ export const useSpeechRecognition = () => {
                 
                 // Auto-restart after 600ms delay (between 500-800ms as requested)
                 autoRestartTimeoutRef.current = setTimeout(() => {
-                    // Check again if user hasn't explicitly stopped
+                    // Check if component is still mounted and user hasn't explicitly stopped
+                    if (!isMountedRef.current) {
+                        return;
+                    }
+
                     if (!userExplicitlyStoppedRef.current && recognitionRef.current) {
                         console.log('[useSpeechRecognition] Auto-restarting recognition on mobile after pause');
                         try {
@@ -262,10 +275,14 @@ export const useSpeechRecognition = () => {
                         } catch (err) {
                             // If start fails (e.g., already started), just clear the waiting state
                             console.log('[useSpeechRecognition] Auto-restart failed (may already be running):', err);
-                            setIsWaitingToRestart(false);
+                            if (isMountedRef.current) {
+                                setIsWaitingToRestart(false);
+                            }
                         }
                     } else {
-                        setIsWaitingToRestart(false);
+                        if (isMountedRef.current) {
+                            setIsWaitingToRestart(false);
+                        }
                     }
                     autoRestartTimeoutRef.current = null;
                 }, 600);
@@ -277,11 +294,18 @@ export const useSpeechRecognition = () => {
                 if (!isContinuousModeRef.current) {
                     processedFinalTextsRef.current.clear();
                 }
-                setIsWaitingToRestart(false);
+                if (isMountedRef.current) {
+                    setIsWaitingToRestart(false);
+                }
             }
         };
 
         recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+            // Check if component is still mounted
+            if (!isMountedRef.current) {
+                return;
+            }
+
             // Clear any pending auto-restart timeout on error
             if (autoRestartTimeoutRef.current) {
                 clearTimeout(autoRestartTimeoutRef.current);
@@ -323,26 +347,52 @@ export const useSpeechRecognition = () => {
             }
             setError(errorMessage);
 
-            // Clear error after 5 seconds
-            setTimeout(() => setError(null), 5000);
+            // Clear error after 5 seconds (only if still mounted)
+            setTimeout(() => {
+                if (isMountedRef.current) {
+                    setError(null);
+                }
+            }, 5000);
         };
 
         recognitionRef.current = recognition;
 
         return () => {
+            // Mark component as unmounted
+            isMountedRef.current = false;
+
             // Clear any pending auto-restart timeout
             if (autoRestartTimeoutRef.current) {
                 clearTimeout(autoRestartTimeoutRef.current);
                 autoRestartTimeoutRef.current = null;
             }
-            // Stop recognition if running
+
+            // Remove all event listeners by stopping recognition
             if (recognitionRef.current) {
-                recognitionRef.current.stop();
+                try {
+                    recognitionRef.current.stop();
+                } catch (err) {
+                    // Ignore errors when stopping (may already be stopped)
+                }
+                // Clear the ref
+                recognitionRef.current = null;
             }
+
+            // Reset all refs
+            finalTranscriptRef.current = '';
+            stopTriggeredRef.current = false;
+            lastProcessedIndexRef.current = -1;
+            sessionIdRef.current = 0;
+            processedFinalTextsRef.current.clear();
+            userExplicitlyStoppedRef.current = false;
         };
     }, []);
 
     const startListening = () => {
+        if (!isMountedRef.current) {
+            return;
+        }
+
         if (!recognitionRef.current) {
             setError('Speech recognition not initialized. Please refresh the page.');
             return;
@@ -381,9 +431,11 @@ export const useSpeechRecognition = () => {
             setIsListening(true);
         } catch (err) {
             console.error('Failed to start speech recognition:', err);
-            setError('Failed to start microphone. Please check your browser permissions.');
-            setIsListening(false);
-            setIsWaitingToRestart(false);
+            if (isMountedRef.current) {
+                setError('Failed to start microphone. Please check your browser permissions.');
+                setIsListening(false);
+                setIsWaitingToRestart(false);
+            }
         }
     };
 
@@ -413,6 +465,10 @@ export const useSpeechRecognition = () => {
 
     // This function allows components to reset the transcript and ensures the ref is also cleared.
     const customSetTranscript = useCallback((text: string) => {
+        if (!isMountedRef.current) {
+            return;
+        }
+
         // Clear any pending auto-restart timeout when transcript is manually set (e.g., message sent)
         if (autoRestartTimeoutRef.current) {
             clearTimeout(autoRestartTimeoutRef.current);

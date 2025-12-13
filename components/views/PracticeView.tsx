@@ -9,6 +9,7 @@ import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { useAuth } from '../../contexts/AuthContext';
 import { getSupabaseClient, isSupabaseConfigured } from '../../lib/supabase';
+import { getValidAuthToken, autoSaveSession, getAutoSavedSession, clearAutoSavedSessions, isSessionValid } from '../../utils/sessionManager';
 
 interface PracticeViewProps {
     patient: PatientProfile;
@@ -34,6 +35,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
     const [feedbackError, setFeedbackError] = useState<string | null>(null);
     const [isRetryingFeedback, setIsRetryingFeedback] = useState(false);
     const [sendError, setSendError] = useState<string | null>(null);
+    const [sessionExpired, setSessionExpired] = useState(false);
     
     const { user } = useAuth();
     const { isListening, finalTranscript, interimTranscript, isWaitingToRestart, startListening, stopListening, hasSupport, error: micError, setTranscript: setSpeechTranscript } = useSpeechRecognition();
@@ -41,8 +43,76 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
     const speechTranscript = finalTranscript + (interimTranscript ? (finalTranscript ? ' ' : '') + interimTranscript : '');
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const autoSaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const sessionCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     const sessionDuration = userTier === UserTier.Premium ? PREMIUM_SESSION_DURATION : FREE_SESSION_DURATION;
+
+    // Restore auto-saved session on mount
+    useEffect(() => {
+        const savedSession = getAutoSavedSession();
+        if (savedSession && savedSession.transcript.length > 0) {
+            const shouldRestore = window.confirm(
+                'We found a saved practice session. Would you like to restore it?'
+            );
+            if (shouldRestore) {
+                setTranscript(savedSession.transcript);
+                setIsSessionStarted(true);
+            } else {
+                clearAutoSavedSessions();
+            }
+        }
+
+        // Cleanup on unmount
+        return () => {
+            if (autoSaveIntervalRef.current) {
+                clearInterval(autoSaveIntervalRef.current);
+            }
+            if (sessionCheckIntervalRef.current) {
+                clearInterval(sessionCheckIntervalRef.current);
+            }
+        };
+    }, []);
+
+    // Auto-save session data every 30 seconds
+    useEffect(() => {
+        if (isSessionStarted && transcript.length > 0) {
+            autoSaveIntervalRef.current = setInterval(() => {
+                autoSaveSession({
+                    transcript,
+                    patient,
+                    timestamp: Date.now(),
+                });
+            }, 30000); // Auto-save every 30 seconds
+
+            return () => {
+                if (autoSaveIntervalRef.current) {
+                    clearInterval(autoSaveIntervalRef.current);
+                }
+            };
+        }
+    }, [isSessionStarted, transcript, patient]);
+
+    // Check session validity every 2 minutes
+    useEffect(() => {
+        if (isSessionStarted && user) {
+            sessionCheckIntervalRef.current = setInterval(async () => {
+                const isValid = await isSessionValid();
+                if (!isValid) {
+                    setSessionExpired(true);
+                    if (sessionCheckIntervalRef.current) {
+                        clearInterval(sessionCheckIntervalRef.current);
+                    }
+                }
+            }, 120000); // Check every 2 minutes
+
+            return () => {
+                if (sessionCheckIntervalRef.current) {
+                    clearInterval(sessionCheckIntervalRef.current);
+                }
+            };
+        }
+    }, [isSessionStarted, user]);
 
     useEffect(() => {
         if (chatContainerRef.current) {
@@ -64,6 +134,13 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
      * Get patient response from Edge Function
      */
     const getPatientResponseFromEdgeFunction = useCallback(async (message: string): Promise<string> => {
+        // Check session validity before making request
+        const authToken = await getValidAuthToken();
+        if (!authToken) {
+            setSessionExpired(true);
+            throw new Error('Your session has expired. Please refresh the page and log in again.');
+        }
+
         // Get Supabase URL and construct Edge Function URL
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
         if (!supabaseUrl) {
@@ -72,30 +149,13 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
 
         const functionsUrl = `${supabaseUrl}/functions/v1/patient-response`;
 
-        // Require authentication - get JWT token from session
+        // Require authentication
         if (!isSupabaseConfigured()) {
             throw new Error('Supabase is not configured. Please check your environment variables.');
         }
 
         if (!user) {
             throw new Error('You must be logged in to chat with the patient. Please log in and try again.');
-        }
-
-        let authToken: string | null = null;
-        try {
-            const supabase = getSupabaseClient();
-            
-            // Get the current session
-            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-            
-            if (sessionError || !session || !session.access_token) {
-                throw new Error('Your session has expired. Please refresh the page and log in again.');
-            }
-            
-            authToken = session.access_token;
-        } catch (error) {
-            console.error('[PracticeView] Failed to get auth token:', error);
-            throw new Error('Failed to authenticate. Please refresh the page and try again.');
         }
 
         // Prepare request with required Authorization header
@@ -193,6 +253,13 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
      * Call the analyze-session Edge Function to get feedback
      */
     const getFeedbackFromEdgeFunction = useCallback(async (): Promise<Feedback> => {
+        // Check session validity before making request
+        const authToken = await getValidAuthToken();
+        if (!authToken) {
+            setSessionExpired(true);
+            throw new Error('Your session has expired. Please refresh the page and log in again.');
+        }
+
         // Get Supabase URL and construct Edge Function URL
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
         if (!supabaseUrl) {
@@ -201,87 +268,13 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
 
         const functionsUrl = `${supabaseUrl}/functions/v1/analyze-session`;
 
-        // Require authentication - get JWT token from session
+        // Require authentication
         if (!isSupabaseConfigured()) {
             throw new Error('Supabase is not configured. Please check your environment variables.');
         }
 
         if (!user) {
             throw new Error('You must be logged in to generate feedback. Please log in and try again.');
-        }
-
-        let authToken: string | null = null;
-        try {
-            const supabase = getSupabaseClient();
-            
-            // Get the current session
-            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-            
-            if (sessionError) {
-                console.error('[PracticeView] Session error:', sessionError);
-                throw new Error('Failed to get session. Please refresh the page and try again.');
-            }
-            
-            if (!session) {
-                console.error('[PracticeView] No session found');
-                throw new Error('Your session has expired. Please refresh the page and log in again.');
-            }
-            
-            if (!session.access_token) {
-                console.error('[PracticeView] Session exists but no access_token');
-                throw new Error('Your session has expired. Please refresh the page and log in again.');
-            }
-            
-            // Check if token is expired (basic check - JWT exp claim)
-            try {
-                const tokenParts = session.access_token.split('.');
-                if (tokenParts.length === 3) {
-                    const payload = JSON.parse(atob(tokenParts[1]));
-                    const now = Math.floor(Date.now() / 1000);
-                    if (payload.exp && payload.exp < now) {
-                        console.warn('[PracticeView] Token expired, attempting refresh...');
-                        // Try to refresh the session
-                        if (session.refresh_token) {
-                            const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession(session);
-                            if (!refreshError && refreshedSession?.access_token) {
-                                authToken = refreshedSession.access_token;
-                                console.log('[PracticeView] Session refreshed successfully');
-                            } else {
-                                console.error('[PracticeView] Failed to refresh session:', refreshError);
-                                throw new Error('Your session has expired. Please refresh the page and log in again.');
-                            }
-                        } else {
-                            throw new Error('Your session has expired. Please refresh the page and log in again.');
-                        }
-                    } else {
-                        authToken = session.access_token;
-                    }
-                } else {
-                    authToken = session.access_token;
-                }
-            } catch (parseError) {
-                // If we can't parse the token, just use it as-is (let the server validate it)
-                console.warn('[PracticeView] Could not parse token, using as-is:', parseError);
-                authToken = session.access_token;
-            }
-            
-            if (!authToken) {
-                throw new Error('Failed to get valid authentication token.');
-            }
-            
-            console.log('[PracticeView] Using auth token for Edge Function call (token length:', authToken.length, ')');
-        } catch (error) {
-            if (error instanceof Error) {
-                // Re-throw our custom error messages
-                if (error.message.includes('must be logged in') || 
-                    error.message.includes('session has expired') ||
-                    error.message.includes('not configured') ||
-                    error.message.includes('Failed to get')) {
-                    throw error;
-                }
-            }
-            console.error('[PracticeView] Failed to get auth token:', error);
-            throw new Error('Failed to authenticate. Please refresh the page and try again.');
         }
 
         // Prepare request with required Authorization header
@@ -328,6 +321,9 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
         setIsEndingSession(true);
         setFeedbackError(null);
 
+        // Clear auto-save on successful completion
+        clearAutoSavedSessions();
+
         try {
             const feedback = await getFeedbackFromEdgeFunction();
             setIsEndingSession(false);
@@ -337,8 +333,17 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
             setIsEndingSession(false);
             const errorMessage = error instanceof Error ? error.message : 'Failed to generate feedback. Please try again.';
             setFeedbackError(errorMessage);
+            
+            // If session expired, auto-save before showing error
+            if (errorMessage.includes('session has expired')) {
+                autoSaveSession({
+                    transcript,
+                    patient,
+                    timestamp: Date.now(),
+                });
+            }
         }
-    }, [transcript, getFeedbackFromEdgeFunction, onFinish]);
+    }, [transcript, getFeedbackFromEdgeFunction, onFinish, patient]);
 
     const handleRetryFeedback = useCallback(async () => {
         setIsRetryingFeedback(true);
@@ -447,7 +452,28 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
                         </div>
                     </div>
                 )}
-                {(micError || sendError) && (
+                {sessionExpired && (
+                    <Card variant="accent" padding="sm" className="mb-3 border-l-4 border-[var(--color-error)]">
+                        <div className="flex flex-col gap-2" role="alert">
+                            <div className="flex items-center gap-2 text-[var(--color-error)] text-sm font-semibold">
+                                <i className="fa fa-exclamation-circle" aria-hidden="true"></i>
+                                <span>Your session has expired</span>
+                            </div>
+                            <p className="text-xs text-[var(--color-text-secondary)]">
+                                Your practice session has been saved. Please refresh the page and log in again to continue.
+                            </p>
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={() => window.location.reload()}
+                                className="mt-2"
+                            >
+                                Refresh & Log In
+                            </Button>
+                        </div>
+                    </Card>
+                )}
+                {(micError || sendError) && !sessionExpired && (
                     <Card variant="accent" padding="sm" className="mb-3 border-l-4 border-[var(--color-error)]">
                         <div className="flex items-center gap-2 text-[var(--color-error)] text-sm" role="alert">
                             <i className="fa fa-exclamation-circle" aria-hidden="true"></i>
