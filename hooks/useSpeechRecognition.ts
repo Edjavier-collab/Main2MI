@@ -41,6 +41,7 @@ export const useSpeechRecognition = () => {
     const processedFinalTextsRef = useRef<Set<string>>(new Set()); // Track processed final texts to prevent duplicates
     const userExplicitlyStoppedRef = useRef(false); // Track if user explicitly stopped
     const stateSyncedInStopRef = useRef(false); // Track if state was synced in stopListening() to prevent onend from overwriting
+    const lastAddedTextRef = useRef<{text: string, timestamp: number}>({text: '', timestamp: 0}); // Track timing of last added text for mobile duplicate detection
 
 
     useEffect(() => {
@@ -107,15 +108,28 @@ export const useSpeechRecognition = () => {
                     if (final_text) {
                         // Prevent duplicate final results by tracking processed texts
                         // This handles cases where the same audio gets transcribed multiple times
-                        // Use a normalized key (lowercase, trimmed) to catch duplicates
-                        const normalizedText = final_text.toLowerCase();
+                        // Use a normalized key (lowercase, trimmed, normalized whitespace) to catch duplicates
+                        const normalizedText = final_text.toLowerCase().trim().replace(/\s+/g, ' ');
                         
                         // Also check if this text already exists at the end of the current transcript
                         const currentTranscriptLower = finalTranscriptRef.current.toLowerCase();
                         const textAlreadyAtEnd = currentTranscriptLower.endsWith(normalizedText) || 
                                                  currentTranscriptLower.endsWith(' ' + normalizedText);
                         
-                        if (!processedFinalTextsRef.current.has(normalizedText) && !textAlreadyAtEnd) {
+                        // Check if text appears anywhere in the last 150 characters (mobile-specific duplicate detection)
+                        const last150Chars = currentTranscriptLower.slice(-150);
+                        const textInRecent = last150Chars.includes(normalizedText);
+                        
+                        // Time-based debouncing: reject duplicates added within 500ms (mobile-specific)
+                        const now = Date.now();
+                        const lastAdded = lastAddedTextRef.current;
+                        const isDuplicateTiming = lastAdded.text === normalizedText && 
+                                                   (now - lastAdded.timestamp) < 500;
+                        
+                        if (!processedFinalTextsRef.current.has(normalizedText) && 
+                            !textAlreadyAtEnd && 
+                            !textInRecent &&
+                            !isDuplicateTiming) {
                             // Mark as processed BEFORE adding to prevent race conditions
                             processedFinalTextsRef.current.add(normalizedText);
                             
@@ -124,6 +138,8 @@ export const useSpeechRecognition = () => {
                             finalTranscriptRef.current += textToAdd;
                             // Sync with persisted transcript
                             persistedTranscript = finalTranscriptRef.current;
+                            // Track timing of added text for mobile duplicate detection
+                            lastAddedTextRef.current = {text: normalizedText, timestamp: now};
                             hasNewFinal = true;
                             
                             // Clear interim when we get final results (they're now part of final)
