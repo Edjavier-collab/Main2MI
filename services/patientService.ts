@@ -3,6 +3,57 @@ import { PATIENT_DATA, PATIENT_PROFILE_TEMPLATES } from '../constants';
 
 const getRandomElement = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
+// Shuffle array using Fisher-Yates algorithm for better randomization
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+// Track recently used names to avoid repeats
+const RECENT_NAMES_KEY = 'mi-coach-recent-patient-names';
+const RECENT_NAMES_MAX = 7; // Track last 7 sessions
+
+const getRecentNames = (): string[] => {
+  try {
+    const stored = localStorage.getItem(RECENT_NAMES_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
+
+const addRecentName = (name: string): void => {
+  try {
+    const recent = getRecentNames();
+    recent.push(name);
+    // Keep only the most recent N names
+    if (recent.length > RECENT_NAMES_MAX) {
+      recent.shift(); // Remove oldest
+    }
+    localStorage.setItem(RECENT_NAMES_KEY, JSON.stringify(recent));
+  } catch {
+    // Ignore localStorage errors
+  }
+};
+
+const selectNameAvoidingRecent = (allNames: string[]): string => {
+  const recent = getRecentNames();
+  const available = allNames.filter(name => !recent.includes(name));
+  
+  // If all names have been used recently, reset and use any name
+  if (available.length === 0) {
+    console.log('[patientService] All names used recently, resetting recent names');
+    localStorage.removeItem(RECENT_NAMES_KEY);
+    return getRandomElement(allNames);
+  }
+  
+  return getRandomElement(available);
+};
+
 export const generatePatientProfile = (filters?: PatientProfileFilters): PatientProfile => {
   let availableTemplates = PATIENT_PROFILE_TEMPLATES;
 
@@ -15,7 +66,10 @@ export const generatePatientProfile = (filters?: PatientProfileFilters): Patient
     }
   }
 
-  const template = getRandomElement(availableTemplates) as (typeof PATIENT_PROFILE_TEMPLATES)[number] & { conflictingChiefComplaint?: string };
+  // Shuffle templates before selecting to ensure better randomization
+  // This prevents the same template from appearing consecutively for the same topic
+  const shuffledTemplates = shuffleArray(availableTemplates);
+  const template = getRandomElement(shuffledTemplates) as (typeof PATIENT_PROFILE_TEMPLATES)[number] & { conflictingChiefComplaint?: string };
 
 
   // Generate an age within the template's specified range for coherence.
@@ -60,6 +114,10 @@ export const generatePatientProfile = (filters?: PatientProfileFilters): Patient
       stageOfChange = getRandomElement(PATIENT_DATA.stagesOfChange) as StageOfChange;
   }
 
+  // Select name avoiding recently used ones
+  const selectedName = selectNameAvoidingRecent(PATIENT_DATA.names);
+  addRecentName(selectedName);
+
   return {
     // Core details from the coherent template
     topic: template.topic,
@@ -69,7 +127,7 @@ export const generatePatientProfile = (filters?: PatientProfileFilters): Patient
     background: background,
 
     // Randomized demographic details
-    name: getRandomElement(PATIENT_DATA.names),
+    name: selectedName,
     age: age,
     sex: getRandomElement(PATIENT_DATA.sexes),
     stageOfChange: stageOfChange,

@@ -1,7 +1,17 @@
 import { StageOfChange } from './types';
 
 export const PATIENT_DATA = {
-    names: ['Alex Johnson', 'Jordan Smith', 'Taylor Brown', 'Casey Williams', 'Morgan Miller', 'Riley Jones', 'Cameron Davis', 'Parker Garcia', 'Quinn Lee', 'Rowan Perez', 'Dakota Hall', 'Avery Nelson', 'Samira Ahmed', 'Leo Chen', 'Sofia Rossi', 'Javier Rodriguez', 'Chloe Kim', 'Mateo Garcia'],
+    names: [
+        'Alex Johnson', 'Jordan Smith', 'Taylor Brown', 'Casey Williams', 'Morgan Miller', 
+        'Riley Jones', 'Cameron Davis', 'Parker Garcia', 'Quinn Lee', 'Rowan Perez', 
+        'Dakota Hall', 'Avery Nelson', 'Samira Ahmed', 'Leo Chen', 'Sofia Rossi', 
+        'Javier Rodriguez', 'Chloe Kim', 'Mateo Garcia', 'Jamie Martinez', 'Blake Thompson',
+        'River Anderson', 'Phoenix Wright', 'Skylar Moore', 'Sage Johnson', 'Kai Martinez',
+        'Emery White', 'Finley Taylor', 'Hayden Clark', 'Reese Adams', 'Ellis Wilson',
+        'Drew Mitchell', 'Logan Harris', 'Micah Turner', 'Nico Rodriguez', 'Zoe Patel',
+        'Maya Singh', 'Ethan Kim', 'Isabella Chen', 'Lucas O\'Brien', 'Olivia Murphy',
+        'Noah Walsh', 'Emma Fitzgerald', 'Liam Gallagher', 'Ava O\'Connor', 'Mason Byrne'
+    ],
     sexes: ['Male', 'Female', 'Non-binary'] as ('Male' | 'Female' | 'Non-binary')[],
     stagesOfChange: [
         StageOfChange.Precontemplation,
