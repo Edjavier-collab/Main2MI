@@ -45,6 +45,15 @@ export enum DifficultyLevel {
   Advanced = 'Advanced',
 }
 
+// Personality traits that affect patient behavior and add complexity
+export type PersonalityTrait = 
+  | 'defensive'
+  | 'emotional'
+  | 'reserved'
+  | 'talkative'
+  | 'intellectualizer'
+  | 'pleaser';
+
 export interface PatientProfile {
   name: string;
   age: number;
@@ -55,6 +64,8 @@ export interface PatientProfile {
   history: string;
   chiefComplaint: string;
   stageOfChange: StageOfChange;
+  personalityTrait?: PersonalityTrait; // Affects patient behavior (e.g., defensive, emotional)
+  variantId?: string; // Tracks which backstory variant was used
 }
 
 export interface PatientProfileFilters {

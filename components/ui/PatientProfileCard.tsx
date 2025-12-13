@@ -1,12 +1,22 @@
 
 import React from 'react';
-import { PatientProfile, StageOfChange, UserTier } from '../../types';
+import { PatientProfile, StageOfChange, UserTier, PersonalityTrait } from '../../types';
 
 interface PatientProfileCardProps {
     patient: PatientProfile;
     userTier?: UserTier;
     onUpgrade?: () => void;
 }
+
+// Personality trait display configuration
+const PERSONALITY_TRAIT_LABELS: Record<PersonalityTrait, { label: string; icon: string; colorClass: string }> = {
+    defensive: { label: 'Defensive', icon: 'fa-shield', colorClass: 'bg-red-100 text-red-700' },
+    emotional: { label: 'Emotional', icon: 'fa-heart', colorClass: 'bg-pink-100 text-pink-700' },
+    reserved: { label: 'Reserved', icon: 'fa-lock', colorClass: 'bg-slate-100 text-slate-700' },
+    talkative: { label: 'Talkative', icon: 'fa-comments', colorClass: 'bg-blue-100 text-blue-700' },
+    intellectualizer: { label: 'Intellectualizer', icon: 'fa-brain', colorClass: 'bg-purple-100 text-purple-700' },
+    pleaser: { label: 'People Pleaser', icon: 'fa-handshake', colorClass: 'bg-green-100 text-green-700' },
+};
 
 interface InfoSectionProps {
     icon: string;
@@ -55,8 +65,16 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
                     <h2 className="text-2xl font-bold text-neutral-900">{patient.name}</h2>
                     <p className="text-neutral-500">{patient.age}, {patient.sex}</p>
                 </div>
-                <div className={`px-3 py-1 text-sm font-bold rounded-full ${stageColors[patient.stageOfChange]}`}>
-                    {patient.stageOfChange}
+                <div className="flex flex-col items-end gap-2">
+                    <div className={`px-3 py-1 text-sm font-bold rounded-full ${stageColors[patient.stageOfChange]}`}>
+                        {patient.stageOfChange}
+                    </div>
+                    {patient.personalityTrait && PERSONALITY_TRAIT_LABELS[patient.personalityTrait] && (
+                        <div className={`px-2 py-0.5 text-xs font-medium rounded-full flex items-center gap-1 ${PERSONALITY_TRAIT_LABELS[patient.personalityTrait].colorClass}`}>
+                            <i className={`fa-solid ${PERSONALITY_TRAIT_LABELS[patient.personalityTrait].icon} text-[10px]`} aria-hidden="true"></i>
+                            {PERSONALITY_TRAIT_LABELS[patient.personalityTrait].label}
+                        </div>
+                    )}
                 </div>
             </header>
 
