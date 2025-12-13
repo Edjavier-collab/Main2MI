@@ -21,33 +21,34 @@ const ReviewPrompt: React.FC<ReviewPromptProps> = ({ onClose }) => {
             role="dialog"
         >
             <div 
-                className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full text-center animate-slide-fade-in"
+                className="bg-[var(--color-bg-card)] rounded-2xl shadow-xl p-8 max-w-sm w-full text-center animate-slide-fade-in"
             >
-                <div className="mx-auto mb-6 bg-warning-light h-20 w-20 rounded-full flex items-center justify-center ring-8 ring-warning-light/50">
-                    <i className="fa-solid fa-star text-4xl text-warning"></i>
+                <div className="mx-auto mb-6 bg-[var(--color-accent-warning)] h-20 w-20 rounded-full flex items-center justify-center ring-8 ring-[var(--color-accent-warning)]/50">
+                    <i className="fa-solid fa-star text-4xl" style={{ color: 'var(--color-text-primary)' }}></i>
                 </div>
                 
-                <h2 className="text-2xl font-bold text-neutral-800 mb-2">Enjoying MI Practice Coach?</h2>
-                <p className="text-neutral-600 mb-8">
+                <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">Enjoying MI Practice Coach?</h2>
+                <p className="text-[var(--color-text-secondary)] mb-8">
                     Your feedback helps us improve. If you have a moment, please consider leaving a review.
                 </p>
 
                 <div className="flex flex-col gap-3">
-                    <button 
+                    <a 
+                        href="mailto:support@mipracticecoach.com?subject=MI Practice Coach Feedback"
                         onClick={() => onClose('rate')}
-                        className="w-full bg-primary text-white font-bold py-3 px-6 rounded-full text-lg shadow-lg hover:bg-primary-dark transition-transform transform hover:scale-105"
+                        className="w-full bg-[var(--color-primary)] text-white font-bold py-3 px-6 rounded-full text-lg shadow-lg hover:bg-[var(--color-primary-dark)] transition-transform transform hover:scale-105 text-center inline-block"
                     >
                         Leave a Review
-                    </button>
+                    </a>
                     <button 
                         onClick={() => onClose('later')}
-                        className="w-full text-neutral-600 font-semibold py-3 px-6 rounded-full hover:bg-neutral-100 transition"
+                        className="w-full text-[var(--color-text-secondary)] font-semibold py-3 px-6 rounded-full hover:bg-[var(--color-neutral-100)] transition"
                     >
                         Remind Me Later
                     </button>
                     <button 
                         onClick={() => onClose('no')}
-                        className="w-full text-sm text-neutral-400 font-medium py-2 px-6 rounded-full hover:text-neutral-600 transition"
+                        className="w-full text-sm text-[var(--color-text-muted)] font-medium py-2 px-6 rounded-full hover:text-[var(--color-text-secondary)] transition"
                     >
                         No, Thanks
                     </button>
