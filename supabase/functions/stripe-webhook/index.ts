@@ -1,13 +1,13 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno';
-import { corsHeaders, jsonResponse, errorResponse } from '../_shared/cors.ts';
+import { getCorsHeaders, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getStripe, getSubscriptionTierStatus } from '../_shared/stripe.ts';
 import { updateUserTier, updateUserPlan } from '../_shared/supabase.ts';
 
 serve(async (req: Request) => {
   // Webhooks don't need CORS preflight, but handle it anyway
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -17,7 +17,7 @@ serve(async (req: Request) => {
     // Require webhook secret - no bypass for development
     if (!webhookSecret) {
       console.error('[stripe-webhook] STRIPE_WEBHOOK_SECRET not configured');
-      return errorResponse('Webhook secret not configured', 500);
+      return errorResponse('Webhook secret not configured', 500, req);
     }
 
     // Get the raw body for signature verification
@@ -26,7 +26,7 @@ serve(async (req: Request) => {
 
     if (!signature) {
       console.error('[stripe-webhook] Missing stripe-signature header');
-      return errorResponse('Missing stripe-signature header', 400);
+      return errorResponse('Missing stripe-signature header', 400, req);
     }
 
     // Always verify webhook signature - no bypass
@@ -39,7 +39,7 @@ serve(async (req: Request) => {
       );
     } catch (err) {
       console.error('[stripe-webhook] Signature verification failed');
-      return errorResponse('Webhook signature verification failed', 400);
+      return errorResponse('Webhook signature verification failed', 400, req);
     }
 
     console.log(`[stripe-webhook] Received event: ${event.type}`);
@@ -52,7 +52,7 @@ serve(async (req: Request) => {
 
         if (!userId) {
           console.error('[stripe-webhook] No userId in session metadata');
-          return errorResponse('Missing userId in metadata', 400);
+          return errorResponse('Missing userId in metadata', 400, req);
         }
 
         console.log('[stripe-webhook] Checkout completed for user:', userId.substring(0, 8) + '...');
@@ -168,12 +168,13 @@ serve(async (req: Request) => {
         console.log('[stripe-webhook] Unhandled event type:', event.type);
     }
 
-    return jsonResponse({ received: true });
+    return jsonResponse({ received: true }, 200, req);
   } catch (error) {
     console.error('[stripe-webhook] Error:', error);
     return errorResponse(
       error instanceof Error ? error.message : 'Webhook processing failed',
-      500
+      500,
+      req
     );
   }
 });

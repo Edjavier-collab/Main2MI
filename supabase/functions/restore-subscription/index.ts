@@ -11,13 +11,13 @@ serve(async (req: Request) => {
   try {
     // Only allow POST
     if (req.method !== 'POST') {
-      return errorResponse('Method not allowed', 405);
+      return errorResponse('Method not allowed', 405, req);
     }
 
     // Verify JWT token
     const authHeader = req.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return errorResponse('Missing or invalid authorization header', 401);
+      return errorResponse('Missing or invalid authorization header', 401, req);
     }
 
     const token = authHeader.replace('Bearer ', '');
@@ -26,19 +26,19 @@ serve(async (req: Request) => {
       authenticatedUser = await verifyJWT(token);
     } catch (authError) {
       console.error('[restore-subscription] Auth error:', authError);
-      return errorResponse('Invalid or expired token. Please log in and try again.', 401);
+      return errorResponse('Invalid or expired token. Please log in and try again.', 401, req);
     }
 
     const { userId } = await req.json();
 
     if (!userId) {
-      return errorResponse('Missing userId', 400);
+      return errorResponse('Missing userId', 400, req);
     }
 
     // Verify userId matches authenticated user
     if (userId !== authenticatedUser.id) {
       console.error('[restore-subscription] UserId mismatch:', { requested: userId, authenticated: authenticatedUser.id });
-      return errorResponse('Unauthorized: userId mismatch', 403);
+      return errorResponse('Unauthorized: userId mismatch', 403, req);
     }
 
     console.log('[restore-subscription] Restoring subscription for user:', userId.substring(0, 8) + '...');
@@ -53,7 +53,7 @@ serve(async (req: Request) => {
     });
 
     if (customers.data.length === 0) {
-      return errorResponse('No customer found', 404);
+      return errorResponse('No customer found', 404, req);
     }
 
     const customer = customers.data[0];
@@ -70,7 +70,7 @@ serve(async (req: Request) => {
     );
 
     if (!subscriptionToRestore) {
-      return errorResponse('No subscription found to restore', 404);
+      return errorResponse('No subscription found to restore', 404, req);
     }
 
     // Restore the subscription by removing the cancellation
@@ -96,12 +96,13 @@ serve(async (req: Request) => {
         currentPeriodEnd: new Date(restoredSubscription.current_period_end * 1000).toISOString(),
       },
       message: 'Subscription restored successfully',
-    });
+    }, 200, req);
   } catch (error) {
     console.error('[restore-subscription] Error:', error);
     return errorResponse(
       error instanceof Error ? error.message : 'Failed to restore subscription',
-      500
+      500,
+      req
     );
   }
 });

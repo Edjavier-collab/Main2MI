@@ -11,13 +11,13 @@ serve(async (req: Request) => {
   try {
     // Only allow POST
     if (req.method !== 'POST') {
-      return errorResponse('Method not allowed', 405);
+      return errorResponse('Method not allowed', 405, req);
     }
 
     // Verify JWT token
     const authHeader = req.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return errorResponse('Missing or invalid authorization header', 401);
+      return errorResponse('Missing or invalid authorization header', 401, req);
     }
 
     const token = authHeader.replace('Bearer ', '');
@@ -26,19 +26,19 @@ serve(async (req: Request) => {
       authenticatedUser = await verifyJWT(token);
     } catch (authError) {
       console.error('[upgrade-subscription] Auth error:', authError);
-      return errorResponse('Invalid or expired token. Please log in and try again.', 401);
+      return errorResponse('Invalid or expired token. Please log in and try again.', 401, req);
     }
 
     const { userId } = await req.json();
 
     if (!userId) {
-      return errorResponse('Missing userId', 400);
+      return errorResponse('Missing userId', 400, req);
     }
 
     // Verify userId matches authenticated user
     if (userId !== authenticatedUser.id) {
       console.error('[upgrade-subscription] UserId mismatch:', { requested: userId, authenticated: authenticatedUser.id });
-      return errorResponse('Unauthorized: userId mismatch', 403);
+      return errorResponse('Unauthorized: userId mismatch', 403, req);
     }
 
     console.log('[upgrade-subscription] Upgrading subscription for user:', userId.substring(0, 8) + '...');
@@ -54,7 +54,7 @@ serve(async (req: Request) => {
     });
 
     if (customers.data.length === 0) {
-      return errorResponse('No customer found', 404);
+      return errorResponse('No customer found', 404, req);
     }
 
     const customer = customers.data[0];
@@ -65,7 +65,7 @@ serve(async (req: Request) => {
     });
 
     if (subscriptions.data.length === 0) {
-      return errorResponse('No active subscription found', 404);
+      return errorResponse('No active subscription found', 404, req);
     }
 
     const subscription = subscriptions.data[0];
@@ -73,12 +73,12 @@ serve(async (req: Request) => {
 
     // Check if already annual
     if (currentPriceId === priceIds.annual) {
-      return errorResponse('Subscription is already on the annual plan', 400);
+      return errorResponse('Subscription is already on the annual plan', 400, req);
     }
 
     // Check if monthly
     if (currentPriceId !== priceIds.monthly) {
-      return errorResponse('Can only upgrade from monthly to annual plan', 400);
+      return errorResponse('Can only upgrade from monthly to annual plan', 400, req);
     }
 
     // Update subscription to annual
@@ -109,12 +109,13 @@ serve(async (req: Request) => {
       success: true,
       subscriptionId: updatedSubscription.id,
       message: `Your subscription will be upgraded to Annual at the end of your current billing period (${new Date(updatedSubscription.current_period_end * 1000).toLocaleDateString()}).`,
-    });
+    }, 200, req);
   } catch (error) {
     console.error('[upgrade-subscription] Error:', error);
     return errorResponse(
       error instanceof Error ? error.message : 'Failed to upgrade subscription',
-      500
+      500,
+      req
     );
   }
 });

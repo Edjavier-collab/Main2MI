@@ -11,13 +11,13 @@ serve(async (req: Request) => {
   try {
     // Only allow GET
     if (req.method !== 'GET') {
-      return errorResponse('Method not allowed', 405);
+      return errorResponse('Method not allowed', 405, req);
     }
 
     // Verify JWT token
     const authHeader = req.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return errorResponse('Missing or invalid authorization header', 401);
+      return errorResponse('Missing or invalid authorization header', 401, req);
     }
 
     const token = authHeader.replace('Bearer ', '');
@@ -26,7 +26,7 @@ serve(async (req: Request) => {
       authenticatedUser = await verifyJWT(token);
     } catch (authError) {
       console.error('[get-subscription] Auth error:', authError);
-      return errorResponse('Invalid or expired token. Please log in and try again.', 401);
+      return errorResponse('Invalid or expired token. Please log in and try again.', 401, req);
     }
 
     // Get userId from query params
@@ -34,13 +34,13 @@ serve(async (req: Request) => {
     const userId = url.searchParams.get('userId');
 
     if (!userId) {
-      return errorResponse('Missing userId', 400);
+      return errorResponse('Missing userId', 400, req);
     }
 
     // Verify userId matches authenticated user
     if (userId !== authenticatedUser.id) {
       console.error('[get-subscription] UserId mismatch:', { requested: userId, authenticated: authenticatedUser.id });
-      return errorResponse('Unauthorized: userId mismatch', 403);
+      return errorResponse('Unauthorized: userId mismatch', 403, req);
     }
 
     console.log('[get-subscription] Getting subscription for user:', userId.substring(0, 8) + '...');
@@ -59,7 +59,7 @@ serve(async (req: Request) => {
       console.log('[get-subscription] User email retrieved from Supabase');
     } catch (error) {
       console.error('[get-subscription] Failed to get user email:', error);
-      return errorResponse('User not found', 404);
+      return errorResponse('User not found', 404, req);
     }
 
     // Find Stripe customer by email
@@ -84,10 +84,11 @@ serve(async (req: Request) => {
       if (profile?.tier === 'premium') {
         return errorResponse(
           'No Stripe subscription found. Your account shows as premium, but no active subscription was found in Stripe. Please contact support.',
-          404
+          404,
+          req
         );
       }
-      return errorResponse('No subscription found', 404);
+      return errorResponse('No subscription found', 404, req);
     }
 
     const customer = customers.data[0];
@@ -125,10 +126,11 @@ serve(async (req: Request) => {
       if (profile?.tier === 'premium') {
         return errorResponse(
           'No active subscription found. Your account shows as premium, but no subscription was found in Stripe. Please contact support.',
-          404
+          404,
+          req
         );
       }
-      return errorResponse('No active subscription found', 404);
+      return errorResponse('No active subscription found', 404, req);
     }
 
     const subscription = subscriptions.data[0];
@@ -184,12 +186,13 @@ serve(async (req: Request) => {
     };
 
     console.log('[get-subscription] Found subscription:', subscriptionDetails);
-    return jsonResponse(subscriptionDetails);
+    return jsonResponse(subscriptionDetails, 200, req);
   } catch (error) {
     console.error('[get-subscription] Error:', error);
     return errorResponse(
       error instanceof Error ? error.message : 'Failed to get subscription',
-      500
+      500,
+      req
     );
   }
 });

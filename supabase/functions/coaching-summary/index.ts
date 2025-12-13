@@ -162,13 +162,13 @@ serve(async (req: Request) => {
   try {
     // Only allow POST
     if (req.method !== 'POST') {
-      return errorResponse('Method not allowed', 405);
+      return errorResponse('Method not allowed', 405, req);
     }
 
     // Get the token from the Authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return errorResponse('Missing or invalid authorization header', 401);
+      return errorResponse('Missing or invalid authorization header', 401, req);
     }
 
     const token = authHeader.replace('Bearer ', '');
@@ -179,7 +179,7 @@ serve(async (req: Request) => {
 
     if (!supabaseUrl || !supabaseAnonKey) {
       console.error('[coaching-summary] Missing Supabase environment variables');
-      return errorResponse('Server configuration error', 500);
+      return errorResponse('Server configuration error', 500, req);
     }
 
     // Verify JWT token
@@ -194,7 +194,7 @@ serve(async (req: Request) => {
 
     if (authError || !user) {
       console.error('[coaching-summary] Auth error:', authError);
-      return errorResponse('Invalid or expired token. Please log in and try again.', 401);
+      return errorResponse('Invalid or expired token. Please log in and try again.', 401, req);
     }
 
     const userId = user.id;
@@ -205,18 +205,18 @@ serve(async (req: Request) => {
 
     // Validate required fields
     if (!sessions || !Array.isArray(sessions)) {
-      return errorResponse('Missing or invalid sessions array', 400);
+      return errorResponse('Missing or invalid sessions array', 400, req);
     }
 
     if (sessions.length === 0) {
-      return errorResponse('No session data available to generate a summary', 400);
+      return errorResponse('No session data available to generate a summary', 400, req);
     }
 
     // Get Gemini API key from environment
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
     if (!geminiApiKey) {
       console.error('[coaching-summary] GEMINI_API_KEY not configured');
-      return errorResponse('AI service not configured', 500);
+      return errorResponse('AI service not configured', 500, req);
     }
 
     // Prepare session summaries
@@ -323,7 +323,7 @@ serve(async (req: Request) => {
     } catch (error) {
       if (error instanceof Error && error.message === 'Request timeout') {
         console.error('[coaching-summary] Gemini API timeout after', RESPONSE_TIMEOUT_MS, 'ms');
-        return errorResponse('AI response timed out. Please try again.', 504);
+        return errorResponse('AI response timed out. Please try again.', 504, req);
       }
       throw error;
     }
@@ -331,7 +331,7 @@ serve(async (req: Request) => {
     // Handle rate limiting (429)
     if (geminiResponse.status === 429) {
       console.error('[coaching-summary] Gemini API rate limit exceeded');
-      return errorResponse('AI service is currently busy. Please try again in a moment.', 429);
+      return errorResponse('AI service is currently busy. Please try again in a moment.', 429, req);
     }
 
     // Handle other HTTP errors
@@ -340,13 +340,13 @@ serve(async (req: Request) => {
       console.error('[coaching-summary] Gemini API error:', geminiResponse.status, errorText);
       
       if (geminiResponse.status === 400) {
-        return errorResponse('Invalid request to AI service', 400);
+        return errorResponse('Invalid request to AI service', 400, req);
       }
       if (geminiResponse.status === 401 || geminiResponse.status === 403) {
-        return errorResponse('AI service authentication failed', 500);
+        return errorResponse('AI service authentication failed', 500, req);
       }
       
-      return errorResponse('AI service error. Please try again later.', 500);
+      return errorResponse('AI service error. Please try again later.', 500, req);
     }
 
     // Parse response
@@ -355,7 +355,7 @@ serve(async (req: Request) => {
     // Check if response has text content
     if (!geminiData.candidates || !geminiData.candidates[0] || !geminiData.candidates[0].content) {
       console.error('[coaching-summary] Invalid Gemini API response structure:', JSON.stringify(geminiData, null, 2));
-      return errorResponse('Invalid response from AI service', 500);
+      return errorResponse('Invalid response from AI service', 500, req);
     }
 
     // Extract text from response
@@ -364,7 +364,7 @@ serve(async (req: Request) => {
     
     if (!content.parts || !content.parts[0] || !content.parts[0].text) {
       console.error('[coaching-summary] No text in Gemini response:', JSON.stringify(content, null, 2));
-      return errorResponse('Empty response from AI service', 500);
+      return errorResponse('Empty response from AI service', 500, req);
     }
 
     let responseText = content.parts[0].text.trim();
@@ -375,7 +375,7 @@ serve(async (req: Request) => {
       summaryJson = JSON.parse(responseText);
     } catch (parseError) {
       console.error('[coaching-summary] Failed to parse JSON response:', parseError);
-      return errorResponse('Invalid JSON response from AI service', 500);
+      return errorResponse('Invalid JSON response from AI service', 500, req);
     }
 
     // Normalize the response
@@ -388,13 +388,14 @@ serve(async (req: Request) => {
 
     console.log('[coaching-summary] Successfully generated coaching summary for user:', userId.substring(0, 8) + '...');
 
-    return jsonResponse(normalizedSummary);
+    return jsonResponse(normalizedSummary, 200, req);
 
   } catch (error) {
     console.error('[coaching-summary] Unexpected error:', error);
     return errorResponse(
       error instanceof Error ? error.message : 'Failed to generate coaching summary',
-      500
+      500,
+      req
     );
   }
 });

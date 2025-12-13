@@ -15,13 +15,13 @@ serve(async (req: Request) => {
   try {
     // Only allow POST
     if (req.method !== 'POST') {
-      return errorResponse('Method not allowed', 405);
+      return errorResponse('Method not allowed', 405, req);
     }
 
     // Verify JWT token
     const authHeader = req.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return errorResponse('Missing or invalid authorization header', 401);
+      return errorResponse('Missing or invalid authorization header', 401, req);
     }
 
     const token = authHeader.replace('Bearer ', '');
@@ -30,13 +30,13 @@ serve(async (req: Request) => {
       authenticatedUser = await verifyJWT(token);
     } catch (authError) {
       console.error('[update-tier-from-session] Auth error:', authError);
-      return errorResponse('Invalid or expired token. Please log in and try again.', 401);
+      return errorResponse('Invalid or expired token. Please log in and try again.', 401, req);
     }
 
     const { sessionId } = await req.json();
 
     if (!sessionId) {
-      return errorResponse('Missing sessionId', 400);
+      return errorResponse('Missing sessionId', 400, req);
     }
 
     console.log('[update-tier-from-session] Processing session:', sessionId);
@@ -50,13 +50,13 @@ serve(async (req: Request) => {
 
     if (!session) {
       console.error('[update-tier-from-session] Session not found:', sessionId);
-      return errorResponse('Checkout session not found', 404);
+      return errorResponse('Checkout session not found', 404, req);
     }
 
     // Verify payment was successful
     if (session.payment_status !== 'paid') {
       console.warn('[update-tier-from-session] Payment not completed:', session.payment_status);
-      return errorResponse(`Payment not completed: ${session.payment_status}`, 400);
+      return errorResponse(`Payment not completed: ${session.payment_status}`, 400, req);
     }
 
     // Get userId from session metadata
@@ -65,7 +65,7 @@ serve(async (req: Request) => {
 
     if (!userId) {
       console.error('[update-tier-from-session] No userId in session metadata');
-      return errorResponse('No userId found in checkout session', 400);
+      return errorResponse('No userId found in checkout session', 400, req);
     }
 
     // Verify userId from session matches authenticated user
@@ -74,7 +74,7 @@ serve(async (req: Request) => {
         sessionUserId: userId, 
         authenticated: authenticatedUser.id 
       });
-      return errorResponse('Unauthorized: session userId does not match authenticated user', 403);
+      return errorResponse('Unauthorized: session userId does not match authenticated user', 403, req);
     }
 
     console.log('[update-tier-from-session] Updating tier for user:', userId.substring(0, 8) + '...', 'plan:', plan);
@@ -114,12 +114,13 @@ serve(async (req: Request) => {
       tier: 'premium',
       plan,
       message: 'Tier updated successfully',
-    });
+    }, 200, req);
   } catch (error) {
     console.error('[update-tier-from-session] Error:', error);
     return errorResponse(
       error instanceof Error ? error.message : 'Failed to update tier from session',
-      500
+      500,
+      req
     );
   }
 });

@@ -19,13 +19,13 @@ serve(async (req: Request) => {
   try {
     // Only allow GET
     if (req.method !== 'GET') {
-      return errorResponse('Method not allowed', 405);
+      return errorResponse('Method not allowed', 405, req);
     }
 
     // Get the JWT token from the Authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return errorResponse('Missing or invalid authorization header', 401);
+      return errorResponse('Missing or invalid authorization header', 401, req);
     }
 
     const token = authHeader.replace('Bearer ', '');
@@ -36,7 +36,7 @@ serve(async (req: Request) => {
 
     if (!supabaseUrl || !supabaseAnonKey) {
       console.error('[verify-premium-status] Missing Supabase environment variables');
-      return errorResponse('Server configuration error', 500);
+      return errorResponse('Server configuration error', 500, req);
     }
 
     // Create client with user's JWT to verify authentication
@@ -57,7 +57,7 @@ serve(async (req: Request) => {
 
     if (authError || !user) {
       console.error('[verify-premium-status] Auth error:', authError);
-      return errorResponse('Invalid or expired token', 401);
+      return errorResponse('Invalid or expired token', 401, req);
     }
 
     console.log('[verify-premium-status] Verified user:', user.id.substring(0, 8) + '...');
@@ -67,7 +67,7 @@ serve(async (req: Request) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     if (!supabaseServiceKey) {
       console.error('[verify-premium-status] Missing service role key');
-      return errorResponse('Server configuration error', 500);
+      return errorResponse('Server configuration error', 500, req);
     }
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
@@ -93,10 +93,10 @@ serve(async (req: Request) => {
           tier: 'free',
           verifiedAt: new Date().toISOString(),
           userId: user.id,
-        });
+        }, 200, req);
       }
       console.error('[verify-premium-status] Profile error:', profileError);
-      return errorResponse('Failed to verify premium status', 500);
+      return errorResponse('Failed to verify premium status', 500, req);
     }
 
     const tier = profile?.tier || 'free';
@@ -110,12 +110,13 @@ serve(async (req: Request) => {
       verifiedAt: new Date().toISOString(),
       userId: user.id,
       lastUpdated: profile?.updated_at || null,
-    });
+    }, 200, req);
   } catch (error) {
     console.error('[verify-premium-status] Error:', error);
     return errorResponse(
       error instanceof Error ? error.message : 'Failed to verify premium status',
-      500
+      500,
+      req
     );
   }
 });

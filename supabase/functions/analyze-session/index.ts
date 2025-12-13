@@ -113,13 +113,13 @@ serve(async (req: Request) => {
   try {
     // Only allow POST
     if (req.method !== 'POST') {
-      return errorResponse('Method not allowed', 405);
+      return errorResponse('Method not allowed', 405, req);
     }
 
     // Get the token from the Authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return errorResponse('Missing or invalid authorization header', 401);
+      return errorResponse('Missing or invalid authorization header', 401, req);
     }
 
     const token = authHeader.replace('Bearer ', '');
@@ -130,7 +130,7 @@ serve(async (req: Request) => {
 
     if (!supabaseUrl || !supabaseAnonKey) {
       console.error('[analyze-session] Missing Supabase environment variables');
-      return errorResponse('Server configuration error', 500);
+      return errorResponse('Server configuration error', 500, req);
     }
 
     // Require authenticated user - verify JWT token (no anonymous access)
@@ -153,27 +153,27 @@ serve(async (req: Request) => {
         status: authError.status,
         name: authError.name
       });
-      return errorResponse('Invalid or expired token. Please log in and try again.', 401);
+      return errorResponse('Invalid or expired token. Please log in and try again.', 401, req);
     }
 
     if (!user) {
       console.error('[analyze-session] No user returned from getUser()');
-      return errorResponse('Invalid or expired token. Please log in and try again.', 401);
+      return errorResponse('Invalid or expired token. Please log in and try again.', 401, req);
     }
 
     const userId = user.id;
-    console.log('[analyze-session] Verified authenticated user:', userId);
+    console.log('[analyze-session] Verified authenticated user:', userId.substring(0, 8) + '...');
 
     // Parse request body
     const { transcript, patient } = await req.json();
 
     // Validate required fields
     if (!transcript || !Array.isArray(transcript)) {
-      return errorResponse('Missing or invalid transcript', 400);
+      return errorResponse('Missing or invalid transcript', 400, req);
     }
 
     if (!patient) {
-      return errorResponse('Missing patient profile', 400);
+      return errorResponse('Missing patient profile', 400, req);
     }
 
     // Check if there's clinician input
@@ -191,14 +191,14 @@ serve(async (req: Request) => {
         nextFocus: "Try another practice session and engage with the patient to receive detailed feedback.",
         analysisStatus: 'insufficient-data',
         analysisMessage: "We didn't receive any clinician responses, so there isn't enough information to interpret this encounter. Try another session when you're ready to practice."
-      });
+      }, 200, req);
     }
 
     // Get Gemini API key from environment
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
     if (!geminiApiKey) {
       console.error('[analyze-session] GEMINI_API_KEY not configured');
-      return errorResponse('AI service not configured', 500);
+      return errorResponse('AI service not configured', 500, req);
     }
 
     // Format transcript for prompt
@@ -329,7 +329,7 @@ IMPORTANT: Count every instance of each skill in the transcript. For example, if
     } catch (error) {
       if (error instanceof Error && error.message === 'Request timeout') {
         console.error('[analyze-session] Gemini API timeout after', FEEDBACK_TIMEOUT_MS, 'ms');
-        return errorResponse('AI analysis timed out. Please try again.', 504);
+        return errorResponse('AI analysis timed out. Please try again.', 504, req);
       }
       throw error;
     }
@@ -337,7 +337,7 @@ IMPORTANT: Count every instance of each skill in the transcript. For example, if
     // Handle rate limiting (429)
     if (geminiResponse.status === 429) {
       console.error('[analyze-session] Gemini API rate limit exceeded');
-      return errorResponse('AI service is currently busy. Please try again in a moment.', 429);
+      return errorResponse('AI service is currently busy. Please try again in a moment.', 429, req);
     }
 
     // Handle other HTTP errors
@@ -346,13 +346,13 @@ IMPORTANT: Count every instance of each skill in the transcript. For example, if
       console.error('[analyze-session] Gemini API error:', geminiResponse.status, errorText);
       
       if (geminiResponse.status === 400) {
-        return errorResponse('Invalid request to AI service', 400);
+        return errorResponse('Invalid request to AI service', 400, req);
       }
       if (geminiResponse.status === 401 || geminiResponse.status === 403) {
-        return errorResponse('AI service authentication failed', 500);
+        return errorResponse('AI service authentication failed', 500, req);
       }
       
-      return errorResponse('AI service error. Please try again later.', 500);
+      return errorResponse('AI service error. Please try again later.', 500, req);
     }
 
     // Parse response
@@ -361,7 +361,7 @@ IMPORTANT: Count every instance of each skill in the transcript. For example, if
     // Check if response has text content
     if (!geminiData.candidates || !geminiData.candidates[0] || !geminiData.candidates[0].content) {
       console.error('[analyze-session] Invalid Gemini API response structure:', JSON.stringify(geminiData, null, 2));
-      return errorResponse('Invalid response from AI service', 500);
+      return errorResponse('Invalid response from AI service', 500, req);
     }
 
     // Extract JSON from response
@@ -370,7 +370,7 @@ IMPORTANT: Count every instance of each skill in the transcript. For example, if
     
     if (!content.parts || !content.parts[0]) {
       console.error('[analyze-session] No parts in Gemini response content:', JSON.stringify(content, null, 2));
-      return errorResponse('Empty response from AI service', 500);
+      return errorResponse('Empty response from AI service', 500, req);
     }
 
     const textPart = content.parts[0];
@@ -383,11 +383,11 @@ IMPORTANT: Count every instance of each skill in the transcript. For example, if
       } catch (parseError) {
         console.error('[analyze-session] Failed to parse JSON from Gemini response:', parseError);
         console.error('[analyze-session] Raw text:', textPart.text);
-        return errorResponse('Invalid JSON response from AI service', 500);
+        return errorResponse('Invalid JSON response from AI service', 500, req);
       }
     } else {
       console.error('[analyze-session] No text content in Gemini response part:', JSON.stringify(textPart, null, 2));
-      return errorResponse('Empty response from AI service', 500);
+      return errorResponse('Empty response from AI service', 500, req);
     }
 
     // Normalize and return feedback
@@ -395,13 +395,14 @@ IMPORTANT: Count every instance of each skill in the transcript. For example, if
 
     console.log('[analyze-session] Successfully generated feedback for user:', userId.substring(0, 8) + '...');
 
-    return jsonResponse(normalizedFeedback);
+    return jsonResponse(normalizedFeedback, 200, req);
 
   } catch (error) {
     console.error('[analyze-session] Unexpected error:', error);
     return errorResponse(
       error instanceof Error ? error.message : 'Failed to analyze session',
-      500
+      500,
+      req
     );
   }
 });

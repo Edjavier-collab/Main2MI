@@ -11,13 +11,13 @@ serve(async (req: Request) => {
   try {
     // Only allow POST
     if (req.method !== 'POST') {
-      return errorResponse('Method not allowed', 405);
+      return errorResponse('Method not allowed', 405, req);
     }
 
     // Verify JWT token
     const authHeader = req.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return errorResponse('Missing or invalid authorization header', 401);
+      return errorResponse('Missing or invalid authorization header', 401, req);
     }
 
     const token = authHeader.replace('Bearer ', '');
@@ -26,19 +26,19 @@ serve(async (req: Request) => {
       authenticatedUser = await verifyJWT(token);
     } catch (authError) {
       console.error('[create-billing-portal-session] Auth error:', authError);
-      return errorResponse('Invalid or expired token. Please log in and try again.', 401);
+      return errorResponse('Invalid or expired token. Please log in and try again.', 401, req);
     }
 
     const { userId, returnUrl } = await req.json();
 
     if (!userId) {
-      return errorResponse('Missing userId', 400);
+      return errorResponse('Missing userId', 400, req);
     }
 
     // Verify userId matches authenticated user
     if (userId !== authenticatedUser.id) {
       console.error('[create-billing-portal-session] UserId mismatch:', { requested: userId, authenticated: authenticatedUser.id });
-      return errorResponse('Unauthorized: userId mismatch', 403);
+      return errorResponse('Unauthorized: userId mismatch', 403, req);
     }
 
     console.log('[create-billing-portal-session] Creating billing portal session for user:', userId.substring(0, 8) + '...');
@@ -53,7 +53,7 @@ serve(async (req: Request) => {
     });
 
     if (customers.data.length === 0) {
-      return errorResponse('No Stripe customer found', 404);
+      return errorResponse('No Stripe customer found', 404, req);
     }
 
     const customer = customers.data[0];
@@ -69,12 +69,13 @@ serve(async (req: Request) => {
 
     return jsonResponse({
       url: portalSession.url,
-    });
+    }, 200, req);
   } catch (error) {
     console.error('[create-billing-portal-session] Error:', error);
     return errorResponse(
       error instanceof Error ? error.message : 'Failed to create billing portal session',
-      500
+      500,
+      req
     );
   }
 });

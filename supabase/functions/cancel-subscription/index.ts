@@ -11,13 +11,13 @@ serve(async (req: Request) => {
   try {
     // Only allow POST
     if (req.method !== 'POST') {
-      return errorResponse('Method not allowed', 405);
+      return errorResponse('Method not allowed', 405, req);
     }
 
     // Verify JWT token
     const authHeader = req.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return errorResponse('Missing or invalid authorization header', 401);
+      return errorResponse('Missing or invalid authorization header', 401, req);
     }
 
     const token = authHeader.replace('Bearer ', '');
@@ -26,23 +26,23 @@ serve(async (req: Request) => {
       authenticatedUser = await verifyJWT(token);
     } catch (authError) {
       console.error('[cancel-subscription] Auth error:', authError);
-      return errorResponse('Invalid or expired token. Please log in and try again.', 401);
+      return errorResponse('Invalid or expired token. Please log in and try again.', 401, req);
     }
 
     const { userId, action } = await req.json();
 
     if (!userId || !action) {
-      return errorResponse('Missing userId or action', 400);
+      return errorResponse('Missing userId or action', 400, req);
     }
 
     // Verify userId matches authenticated user
     if (userId !== authenticatedUser.id) {
       console.error('[cancel-subscription] UserId mismatch:', { requested: userId, authenticated: authenticatedUser.id });
-      return errorResponse('Unauthorized: userId mismatch', 403);
+      return errorResponse('Unauthorized: userId mismatch', 403, req);
     }
 
     if (!['accept_offer', 'cancel'].includes(action)) {
-      return errorResponse('Invalid action. Must be "accept_offer" or "cancel"', 400);
+      return errorResponse('Invalid action. Must be "accept_offer" or "cancel"', 400, req);
     }
 
     console.log('[cancel-subscription] Processing request:', { userId: userId.substring(0, 8) + '...', action });
@@ -57,7 +57,7 @@ serve(async (req: Request) => {
     });
 
     if (customers.data.length === 0) {
-      return errorResponse('No customer found', 404);
+      return errorResponse('No customer found', 404, req);
     }
 
     const customer = customers.data[0];
@@ -68,7 +68,7 @@ serve(async (req: Request) => {
     });
 
     if (subscriptions.data.length === 0) {
-      return errorResponse('No active subscription found', 404);
+      return errorResponse('No active subscription found', 404, req);
     }
 
     const subscription = subscriptions.data[0];
@@ -105,7 +105,7 @@ serve(async (req: Request) => {
         action: 'accept_offer',
         subscriptionId: updatedSubscription.id,
         message: 'Retention discount applied successfully',
-      });
+      }, 200, req);
     } else {
       // Cancel subscription at period end
       const cancelledSubscription = await stripe.subscriptions.update(subscription.id, {
@@ -133,13 +133,14 @@ serve(async (req: Request) => {
         currentPeriodEnd: new Date(cancelledSubscription.current_period_end * 1000).toISOString(),
         status: cancelledSubscription.status,
         message: 'Subscription will be cancelled at the end of the billing period',
-      });
+      }, 200, req);
     }
   } catch (error) {
     console.error('[cancel-subscription] Error:', error);
     return errorResponse(
       error instanceof Error ? error.message : 'Failed to cancel subscription',
-      500
+      500,
+      req
     );
   }
 });

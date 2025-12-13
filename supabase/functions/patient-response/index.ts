@@ -253,13 +253,13 @@ serve(async (req: Request) => {
   try {
     // Only allow POST
     if (req.method !== 'POST') {
-      return errorResponse('Method not allowed', 405);
+      return errorResponse('Method not allowed', 405, req);
     }
 
     // Get the token from the Authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return errorResponse('Missing or invalid authorization header', 401);
+      return errorResponse('Missing or invalid authorization header', 401, req);
     }
 
     const token = authHeader.replace('Bearer ', '');
@@ -270,7 +270,7 @@ serve(async (req: Request) => {
 
     if (!supabaseUrl || !supabaseAnonKey) {
       console.error('[patient-response] Missing Supabase environment variables');
-      return errorResponse('Server configuration error', 500);
+      return errorResponse('Server configuration error', 500, req);
     }
 
     // Verify JWT token
@@ -285,7 +285,7 @@ serve(async (req: Request) => {
 
     if (authError || !user) {
       console.error('[patient-response] Auth error:', authError);
-      return errorResponse('Invalid or expired token. Please log in and try again.', 401);
+      return errorResponse('Invalid or expired token. Please log in and try again.', 401, req);
     }
 
     const userId = user.id;
@@ -296,22 +296,22 @@ serve(async (req: Request) => {
 
     // Validate required fields
     if (!transcript || !Array.isArray(transcript)) {
-      return errorResponse('Missing or invalid transcript', 400);
+      return errorResponse('Missing or invalid transcript', 400, req);
     }
 
     if (!patient) {
-      return errorResponse('Missing patient profile', 400);
+      return errorResponse('Missing patient profile', 400, req);
     }
 
     if (!message || typeof message !== 'string' || !message.trim()) {
-      return errorResponse('Missing or invalid message', 400);
+      return errorResponse('Missing or invalid message', 400, req);
     }
 
     // Get Gemini API key from environment
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
     if (!geminiApiKey) {
       console.error('[patient-response] GEMINI_API_KEY not configured');
-      return errorResponse('AI service not configured', 500);
+      return errorResponse('AI service not configured', 500, req);
     }
 
     // Build system instruction from patient profile
@@ -385,7 +385,7 @@ Your response must feel fresh and varied, not repetitive.`;
     } catch (error) {
       if (error instanceof Error && error.message === 'Request timeout') {
         console.error('[patient-response] Gemini API timeout after', RESPONSE_TIMEOUT_MS, 'ms');
-        return errorResponse('AI response timed out. Please try again.', 504);
+        return errorResponse('AI response timed out. Please try again.', 504, req);
       }
       throw error;
     }
@@ -393,7 +393,7 @@ Your response must feel fresh and varied, not repetitive.`;
     // Handle rate limiting (429)
     if (geminiResponse.status === 429) {
       console.error('[patient-response] Gemini API rate limit exceeded');
-      return errorResponse('AI service is currently busy. Please try again in a moment.', 429);
+      return errorResponse('AI service is currently busy. Please try again in a moment.', 429, req);
     }
 
     // Handle other HTTP errors
@@ -402,13 +402,13 @@ Your response must feel fresh and varied, not repetitive.`;
       console.error('[patient-response] Gemini API error:', geminiResponse.status, errorText);
       
       if (geminiResponse.status === 400) {
-        return errorResponse('Invalid request to AI service', 400);
+        return errorResponse('Invalid request to AI service', 400, req);
       }
       if (geminiResponse.status === 401 || geminiResponse.status === 403) {
-        return errorResponse('AI service authentication failed', 500);
+        return errorResponse('AI service authentication failed', 500, req);
       }
       
-      return errorResponse('AI service error. Please try again later.', 500);
+      return errorResponse('AI service error. Please try again later.', 500, req);
     }
 
     // Parse response
@@ -417,7 +417,7 @@ Your response must feel fresh and varied, not repetitive.`;
     // Check if response has text content
     if (!geminiData.candidates || !geminiData.candidates[0] || !geminiData.candidates[0].content) {
       console.error('[patient-response] Invalid Gemini API response structure:', JSON.stringify(geminiData, null, 2));
-      return errorResponse('Invalid response from AI service', 500);
+      return errorResponse('Invalid response from AI service', 500, req);
     }
 
     // Extract text from response
@@ -426,7 +426,7 @@ Your response must feel fresh and varied, not repetitive.`;
     
     if (!content.parts || !content.parts[0] || !content.parts[0].text) {
       console.error('[patient-response] No text in Gemini response:', JSON.stringify(content, null, 2));
-      return errorResponse('Empty response from AI service', 500);
+      return errorResponse('Empty response from AI service', 500, req);
     }
 
     let responseText = content.parts[0].text.trim();
@@ -436,18 +436,19 @@ Your response must feel fresh and varied, not repetitive.`;
 
     if (!responseText) {
       console.error('[patient-response] Empty response after processing');
-      return errorResponse('AI service returned empty response', 500);
+      return errorResponse('AI service returned empty response', 500, req);
     }
 
     console.log('[patient-response] Successfully generated patient response for user:', userId.substring(0, 8) + '...');
 
-    return jsonResponse({ response: responseText });
+    return jsonResponse({ response: responseText }, 200, req);
 
   } catch (error) {
     console.error('[patient-response] Unexpected error:', error);
     return errorResponse(
       error instanceof Error ? error.message : 'Failed to generate patient response',
-      500
+      500,
+      req
     );
   }
 });
