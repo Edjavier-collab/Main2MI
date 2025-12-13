@@ -1,0 +1,715 @@
+[
+  {
+    "id": "TC001",
+    "title": "User Signup Successful",
+    "description": "Verify that a new user can successfully sign up with valid email and password, receive email confirmation, and be able to log in.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the signup page"
+      },
+      {
+        "type": "action",
+        "description": "Input valid email and password"
+      },
+      {
+        "type": "action",
+        "description": "Submit signup form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify email confirmation message is shown"
+      },
+      {
+        "type": "action",
+        "description": "Complete email verification link from email"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to login with the new credentials"
+      },
+      {
+        "type": "assertion",
+        "description": "Check user is successfully logged in and directed to dashboard"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Login Failure with Incorrect Credentials",
+    "description": "Verify login fails with incorrect email or password and shows proper error message.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to login page"
+      },
+      {
+        "type": "action",
+        "description": "Input incorrect email or password"
+      },
+      {
+        "type": "action",
+        "description": "Click login button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify error message indicating invalid credentials is displayed"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Password Reset Flow",
+    "description": "Verify that users can request a password reset, receive email with reset link, and successfully reset their password.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the Forgot Password view"
+      },
+      {
+        "type": "action",
+        "description": "Submit registered email for password reset"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify confirmation message about password reset email sent"
+      },
+      {
+        "type": "action",
+        "description": "Open password reset link from email"
+      },
+      {
+        "type": "action",
+        "description": "Enter new password and submit"
+      },
+      {
+        "type": "action",
+        "description": "Login with new password"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify successful login with new password"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "AI-Powered Practice Session Normal Flow",
+    "description": "Verify that user can start a practice session, select a patient scenario, interact via chat or voice, complete the session and view AI-generated feedback.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as a valid user"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to Practice view"
+      },
+      {
+        "type": "action",
+        "description": "Select a patient scenario"
+      },
+      {
+        "type": "action",
+        "description": "Start session timer and interact using chat input"
+      },
+      {
+        "type": "action",
+        "description": "Use voice input to simulate conversation"
+      },
+      {
+        "type": "action",
+        "description": "Complete the practice session"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify AI-generated feedback and coaching summary is presented"
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "AI Practice Session with Timer Expiry",
+    "description": "Verify that the session automatically ends when the timer expires and feedback is generated accordingly.",
+    "category": "error handling",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Start a practice session"
+      },
+      {
+        "type": "action",
+        "description": "Allow the session timer to reach zero without user interaction"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify session ends automatically"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that AI feedback report is generated and displayed"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Subscription Purchase and Upgrade Flow",
+    "description": "Verify that a user can successfully subscribe to premium, upgrade subscription tiers through integrated Stripe checkout, and see their premium status updated.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as a non-subscribed user"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to subscription/paywall view"
+      },
+      {
+        "type": "action",
+        "description": "Initiate checkout for premium subscription"
+      },
+      {
+        "type": "action",
+        "description": "Complete payment through Stripe"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify subscription status updates to premium in user profile"
+      },
+      {
+        "type": "action",
+        "description": "Upgrade subscription tier if applicable"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify tier upgrade reflected in UI and billing"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Subscription Cancellation Flow",
+    "description": "Validate that a user can cancel their premium subscription, the cancellation is processed correctly, and their premium access is revoked upon period end.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as a premium subscriber"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to subscription management or cancellation view"
+      },
+      {
+        "type": "action",
+        "description": "Submit cancellation request"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify confirmation of cancellation request"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify premium access remains until period end and is revoked afterward"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Dashboard Displays Accurate Session Statistics and History",
+    "description": "Verify the dashboard loads and correctly displays accurate user session statistics, practice history, and quick action buttons.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in and navigate to the Dashboard view"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify session statistics (XP, badges, streaks) are shown correctly"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify practice history list is populated with accurate records"
+      },
+      {
+        "type": "assertion",
+        "description": "Check quick action buttons function (e.g., start new session)"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Gamification XP and Badge Awarding",
+    "description": "Ensure the system awards experience points and badges correctly based on user activity and shows visual feedback for streaks and level progress.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Perform multiple practice sessions consecutively to build streak"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify XP increases appropriately after each session"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify badge unlocking notification is shown when criteria met"
+      },
+      {
+        "type": "assertion",
+        "description": "Check streak counter updates after days of continuous activity"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify level progress bar updates with XP gain"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Access Premium AI Coaching Reports",
+    "description": "Verify that only premium users can access AI-generated coaching reports, including executive summaries, insights, and action plans, and that reports display correct information.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as a premium user"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to Coaching Reports view"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify executive summary, detailed insights, trend analysis, and action plans are displayed"
+      },
+      {
+        "type": "action",
+        "description": "Log out and log in as a non-premium user"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to navigate to Coaching Reports view"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify access is denied or redirected to subscription paywall"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Resource Library Access Control Based on Subscription",
+    "description": "Ensure MI educational materials are accessible to all users, but premium gated content is only accessible to subscribed users with proper gating enforced.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as non-premium user and navigate to Resource Library"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify free MI materials are accessible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify access to premium gated content is blocked with subscription CTA"
+      },
+      {
+        "type": "action",
+        "description": "Log in as premium user"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to Resource Library and access premium content"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify premium content is accessible without restriction"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Navigation and Routing Smoothness",
+    "description": "Verify bottom navigation bar correctly routes between all main views (Practice, Dashboard, Reports, Library, Settings) without errors and maintains expected view state.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "From any page, click each bottom navigation button sequentially"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify view changes correctly and content is rendered properly"
+      },
+      {
+        "type": "assertion",
+        "description": "Check browser back and forward buttons maintain correct routing state"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Progressive Web App Offline Support",
+    "description": "Verify that the app shows an offline indicator when network is lost, can serve cached content, and gracefully handles offline scenarios without crashing.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate through various views to cache content"
+      },
+      {
+        "type": "action",
+        "description": "Simulate network offline mode"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify offline indicator UI is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify cached pages are accessible and interactive elements degrade gracefully"
+      },
+      {
+        "type": "action",
+        "description": "Restore network connectivity"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify offline indicator disappears and app recovers normal function"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "In-App Feedback Submission",
+    "description": "Verify that users can submit feedback via rating and comments, and feedback is recorded successfully for review.",
+    "category": "functional",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to feedback form/modal"
+      },
+      {
+        "type": "action",
+        "description": "Enter a rating and text comment"
+      },
+      {
+        "type": "action",
+        "description": "Submit feedback"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify success confirmation message"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify feedback is persisted and retrievable by support team"
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Edge Functions - Stripe Webhook Handling",
+    "description": "Test that Stripe webhooks sent by Stripe are received by edge functions, processed correctly, and update subscription status accordingly.",
+    "category": "integration",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Simulate sending Stripe webhook events for payment success, subscription update, and cancellation to the edge function"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify backend updates user subscription status correctly in the database"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no errors are thrown and responses are correct"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Premium Scenario Selection Filtering",
+    "description": "Verify that premium users can filter and select patient scenarios including premium gated ones, while non-premium users are restricted.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as non-premium user and navigate to Scenario Selection"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify premium scenarios are not selectable or hidden"
+      },
+      {
+        "type": "action",
+        "description": "Log in as premium user"
+      },
+      {
+        "type": "action",
+        "description": "Apply filters to Scenario Selection"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify premium and standard scenarios are listed and selectable"
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Onboarding Flow Completion",
+    "description": "Verify that new users experience the onboarding flow correctly introducing core features, and are able to proceed to main app after completion.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as a new user or reset user state"
+      },
+      {
+        "type": "action",
+        "description": "Navigate through onboarding screens following the sequence"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that onboarding instructions and navigation are clear and functional"
+      },
+      {
+        "type": "action",
+        "description": "Complete onboarding flow"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user is routed to dashboard or main app view"
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Legal Pages Accessibility and Accuracy",
+    "description": "Verify that all legal pages - Privacy Policy, Terms of Service, Cookie Policy, Subscription Terms, and Disclaimer - are accessible from within the app and contain correct and up-to-date information.",
+    "category": "functional",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to Support or Settings view"
+      },
+      {
+        "type": "action",
+        "description": "Access each legal page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify page loads successfully and correct content is displayed"
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "UI Components Responsiveness and Accessibility",
+    "description": "Verify reusable UI components (buttons, cards, modals, spinners) render correctly on various screen sizes and are accessible via keyboard and screen readers.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Render key UI components on different devices and screen resolutions"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify layout adjusts responsively without content overlap or clipping"
+      },
+      {
+        "type": "action",
+        "description": "Test keyboard navigation for focus and activation of buttons, links, modals"
+      },
+      {
+        "type": "assertion",
+        "description": "Check all components have accessible labels and ARIA attributes where appropriate"
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "Mock Mode Fallback for Authentication",
+    "description": "Verify that when Supabase authentication service is unavailable, the app uses mock mode fallback to allow user authentication flows in development.",
+    "category": "functional",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Disable Supabase authentication service or simulate outage"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to perform signup and login actions"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify authentication flows complete successfully using mock mode"
+      },
+      {
+        "type": "assertion",
+        "description": "Check appropriate UI notifications about mock mode usage"
+      }
+    ]
+  },
+  {
+    "id": "TC021",
+    "title": "Voice Input Functionality in Practice Sessions",
+    "description": "Verify that voice recognition input within AI practice sessions works reliably, accurately capturing user speech and integrating seamlessly into practice conversation.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Start practice session with patient simulation"
+      },
+      {
+        "type": "action",
+        "description": "Use voice input to provide responses during session"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify transcribed text is accurately recognized and displayed in chat interface"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify AI patient responses update accordingly"
+      }
+    ]
+  },
+  {
+    "id": "TC022",
+    "title": "Error Boundary Component Handling Crashes",
+    "description": "Test that the UI error boundary component correctly catches errors in child components and displays fallback UI gracefully without crashing the entire app.",
+    "category": "error handling",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Introduce a runtime error in a child component (e.g. throwing exception)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify error boundary catches the error"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify fallback UI is shown with friendly error message"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify app remains responsive and user can recover"
+      }
+    ]
+  },
+  {
+    "id": "TC023",
+    "title": "Session Data Sync and Persistence Testing",
+    "description": "Verify that session data, progress, and AI feedback are reliably saved to Supabase, synchronized across devices and restored on re-login.",
+    "category": "integration",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Start and complete a practice session on device A"
+      },
+      {
+        "type": "assertion",
+        "description": "Check session data and coaching feedback saved to backend"
+      },
+      {
+        "type": "action",
+        "description": "Log in to device B with same user"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify practice history and coaching reports are present and consistent"
+      }
+    ]
+  },
+  {
+    "id": "TC024",
+    "title": "Error Handling for Network Failures",
+    "description": "Verify app's behavior when network requests fail during key flows like login, subscription updates, or AI feedback retrieval, ensuring graceful degradation and user-friendly error messages.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Simulate network failure during login attempt"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify appropriate network error message displayed"
+      },
+      {
+        "type": "action",
+        "description": "Simulate failure during Stripe payment processing"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify payment failure message and fallback UI"
+      },
+      {
+        "type": "action",
+        "description": "Simulate AI coaching report retrieval failure"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user informed of issue and option to retry"
+      }
+    ]
+  },
+  {
+    "id": "TC025",
+    "title": "Security - Verify Sensitive Data Protection on Authentication",
+    "description": "Verify that user credentials, tokens, and sensitive data are transmitted securely over HTTPS, stored properly with encryption, and inaccessible in UI or logs.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Interact with authentication flows (signup, login, password reset)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all network calls use HTTPS and no sensitive data is exposed in requests or responses"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify authentication tokens are stored securely (e.g. httpOnly cookies or secure storage)"
+      },
+      {
+        "type": "assertion",
+        "description": "Check UI and logs do not display passwords or tokens"
+      }
+    ]
+  }
+]

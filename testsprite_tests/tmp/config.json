@@ -1,7 +1,16 @@
 {
-  "status": "init",
-  "scope": "codebase",
+  "status": "commited",
   "type": "frontend",
-  "localEndpoint": "http://localhost:3000/",
-  "serverPort": 52443
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "executionArgs": {
+    "projectName": "mi-practice-coach",
+    "projectPath": "/Users/eduardojavier/mi-practice-coach/mi-practice-coach",
+    "testIds": [],
+    "additionalInstruction": "Comprehensive testing of MI Practice Coach application:\n\n**Core Flows:**\n1. Authentication (sign up, login, logout, password reset)\n2. Practice session (scenario selection, conversation, speech recognition, end session, feedback)\n3. Subscription (upgrade to premium, manage billing, cancel, restore)\n4. Navigation (all views, back button, URL routing)\n\n**Secondary Flows:**\n5. Gamification (streaks, XP, badges display)\n6. Reports (skill analytics, coaching summary)\n7. Settings (profile, preferences, legal pages)\n8. Empty states (new user with no sessions)\n\n**Edge Cases:**\n9. Network failures (retry behavior)\n10. Session expiry (token refresh)\n11. Mobile responsiveness\n\nEnsure comprehensive coverage of all user journeys and edge cases.",
+    "envs": {
+      "API_KEY": "sk-user-e1AwfY13Kn8AVSuyUEhOH5MULJUFYNEKwSUW-E3AgEPk6DuUYPkLQTLNMWF7In6exsx-IHkGExdzA2CPKOiUSA8iA7GTUPKVCvba-wlrSfxUMI6w0vR9smrdIFIQL567zVA"
+    }
+  },
+  "proxy": "http://b2effa7f-f036-4fe7-a445-72a310675f99:LxioxPz0SOgR2VTnav97hYKY2XepxgPa@tun.testsprite.com:8080"
 }

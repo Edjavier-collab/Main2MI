@@ -1,0 +1,251 @@
+{
+  "tech_stack": [
+    "TypeScript",
+    "React",
+    "Vite",
+    "Supabase",
+    "Stripe",
+    "Tailwind CSS",
+    "PWA",
+    "Google Gemini AI"
+  ],
+  "features": [
+    {
+      "name": "Authentication System",
+      "description": "User authentication with Supabase including sign up, sign in, sign out, password reset, and email confirmation. Supports mock mode fallback.",
+      "files": [
+        "contexts/AuthContext.tsx",
+        "components/views/LoginView.tsx",
+        "components/views/ForgotPasswordView.tsx",
+        "components/views/ResetPasswordView.tsx",
+        "components/views/EmailConfirmationView.tsx",
+        "hooks/useAuthCallback.ts",
+        "lib/supabase.ts"
+      ]
+    },
+    {
+      "name": "Practice Session Flow",
+      "description": "AI-powered practice sessions with patient simulation, chat interface, voice input, timer, and session management.",
+      "files": [
+        "components/views/PracticeView.tsx",
+        "components/views/FeedbackView.tsx",
+        "components/ui/ChatBubble.tsx",
+        "components/ui/Timer.tsx",
+        "hooks/useSpeechRecognition.ts",
+        "services/geminiService.ts",
+        "services/patientService.ts",
+        "hooks/useSessionManager.ts"
+      ]
+    },
+    {
+      "name": "Subscription and Payment Flow",
+      "description": "Stripe integration for premium subscriptions with checkout, webhooks, tier management, and subscription cancellation.",
+      "files": [
+        "components/views/PaywallView.tsx",
+        "components/views/CancelSubscriptionView.tsx",
+        "components/views/SettingsView.tsx",
+        "services/stripeService.ts",
+        "services/subscriptionService.ts",
+        "hooks/useStripeCallback.ts",
+        "hooks/useTierManager.ts",
+        "supabase/functions/create-checkout-session/index.ts",
+        "supabase/functions/stripe-webhook/index.ts",
+        "supabase/functions/update-tier-from-session/index.ts",
+        "supabase/functions/cancel-subscription/index.ts",
+        "supabase/functions/restore-subscription/index.ts",
+        "supabase/functions/upgrade-subscription/index.ts"
+      ]
+    },
+    {
+      "name": "Navigation and Routing",
+      "description": "View-based navigation system with bottom navigation bar, view renderer, and routing logic.",
+      "files": [
+        "components/views/ViewRenderer.tsx",
+        "components/ui/BottomNavBar.tsx",
+        "components/ui/BackButton.tsx",
+        "hooks/useAppRouter.ts",
+        "App.tsx"
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "description": "Main dashboard showing session statistics, practice history, and quick actions.",
+      "files": [
+        "components/views/Dashboard.tsx",
+        "components/views/HistoryView.tsx",
+        "components/views/CalendarView.tsx"
+      ]
+    },
+    {
+      "name": "Gamification System",
+      "description": "XP, badges, streaks, and level progression to motivate users.",
+      "files": [
+        "hooks/useXP.ts",
+        "hooks/useBadges.ts",
+        "hooks/useStreak.ts",
+        "components/gamification/BadgeDisplay.tsx",
+        "components/gamification/BadgeUnlockToast.tsx",
+        "components/gamification/LevelProgress.tsx",
+        "components/gamification/StreakCounter.tsx"
+      ]
+    },
+    {
+      "name": "Coaching Reports",
+      "description": "AI-generated coaching summaries and detailed reports for premium users.",
+      "files": [
+        "components/views/CoachingSummaryView.tsx",
+        "components/views/ReportsView.tsx",
+        "components/reports/ExecutiveSummary.tsx",
+        "components/reports/DetailedInsights.tsx",
+        "components/reports/TrendAnalysis.tsx",
+        "components/reports/SkillRadarChart.tsx",
+        "components/reports/ActionPlan.tsx",
+        "hooks/useReportData.ts",
+        "supabase/functions/coaching-summary/index.ts"
+      ]
+    },
+    {
+      "name": "Resource Library",
+      "description": "Educational content library with MI resources, some premium-gated.",
+      "files": [
+        "components/views/ResourceLibrary.tsx",
+        "components/views/LibraryView.tsx"
+      ]
+    },
+    {
+      "name": "Scenario Selection",
+      "description": "Premium feature allowing users to filter and select specific patient scenarios.",
+      "files": [
+        "components/views/ScenarioSelectionView.tsx",
+        "services/patientService.ts"
+      ]
+    },
+    {
+      "name": "Database Service",
+      "description": "Supabase database operations for user profiles, sessions, and data persistence.",
+      "files": [
+        "services/databaseService.ts",
+        "services/sessionLoader.ts",
+        "hooks/useOnlineSync.ts",
+        "utils/syncQueue.ts"
+      ]
+    },
+    {
+      "name": "AI Services",
+      "description": "Google Gemini AI integration for patient responses, feedback generation, and coaching summaries.",
+      "files": [
+        "services/geminiService.ts",
+        "services/geminiMockService.ts",
+        "services/geminiTextProcessor.ts",
+        "supabase/functions/patient-response/index.ts",
+        "supabase/functions/analyze-session/index.ts"
+      ]
+    },
+    {
+      "name": "State Management",
+      "description": "Application state management using React hooks and custom hooks.",
+      "files": [
+        "hooks/useAppState.ts",
+        "hooks/useAppRouter.ts",
+        "App.tsx"
+      ]
+    },
+    {
+      "name": "UI Components",
+      "description": "Reusable UI components including buttons, cards, modals, loading spinners, and form inputs.",
+      "files": [
+        "components/ui/Button.tsx",
+        "components/ui/Card.tsx",
+        "components/ui/SoftCard.tsx",
+        "components/ui/LoadingSpinner.tsx",
+        "components/ui/LottieLoader.tsx",
+        "components/ui/Toast.tsx",
+        "components/ui/UpgradeModal.tsx",
+        "components/ui/FeedbackModal.tsx",
+        "components/ui/PatientProfileCard.tsx",
+        "components/ui/FeedbackCard.tsx",
+        "components/ui/PasswordStrengthIndicator.tsx",
+        "components/ui/SoftInput.tsx",
+        "components/ui/OfflineIndicator.tsx",
+        "components/ui/ErrorBoundary.tsx",
+        "components/ui/CookieConsent.tsx",
+        "components/ui/ReviewPrompt.tsx"
+      ]
+    },
+    {
+      "name": "Onboarding",
+      "description": "New user onboarding flow to introduce the application.",
+      "files": [
+        "components/views/Onboarding.tsx"
+      ]
+    },
+    {
+      "name": "Support and Legal",
+      "description": "Support page and legal pages including privacy policy, terms of service, and cookie policy.",
+      "files": [
+        "components/views/SupportView.tsx",
+        "components/legal/PrivacyPolicy.tsx",
+        "components/legal/TermsOfService.tsx",
+        "components/legal/CookiePolicy.tsx",
+        "components/legal/SubscriptionTerms.tsx",
+        "components/legal/Disclaimer.tsx"
+      ]
+    },
+    {
+      "name": "Feedback Service",
+      "description": "In-app feedback collection system for user ratings and comments.",
+      "files": [
+        "services/feedbackService.ts",
+        "components/ui/FeedbackModal.tsx"
+      ]
+    },
+    {
+      "name": "PWA Support",
+      "description": "Progressive Web App features including service worker, offline support, and app manifest.",
+      "files": [
+        "vite.config.ts",
+        "public/manifest.json",
+        "components/ui/OfflineIndicator.tsx"
+      ]
+    },
+    {
+      "name": "Edge Functions",
+      "description": "Supabase Edge Functions for serverless backend operations including Stripe webhooks, coaching summaries, and subscription management.",
+      "files": [
+        "supabase/functions/_shared/cors.ts",
+        "supabase/functions/_shared/stripe.ts",
+        "supabase/functions/_shared/supabase.ts",
+        "supabase/functions/create-checkout-session/index.ts",
+        "supabase/functions/stripe-webhook/index.ts",
+        "supabase/functions/update-tier-from-session/index.ts",
+        "supabase/functions/get-subscription/index.ts",
+        "supabase/functions/cancel-subscription/index.ts",
+        "supabase/functions/apply-retention-discount/index.ts",
+        "supabase/functions/restore-subscription/index.ts",
+        "supabase/functions/upgrade-subscription/index.ts",
+        "supabase/functions/coaching-summary/index.ts",
+        "supabase/functions/patient-response/index.ts",
+        "supabase/functions/analyze-session/index.ts",
+        "supabase/functions/verify-premium-status/index.ts",
+        "supabase/functions/create-billing-portal-session/index.ts"
+      ]
+    },
+    {
+      "name": "Utilities",
+      "description": "Utility functions for validation, error handling, and session management.",
+      "files": [
+        "utils/validation.ts",
+        "utils/errorHandler.ts",
+        "utils/sessionManager.ts"
+      ]
+    },
+    {
+      "name": "Setup and Configuration",
+      "description": "Backend health checks and configuration validation.",
+      "files": [
+        "hooks/useSetupCheck.ts"
+      ]
+    }
+  ]
+}
+
