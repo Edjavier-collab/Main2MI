@@ -288,13 +288,10 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, onNavigate, onEmailConfi
                     <span>Continue with Google</span>
                 </button>
 
-                <div className="relative my-6">
-                    <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-neutral-300"></div>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                        <span className="px-2 bg-neutral-50 dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400">Or continue with email</span>
-                    </div>
+                <div className="flex items-center my-6">
+                    <div className="flex-grow border-t border-neutral-300 dark:border-neutral-600"></div>
+                    <span className="px-2 text-sm text-neutral-500 dark:text-neutral-400">Or continue with email</span>
+                    <div className="flex-grow border-t border-neutral-300 dark:border-neutral-600"></div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -437,13 +434,10 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, onNavigate, onEmailConfi
                 {/* Continue as Guest Button */}
                 {onContinueAsGuest && (
                     <div className="mt-6">
-                        <div className="relative my-6">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-neutral-300"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-neutral-50 dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400">Or</span>
-                            </div>
+                        <div className="flex items-center my-6">
+                            <div className="flex-grow border-t border-neutral-300 dark:border-neutral-600"></div>
+                            <span className="px-2 text-sm text-neutral-500 dark:text-neutral-400">Or</span>
+                            <div className="flex-grow border-t border-neutral-300 dark:border-neutral-600"></div>
                         </div>
                         <button
                             type="button"

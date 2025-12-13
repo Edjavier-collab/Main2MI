@@ -41,7 +41,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
     
     const { user } = useAuth();
     const { showToast, ToastContainer, toasts, removeToast } = useToast();
-    const { isListening, finalTranscript, interimTranscript, isWaitingToRestart, startListening, stopListening, hasSupport, error: micError, setTranscript: setSpeechTranscript } = useSpeechRecognition();
+    const { isListening, finalTranscript, interimTranscript, startListening, stopListening, hasSupport, error: micError, setTranscript: setSpeechTranscript } = useSpeechRecognition();
     // Combine final and interim for display (interim shows as live preview)
     const speechTranscript = finalTranscript + (interimTranscript ? (finalTranscript ? ' ' : '') + interimTranscript : '');
     const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -329,7 +329,8 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
         if (isListening) {
             stopListening();
         }
-        handleSendMessage(speechTranscript);
+        const transcriptToSend = speechTranscript;
+        handleSendMessage(transcriptToSend);
         setSpeechTranscript('');
     };
 
@@ -520,17 +521,8 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
             <div className="p-4 border-t-2 border-black bg-[var(--color-bg-accent)]">
                 {/* Screen reader announcement for voice recording status */}
                 <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-                    {isListening ? 'Recording started. Speak now.' : isWaitingToRestart ? 'Listening for more speech...' : ''}
+                    {isListening ? 'Recording started. Speak now.' : ''}
                 </div>
-                {/* Mobile auto-restart indicator */}
-                {isWaitingToRestart && !isListening && (
-                    <div className="mb-2 flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
-                        <div className="flex items-center gap-1">
-                            <div className="w-2 h-2 bg-[var(--color-primary)] rounded-full animate-pulse"></div>
-                            <span>Listening for more...</span>
-                        </div>
-                    </div>
-                )}
                 {sessionExpired && (
                     <Card variant="accent" padding="sm" className="mb-3 border-l-4 border-[var(--color-error)]">
                         <div className="flex flex-col gap-2" role="alert">
@@ -580,7 +572,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
                             ref={textareaRef}
                             value={speechTranscript}
                             onChange={(e) => setSpeechTranscript(e.target.value)}
-                            placeholder={isListening ? "Listening..." : isWaitingToRestart ? "Listening for more..." : "Type your response or use the microphone..."}
+                            placeholder={isListening ? "Listening..." : "Type your response or use the microphone..."}
                             className="flex-1 p-3 bg-transparent focus:outline-none resize-none w-full max-h-56 overflow-y-auto text-[var(--color-text-primary)]"
                             rows={2}
                             onKeyDown={(e) => {
@@ -605,14 +597,14 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
                             <button
                                 onClick={handleVoiceSend}
                                 disabled={isPatientTyping}
-                                className={`w-[var(--touch-target-min)] h-[var(--touch-target-min)] flex items-center justify-center border-2 border-black transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${isListening || isWaitingToRestart ? 'bg-red-500 text-white animate-pulse focus-visible:ring-red-500' : 'bg-white text-[var(--color-text-primary)] hover:bg-[var(--color-primary-lighter)] focus-visible:ring-[var(--color-primary)]'}`}
-                                aria-label={isListening ? 'Stop recording' : isWaitingToRestart ? 'Listening for more speech' : 'Start recording'}
-                                aria-pressed={isListening || isWaitingToRestart}
+                                className={`w-[var(--touch-target-min)]...`}
+                                aria-label={isListening ? 'Stop recording' : 'Start recording'}
+                                aria-pressed={isListening}
                             >
                                 <i className="fa-solid fa-microphone text-xl" aria-hidden="true"></i>
                             </button>
                             <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-[var(--color-neutral-800)] text-white text-xs font-semibold shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10 whitespace-nowrap rounded">
-                                {isListening ? 'Stop Recording' : isWaitingToRestart ? 'Listening for more...' : 'Start Recording'}
+                                {isListening ? 'Stop Recording' : 'Start Recording'}
                                 <svg className="absolute text-[var(--color-neutral-800)] h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255" xmlSpace="preserve"><polygon className="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
                             </div>
                         </div>

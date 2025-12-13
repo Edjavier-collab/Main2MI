@@ -106,6 +106,8 @@ const MASTER_SKILL_LIST = [
     'Supporting Self-Efficacy'
 ];
 
+const DEFAULT_NEXT_FOCUS = "Focus on balancing your use of Open Questions and Reflections. Aim to keep the conversation patient-centered while guiding them towards change.";
+
 const SkillsChecklist: React.FC<{ skillsUsed: string[] }> = ({ skillsUsed }) => (
     <div>
         <h3 className="text-lg font-bold text-slate-700 mb-3">MI Skills Checklist</h3>
@@ -362,7 +364,9 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
     // Premium View - Show everything unlocked
     const premiumSkills = feedback.skillsDetected || feedback.keySkillsUsed || [];
     const premiumAreasForGrowth = feedback.areasForGrowth || feedback.constructiveFeedback || '';
-    const premiumNextFocus = feedback.nextFocus || feedback.nextPracticeFocus || '';
+    // Always ensure we have content for Next Practice Focus - use fallback if empty
+    const rawNextFocus = feedback.nextFocus || feedback.nextPracticeFocus || '';
+    const premiumNextFocus = rawNextFocus.trim() || DEFAULT_NEXT_FOCUS;
     
     // Detect if feedback generation failed (error messages in whatWentRight)
     const isPremiumFeedbackError = feedback.whatWentRight?.includes('encountered an issue') || 
@@ -428,15 +432,15 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                     )}
                 </Card>
 
-                {premiumNextFocus && (
-                    <Card variant="accent" padding="lg" className="mb-6 text-center bg-[var(--color-primary-dark)] text-white">
-                        <i className="fa-solid fa-bullseye text-3xl mb-3" aria-hidden="true"></i>
-                        <h3 className="text-xl font-bold mb-2">Your Next Practice Focus</h3>
-                        <p className="text-white/90 text-lg">
-                           {premiumNextFocus}
+                <div className="mb-6">
+                    <Card variant="accent" padding="lg" className="text-center bg-white border-2 border-black text-[var(--color-text-primary)] min-h-[120px] flex flex-col justify-center">
+                        <i className="fa-solid fa-bullseye text-3xl mb-3 text-[var(--color-text-primary)]" aria-hidden="true"></i>
+                        <h3 className="text-xl font-bold mb-2 text-[var(--color-text-primary)]">Your Next Practice Focus</h3>
+                        <p className="text-[var(--color-text-secondary)] text-lg">
+                           {premiumNextFocus || DEFAULT_NEXT_FOCUS}
                         </p>
                     </Card>
-                )}
+                </div>
 
                 <footer className="mt-4 pb-4">
                     <Button 
