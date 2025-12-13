@@ -12,6 +12,7 @@ interface PaywallViewProps {
     onUpgrade: () => void;
     user: User | null;
     onNavigateToLogin?: () => void;
+    onNavigate?: (view: View) => void;
 }
 
 const FeatureItem: React.FC<{ icon: string; text: React.ReactNode }> = ({ icon, text }) => (
@@ -21,7 +22,7 @@ const FeatureItem: React.FC<{ icon: string; text: React.ReactNode }> = ({ icon, 
     </li>
 );
 
-const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNavigateToLogin }) => {
+const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNavigateToLogin, onNavigate }) => {
     const [loading, setLoading] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const { toasts, showToast, removeToast, ToastContainer } = useToast();
@@ -33,16 +34,8 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                 <ToastContainer toasts={toasts} onRemove={removeToast} />
                 
             {/* Header */}
-            <div className="relative h-20 overflow-hidden">
-                <div className="relative z-10 flex items-center justify-start h-full px-6 pt-4">
-                    <button 
-                        onClick={onBack}
-                        aria-label="Go back"
-                        className="inline-flex items-center justify-center min-w-[var(--touch-target-min)] min-h-[var(--touch-target-min)] w-11 h-11 bg-white border border-[var(--color-neutral-300)] rounded-full shadow-md hover:bg-[var(--color-bg-accent)] hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
-                    >
-                        <i className="fa-solid fa-arrow-left text-[var(--color-text-primary)]" aria-hidden="true"></i>
-                    </button>
-                </div>
+            <div className="px-6 pt-4 pb-2">
+                <BackButton onClick={onBack} />
             </div>
 
                 <div className="w-full max-w-md mx-auto px-6 text-center">
@@ -121,16 +114,8 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
             <ToastContainer toasts={toasts} onRemove={removeToast} />
             
             {/* Header */}
-            <div className="relative h-20 overflow-hidden">
-                <div className="relative z-10 flex items-center justify-start h-full px-6 pt-4">
-                    <button 
-                        onClick={onBack}
-                        aria-label="Go back"
-                        className="inline-flex items-center justify-center min-w-[var(--touch-target-min)] min-h-[var(--touch-target-min)] w-11 h-11 bg-white border border-[var(--color-neutral-300)] rounded-full shadow-md hover:bg-[var(--color-bg-accent)] hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
-                    >
-                        <i className="fa-solid fa-arrow-left text-[var(--color-text-primary)]" aria-hidden="true"></i>
-                    </button>
-                </div>
+            <div className="px-6 pt-4 pb-2">
+                <BackButton onClick={onBack} />
             </div>
 
             <div className="w-full max-w-md mx-auto px-6 text-center">
@@ -260,9 +245,24 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
 
                 <div className="mt-8 text-xs text-[var(--color-text-muted)]">
                     <div className="flex justify-center space-x-4">
-                        <a href="#" className="hover:text-[var(--color-text-primary)] hover:underline transition-colors">Restore Purchase</a>
-                        <a href="#" className="hover:text-[var(--color-text-primary)] hover:underline transition-colors">Privacy Policy</a>
-                        <a href="#" className="hover:text-[var(--color-text-primary)] hover:underline transition-colors">Terms of Service</a>
+                        <button
+                            onClick={() => onNavigate?.(View.Settings)}
+                            className="hover:text-[var(--color-text-primary)] hover:underline transition-colors"
+                        >
+                            Restore Purchase
+                        </button>
+                        <button
+                            onClick={() => onNavigate?.(View.PrivacyPolicy)}
+                            className="hover:text-[var(--color-text-primary)] hover:underline transition-colors"
+                        >
+                            Privacy Policy
+                        </button>
+                        <button
+                            onClick={() => onNavigate?.(View.TermsOfService)}
+                            className="hover:text-[var(--color-text-primary)] hover:underline transition-colors"
+                        >
+                            Terms of Service
+                        </button>
                     </div>
                 </div>
             </div>

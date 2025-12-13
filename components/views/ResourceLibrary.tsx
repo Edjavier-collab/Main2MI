@@ -430,7 +430,16 @@ const ResourceLibrary: React.FC<ResourceLibraryProps> = ({ onUpgrade, userTier, 
                             >
                                 <div className="flex justify-between items-center">
                                     <span className="font-bold text-[var(--color-text-primary)]">{category.category}</span>
-                                    {isPremium && <i className={`fa fa-chevron-down transition-transform ${isCategoryOpen ? 'rotate-180' : ''}`} aria-hidden="true"></i>}
+                                    {isPremium ? (
+                                        <i className={`fa fa-chevron-down transition-transform ${isCategoryOpen ? 'rotate-180' : ''}`} aria-hidden="true"></i>
+                                    ) : (
+                                        <div className="relative group">
+                                            <i className="fa fa-chevron-down text-[var(--color-text-muted)] opacity-50" aria-hidden="true"></i>
+                                            <div className="absolute bottom-full mb-2 right-0 px-2 py-1 bg-[var(--color-neutral-800)] text-white text-xs font-medium rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                                                Premium feature
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </Card>
                             

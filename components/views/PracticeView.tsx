@@ -7,6 +7,7 @@ import ChatBubble from '../ui/ChatBubble';
 import Timer from '../ui/Timer';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { useToast } from '../ui/Toast';
 import { useAuth } from '../../contexts/AuthContext';
 import { getSupabaseClient, isSupabaseConfigured } from '../../lib/supabase';
 import { getValidAuthToken, autoSaveSession, getAutoSavedSession, clearAutoSavedSessions, isSessionValid } from '../../utils/sessionManager';
@@ -39,6 +40,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
     const [sessionExpired, setSessionExpired] = useState(false);
     
     const { user } = useAuth();
+    const { showToast, ToastContainer, toasts, removeToast } = useToast();
     const { isListening, finalTranscript, interimTranscript, isWaitingToRestart, startListening, stopListening, hasSupport, error: micError, setTranscript: setSpeechTranscript } = useSpeechRecognition();
     // Combine final and interim for display (interim shows as live preview)
     const speechTranscript = finalTranscript + (interimTranscript ? (finalTranscript ? ' ' : '') + interimTranscript : '');
@@ -402,6 +404,9 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
     const handleEndSession = useCallback(async () => {
         setIsEndingSession(true);
         setFeedbackError(null);
+        
+        // Show success toast immediately
+        showToast('Session complete! Generating your feedback...', 'success');
 
         // Clear auto-save on successful completion
         clearAutoSavedSessions();
@@ -425,7 +430,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
                 });
             }
         }
-    }, [transcript, getFeedbackFromEdgeFunction, onFinish, patient]);
+    }, [transcript, getFeedbackFromEdgeFunction, onFinish, patient, showToast]);
 
     const handleRetryFeedback = useCallback(async () => {
         setIsRetryingFeedback(true);
@@ -461,6 +466,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
 
     return (
         <div className="flex flex-col h-screen bg-transparent">
+            <ToastContainer toasts={toasts} onRemove={removeToast} />
             <div className="flex justify-between items-center p-4 border-b-2 border-black bg-white">
                 <div className="flex-1 min-w-0">
                     <h3 className="font-bold text-lg text-[var(--color-text-primary)] truncate">with {patient.name}</h3>
@@ -591,6 +597,12 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
                                     e.preventDefault();
                                     handleTextSend();
                                 }
+                            }}
+                            onFocus={() => {
+                                // Scroll textarea into view when mobile keyboard opens
+                                setTimeout(() => {
+                                    textareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }, 300);
                             }}
                             disabled={isPatientTyping}
                             readOnly={isListening}
