@@ -1,6 +1,6 @@
 {
-  "name": "MI Practice Coach",
-  "short_name": "MI Coach",
+  "name": "MI Mastery",
+  "short_name": "MI Mastery",
   "description": "Motivational Interviewing training with AI-powered patient simulations. Practice MI techniques with realistic scenarios and receive instant feedback.",
   "start_url": "/",
   "scope": "/",
@@ -71,7 +71,7 @@
       "sizes": "390x844",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "MI Practice Coach Dashboard"
+      "label": "MI Mastery Dashboard"
     }
   ],
   "shortcuts": [

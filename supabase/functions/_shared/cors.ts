@@ -1,8 +1,10 @@
 // Allowed origins for CORS
 const ALLOWED_ORIGINS = [
-  'https://mi-practice-coach.vercel.app', // Production
-  'http://localhost:5173', // Local dev (Vite default)
-  'http://localhost:3000', // Alternative local dev port
+  'https://mimastery.com', // Custom domain
+  'https://www.mimastery.com', // Custom domain with www
+  'https://mi-practice-coach.vercel.app', // Legacy Vercel URL
+  'http://localhost:5173', // Local dev
+  'http://localhost:3000', // Alternative local dev
 ];
 
 // Get allowed origin for request

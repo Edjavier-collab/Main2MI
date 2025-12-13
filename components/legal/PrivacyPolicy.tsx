@@ -20,14 +20,14 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
                     <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">1. Introduction</h2>
                         <p>
-                            MI Practice Coach ("we," "us," "our," or "Company") respects your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile and web application (the "Service").
+                            MI Mastery ("we," "us," "our," or "Company") respects your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile and web application (the "Service").
                         </p>
                     </section>
 
                     <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">1.5. Healthcare Disclaimer</h2>
                         <p className="mb-3">
-                            <strong>IMPORTANT:</strong> MI Practice Coach is an educational and practice tool, NOT a medical or clinical service. The Service:
+                            <strong>IMPORTANT:</strong> MI Mastery is an educational and practice tool, NOT a medical or clinical service. The Service:
                         </p>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                             <li>Does not provide medical, clinical, or therapeutic advice.</li>
@@ -130,7 +130,7 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
                     <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">12. Contact Us</h2>
                         <p>
-                            For privacy questions or data requests, contact us at: <strong>support@mipracticecoach.com</strong>
+                            For privacy questions or data requests, contact us at: <strong>support@mimastery.com</strong>
                         </p>
                     </section>
                     </div>

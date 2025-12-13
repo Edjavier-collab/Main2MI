@@ -35,8 +35,8 @@ export default defineConfig(({ mode }) => {
           registerType: 'autoUpdate',
           includeAssets: ['favicon.svg', 'icons/*.png', 'icons/*.svg'],
           manifest: {
-            name: 'MI Practice Coach',
-            short_name: 'MI Coach',
+            name: 'MI Mastery',
+            short_name: 'MI Mastery',
             description: 'Motivational Interviewing training with AI-powered patient simulations',
             theme_color: '#0ea5e9',
             background_color: '#f8fafc',

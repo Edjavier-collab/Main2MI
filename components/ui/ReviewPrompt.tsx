@@ -27,14 +27,14 @@ const ReviewPrompt: React.FC<ReviewPromptProps> = ({ onClose }) => {
                     <i className="fa-solid fa-star text-4xl" style={{ color: 'var(--color-text-primary)' }}></i>
                 </div>
                 
-                <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">Enjoying MI Practice Coach?</h2>
+                <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">Enjoying MI Mastery?</h2>
                 <p className="text-[var(--color-text-secondary)] mb-8">
                     Your feedback helps us improve. If you have a moment, please consider leaving a review.
                 </p>
 
                 <div className="flex flex-col gap-3">
                     <a 
-                        href="mailto:support@mipracticecoach.com?subject=MI Practice Coach Feedback"
+                        href="mailto:support@mimastery.com?subject=MI Mastery Feedback"
                         onClick={() => onClose('rate')}
                         className="w-full bg-[var(--color-primary)] text-white font-bold py-3 px-6 rounded-full text-lg shadow-lg hover:bg-[var(--color-primary-dark)] transition-transform transform hover:scale-105 text-center inline-block"
                     >

@@ -20,7 +20,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
                     <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">1. Agreement to Terms</h2>
                         <p>
-                            By accessing and using MI Practice Coach ("Service"), you agree to be bound by these Terms of Service. If you do not agree to any part of these terms, you may not use the Service.
+                            By accessing and using MI Mastery ("Service"), you agree to be bound by these Terms of Service. If you do not agree to any part of these terms, you may not use the Service.
                         </p>
                     </section>
 
@@ -46,7 +46,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
                     <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">3.5. Educational Purpose Only</h2>
                         <p className="mb-3">
-                            MI Practice Coach is an educational and practice tool designed to help healthcare professionals improve their Motivational Interviewing skills. The Service is:
+                            MI Mastery is an educational and practice tool designed to help healthcare professionals improve their Motivational Interviewing skills. The Service is:
                         </p>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                             <li><strong>NOT a substitute</strong> for professional MI training, certification, or clinical supervision.</li>
@@ -61,7 +61,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
                     <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">3.6. Not Medical or Clinical Advice</h2>
                         <p className="mb-3">
-                            MI Practice Coach does not provide medical, clinical, or therapeutic advice. The Service:
+                            MI Mastery does not provide medical, clinical, or therapeutic advice. The Service:
                         </p>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                             <li>Is for educational and practice purposes only.</li>
@@ -106,7 +106,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
                     <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">5. Intellectual Property</h2>
                         <p>
-                            The Service, including all content, features, and functionality, is owned by MI Practice Coach and is protected by copyright and other intellectual property laws. You may not reproduce, distribute, or transmit any content without our prior written permission.
+                            The Service, including all content, features, and functionality, is owned by MI Mastery and is protected by copyright and other intellectual property laws. You may not reproduce, distribute, or transmit any content without our prior written permission.
                         </p>
                     </section>
 
@@ -125,7 +125,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
                     <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">6.5. Subscriptions and Billing</h2>
                         <p className="mb-3">
-                            MI Practice Coach offers both free and premium subscription tiers:
+                            MI Mastery offers both free and premium subscription tiers:
                         </p>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                             <li><strong>Free Tier:</strong> Limited to 3 practice sessions per month. Access to basic features and feedback.</li>
@@ -158,7 +158,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
                             We do not offer refunds for subscription fees already paid, except as required by law or at our sole discretion. If you cancel mid-cycle, you will retain access until the end of your paid period. No partial refunds will be provided for unused time remaining in your billing period.
                         </p>
                         <p>
-                            If you believe you are entitled to a refund due to an error or exceptional circumstances, please contact us at <strong>support@mipracticecoach.com</strong> with details of your request.
+                            If you believe you are entitled to a refund due to an error or exceptional circumstances, please contact us at <strong>support@mimastery.com</strong> with details of your request.
                         </p>
                     </section>
 
@@ -177,14 +177,14 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
                     <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">8. Limitation of Liability</h2>
                         <p>
-                            TO THE EXTENT PERMITTED BY LAW, MI PRACTICE COACH SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING LOST PROFITS, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+                            TO THE EXTENT PERMITTED BY LAW, MI MASTERY SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING LOST PROFITS, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
                         </p>
                     </section>
 
                     <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">9. Indemnification</h2>
                         <p>
-                            You agree to indemnify and hold harmless MI Practice Coach from any claims, losses, or expenses (including attorneys' fees) arising from your breach of these Terms, your use of the Service, or violation of any law.
+                            You agree to indemnify and hold harmless MI Mastery from any claims, losses, or expenses (including attorneys' fees) arising from your breach of these Terms, your use of the Service, or violation of any law.
                         </p>
                     </section>
 
@@ -212,7 +212,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
                     <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">15. Contact</h2>
                         <p>
-                            For questions or concerns about these Terms, please contact us at: <strong>support@mipracticecoach.com</strong>
+                            For questions or concerns about these Terms, please contact us at: <strong>support@mimastery.com</strong>
                         </p>
                     </section>
                     </div>

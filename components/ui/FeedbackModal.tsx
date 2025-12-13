@@ -179,7 +179,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, o
                     ) : (
                         <>
                             <p className="text-sm text-[var(--color-text-muted)] mb-4 text-center">
-                                How would you rate your experience with MI Practice Coach?
+                                How would you rate your experience with MI Mastery?
                             </p>
 
                             {/* Star rating */}

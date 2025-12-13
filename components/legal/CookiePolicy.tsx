@@ -20,7 +20,7 @@ const CookiePolicy: React.FC<CookiePolicyProps> = ({ onBack }) => {
                     <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">1. What Are Cookies?</h2>
                         <p>
-                            Cookies are small text files stored on your device (computer, tablet, or mobile) that help websites recognize you, remember preferences, and track usage patterns. We use cookies to enhance your experience with MI Practice Coach.
+                            Cookies are small text files stored on your device (computer, tablet, or mobile) that help websites recognize you, remember preferences, and track usage patterns. We use cookies to enhance your experience with MI Mastery.
                         </p>
                     </section>
 
@@ -60,7 +60,7 @@ const CookiePolicy: React.FC<CookiePolicyProps> = ({ onBack }) => {
                     <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">4. Cookie Preferences & Consent</h2>
                         <p className="mb-3">
-                            When you first visit MI Practice Coach, we display a Cookie Consent banner. You can:
+                            When you first visit MI Mastery, we display a Cookie Consent banner. You can:
                         </p>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                             <li>Accept all cookies (including analytics and marketing).</li>
@@ -129,7 +129,7 @@ const CookiePolicy: React.FC<CookiePolicyProps> = ({ onBack }) => {
                     <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">10. Contact</h2>
                         <p>
-                            For questions about our use of cookies, contact: <strong>support@mipracticecoach.com</strong>
+                            For questions about our use of cookies, contact: <strong>support@mimastery.com</strong>
                         </p>
                     </section>
                     </div>

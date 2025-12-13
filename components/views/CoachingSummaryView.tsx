@@ -441,7 +441,7 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
                     <div className="certificate-header-band bg-gradient-to-r from-[var(--color-text-primary)] to-[var(--color-text-secondary)] text-white rounded-t-2xl p-6 mb-0 print-color">
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                             <div className="text-center sm:text-left">
-                                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">MI Practice Coach</h1>
+                                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">MI Mastery</h1>
                                 <p className="text-sm sm:text-base opacity-90 mt-1">Certificate of Achievement</p>
                             </div>
                             <div className="text-center sm:text-right">
@@ -644,7 +644,7 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
                                 </p>
                             </div>
                             <div className="sm:text-right">
-                                <p className="text-sm font-bold text-[var(--color-primary-dark)]">MI Practice Coach</p>
+                                <p className="text-sm font-bold text-[var(--color-primary-dark)]">MI Mastery</p>
                                 <p className="text-xs text-[var(--color-text-muted)]">AI-Powered Training Platform</p>
                             </div>
                         </div>

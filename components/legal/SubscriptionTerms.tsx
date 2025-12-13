@@ -20,7 +20,7 @@ const SubscriptionTerms: React.FC<SubscriptionTermsProps> = ({ onBack }) => {
                     <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">1. Subscription Plans</h2>
                         <p className="mb-3">
-                            MI Practice Coach offers two tiers:
+                            MI Mastery offers two tiers:
                         </p>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                             <li><strong>Free:</strong> 3 practice sessions per calendar month. No payment required.</li>
@@ -62,7 +62,7 @@ const SubscriptionTerms: React.FC<SubscriptionTermsProps> = ({ onBack }) => {
                             <strong>Cancellation:</strong> You can cancel your subscription anytime via Stripe Billing Portal in Settings. Cancellation takes effect at the end of your current billing period; you retain access until then.
                         </p>
                         <p>
-                            <strong>Refunds:</strong> No refunds are provided for completed subscription periods. However, if required by your local consumer protection laws (e.g., EU 14-day withdrawal right), such refunds will be honored. To request a legally-mandated refund, contact support@mipracticecoach.com within 30 days of purchase with proof of payment.
+                            <strong>Refunds:</strong> No refunds are provided for completed subscription periods. However, if required by your local consumer protection laws (e.g., EU 14-day withdrawal right), such refunds will be honored. To request a legally-mandated refund, contact support@mimastery.com within 30 days of purchase with proof of payment.
                         </p>
                     </section>
 
@@ -116,7 +116,7 @@ const SubscriptionTerms: React.FC<SubscriptionTermsProps> = ({ onBack }) => {
                     <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">12. Contact & Disputes</h2>
                         <p>
-                            For billing questions or disputes, please contact us at <strong>support@mipracticecoach.com</strong> or via Stripe Billing Portal. We will investigate and respond within 30 days.
+                            For billing questions or disputes, please contact us at <strong>support@mimastery.com</strong> or via Stripe Billing Portal. We will investigate and respond within 30 days.
                         </p>
                     </section>
                     </div>

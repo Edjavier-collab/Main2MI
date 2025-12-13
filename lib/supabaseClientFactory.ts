@@ -28,7 +28,7 @@ class SupabaseClientFactory {
         },
         global: {
           headers: {
-            'x-client-info': 'mi-practice-coach',
+            'x-client-info': 'mi-mastery',
           },
         },
       });

@@ -28,7 +28,7 @@ const SupportView: React.FC<SupportViewProps> = ({ onBack }) => {
                             Email Support
                         </h3>
                         <p className="text-[var(--color-text-primary)]">
-                            <strong>support@mipracticecoach.com</strong>
+                            <strong>support@mimastery.com</strong>
                         </p>
                         <p className="text-sm text-[var(--color-text-secondary)] mt-2">
                             Expected response time: 24-48 hours during business days.
@@ -44,7 +44,7 @@ const SupportView: React.FC<SupportViewProps> = ({ onBack }) => {
                             Visit our Help Center for answers to common questions about:
                         </p>
                         <ul className="list-disc list-inside space-y-2 ml-4 text-[var(--color-text-secondary)]">
-                            <li>Getting started with MI Practice Coach</li>
+                            <li>Getting started with MI Mastery</li>
                             <li>Account and subscription management</li>
                             <li>Technical troubleshooting</li>
                             <li>Billing and payments</li>
@@ -61,7 +61,7 @@ const SupportView: React.FC<SupportViewProps> = ({ onBack }) => {
                             Feedback & Feature Requests
                         </h3>
                         <p className="text-[var(--color-text-secondary)]">
-                            We value your feedback and use it to improve MI Practice Coach. Share your ideas, suggestions, or report bugs by emailing us at <strong className="text-[var(--color-text-primary)]">support@mipracticecoach.com</strong>.
+                            We value your feedback and use it to improve MI Mastery. Share your ideas, suggestions, or report bugs by emailing us at <strong className="text-[var(--color-text-primary)]">support@mimastery.com</strong>.
                         </p>
                     </Card>
 
@@ -71,7 +71,7 @@ const SupportView: React.FC<SupportViewProps> = ({ onBack }) => {
                             Report a Security Issue
                         </h3>
                         <p className="text-[var(--color-text-secondary)]">
-                            If you discover a security vulnerability, please do NOT report it publicly. Instead, email <strong className="text-[var(--color-text-primary)]">security@mipracticecoach.com</strong> with details. We will investigate and address it promptly.
+                            If you discover a security vulnerability, please do NOT report it publicly. Instead, email <strong className="text-[var(--color-text-primary)]">security@mimastery.com</strong> with details. We will investigate and address it promptly.
                         </p>
                     </Card>
 
@@ -81,15 +81,15 @@ const SupportView: React.FC<SupportViewProps> = ({ onBack }) => {
                             Legal & Compliance
                         </h3>
                         <p className="text-[var(--color-text-secondary)]">
-                            For legal questions, privacy concerns, or formal requests (GDPR, CCPA, etc.), contact us at <strong className="text-[var(--color-text-primary)]">legal@mipracticecoach.com</strong>.
+                            For legal questions, privacy concerns, or formal requests (GDPR, CCPA, etc.), contact us at <strong className="text-[var(--color-text-primary)]">legal@mimastery.com</strong>.
                         </p>
                     </Card>
 
                     <Card variant="accent" padding="md" className="mt-8">
                         <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Our Office</h3>
                         <p className="text-[var(--color-text-secondary)]">
-                            <strong>MI Practice Coach</strong><br />
-                            Email: support@mipracticecoach.com<br />
+                            <strong>MI Mastery</strong><br />
+                            Email: support@mimastery.com<br />
                             <br />
                             We're here to support you! Your experience matters to us.
                         </p>

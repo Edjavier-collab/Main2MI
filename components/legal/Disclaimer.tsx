@@ -19,14 +19,14 @@ const Disclaimer: React.FC<DisclaimerProps> = ({ onBack }) => {
                     <div className="space-y-6 text-[var(--color-text-secondary)] leading-relaxed">
                         <Card variant="accent" padding="md" className="bg-[var(--color-warning-light)] border-l-4 border-[var(--color-warning)]">
                             <p className="font-semibold text-[var(--color-warning-dark)]">
-                                IMPORTANT: MI Practice Coach is a training and educational tool only. It is NOT a substitute for professional medical, psychological, or healthcare advice.
+                                IMPORTANT: MI Mastery is a training and educational tool only. It is NOT a substitute for professional medical, psychological, or healthcare advice.
                             </p>
                         </Card>
 
                     <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">1. Educational Purpose Only</h2>
                         <p>
-                            MI Practice Coach is designed to help healthcare professionals and students practice Motivational Interviewing (MI) techniques in a safe, simulated environment. The AI-simulated patients and feedback provided are for educational and training purposes only.
+                            MI Mastery is designed to help healthcare professionals and students practice Motivational Interviewing (MI) techniques in a safe, simulated environment. The AI-simulated patients and feedback provided are for educational and training purposes only.
                         </p>
                     </section>
 
@@ -80,7 +80,7 @@ const Disclaimer: React.FC<DisclaimerProps> = ({ onBack }) => {
                     <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">7. Liability Waiver</h2>
                         <p>
-                            By using the Service, you assume full responsibility for how you use it. MI Practice Coach and its operators are not liable for:
+                            By using the Service, you assume full responsibility for how you use it. MI Mastery and its operators are not liable for:
                         </p>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                             <li>Any harm, injury, or adverse outcome resulting from use of the Service.</li>
@@ -121,7 +121,7 @@ const Disclaimer: React.FC<DisclaimerProps> = ({ onBack }) => {
                     <section>
                         <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">12. Questions or Concerns</h2>
                         <p>
-                            For questions about this disclaimer or appropriate use of the Service, please contact: <strong>support@mipracticecoach.com</strong>
+                            For questions about this disclaimer or appropriate use of the Service, please contact: <strong>support@mimastery.com</strong>
                         </p>
                     </section>
                     </div>

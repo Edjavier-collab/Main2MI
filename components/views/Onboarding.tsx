@@ -14,7 +14,7 @@ const onboardingSteps = [
                 <div className={'bg-[var(--color-primary-lighter)] rounded-full h-40 w-40 flex items-center justify-center mb-8'}>
                     <i className="fa-solid fa-user-doctor text-5xl text-[var(--color-primary)]" aria-hidden="true"></i>
                 </div>
-                <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-4">Welcome to MI Practice Coach!</h1>
+                <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-4">Welcome to MI Mastery!</h1>
                 <p className="text-[var(--color-text-secondary)] max-w-sm">The safe way to build confidence and master Motivational Interviewing with realistic AI-powered patients.</p>
             </>
         ),
