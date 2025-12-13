@@ -40,6 +40,7 @@ export const useSpeechRecognition = () => {
     const stopTriggeredRef = useRef(false); // Flag to ignore late-coming results after stop is called
     const processedFinalTextsRef = useRef<Set<string>>(new Set()); // Track processed final texts to prevent duplicates
     const userExplicitlyStoppedRef = useRef(false); // Track if user explicitly stopped
+    const stateSyncedInStopRef = useRef(false); // Track if state was synced in stopListening() to prevent onend from overwriting
 
 
     useEffect(() => {
@@ -166,18 +167,21 @@ export const useSpeechRecognition = () => {
             // This cleans up any lingering interim results if recognition ends abruptly
             setInterimTranscript('');
             
-            // If user explicitly stopped (sent a message), clear the ref for fresh start
-            // Otherwise, preserve the transcript (natural end or error recovery)
-            if (userExplicitlyStoppedRef.current) {
-                finalTranscriptRef.current = '';
-                persistedTranscript = '';
-                setFinalTranscript('');
-                userExplicitlyStoppedRef.current = false; // Reset flag
-            } else {
-                // Sync persisted transcript before updating state (preserve for natural end)
-                persistedTranscript = finalTranscriptRef.current;
-                setFinalTranscript(finalTranscriptRef.current);
-            }
+            // CRITICAL FIX: Don't rely on userExplicitlyStoppedRef in onend to decide whether to clear
+            // The flag can be stale from a previous message. Instead, always preserve the transcript
+            // in onend - it's only cleared in customSetTranscript('') when user sends
+            // Sync persisted transcript before updating state (preserve for natural end)
+            // Always use ref as source of truth - don't rely on React state which might be stale
+            persistedTranscript = finalTranscriptRef.current;
+            // Always sync state in onend, even if it was synced in stopListening()
+            // This ensures React applies the update even if stopListening()'s update was batched
+            // Use a function form of setState to ensure we're setting the latest ref value
+            // This prevents race conditions where React state is stale
+            setFinalTranscript(() => finalTranscriptRef.current);
+            // Reset the flag for next time (after syncing state)
+            stateSyncedInStopRef.current = false;
+            // Reset userExplicitlyStoppedRef here too - it will be set again in customSetTranscript if needed
+            userExplicitlyStoppedRef.current = false;
         };
 
         recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
@@ -268,8 +272,11 @@ export const useSpeechRecognition = () => {
 
         try {
             stopTriggeredRef.current = false; // Ensure we are ready for new results
-            // DON'T reset userExplicitlyStoppedRef here - preserve it until onend fires
-            // This flag is used in onend to determine if we should clear the transcript
+            // Reset userExplicitlyStoppedRef when starting a new listening session
+            // This ensures the flag is false for the new session (user hasn't sent a message yet)
+            // The flag will be set to true only when customSetTranscript('') is called (user sends message)
+            userExplicitlyStoppedRef.current = false;
+            stateSyncedInStopRef.current = false; // Reset flag when starting new session
             setError(null); // Clear any previous errors
             
             // Clear interim when starting new session
@@ -300,7 +307,10 @@ export const useSpeechRecognition = () => {
             
             // Sync React state with ref immediately to ensure UI shows transcript
             // This prevents the transcript from disappearing if onend fires later
-            setFinalTranscript(finalTranscriptRef.current);
+            // Use a function form to ensure we're setting the latest ref value
+            setFinalTranscript(() => finalTranscriptRef.current);
+            // Mark that we synced state so onend doesn't overwrite it
+            stateSyncedInStopRef.current = true;
             
             // DON'T clear the ref - preserve transcript so user can review/edit before sending
         }
