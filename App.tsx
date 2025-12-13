@@ -2,11 +2,10 @@
 import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { UserTier, View, PatientProfile, Session, Feedback, ChatMessage, PatientProfileFilters, CoachingSummary } from './types';
 import { generatePatientProfile } from './services/patientService';
-import { generateCoachingSummary } from './services/geminiService';
 import { getUserProfile } from './services/databaseService';
 import { canStartSession } from './services/subscriptionService';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { diagnoseEnvironmentSetup } from './services/geminiService';
+import { getSupabaseClient } from './lib/supabase';
 
 // Core components (always loaded)
 import ErrorBoundary from './components/ui/ErrorBoundary';
@@ -145,11 +144,6 @@ const AppContent: React.FC = () => {
   // Use app router hook
   useAppRouter({ user, authLoading, view, setView });
 
-  // Diagnostic: Check environment setup on app start
-  useEffect(() => {
-    diagnoseEnvironmentSetup();
-  }, []);
-
   // Load onboarding state
   useEffect(() => {
     const onboardingComplete = localStorage.getItem('mi-coach-onboarding-complete');
@@ -252,6 +246,69 @@ const AppContent: React.FC = () => {
     setView(View.Dashboard);
   }, [setShowReviewPrompt, setView]);
 
+  const generateCoachingSummaryFromEdgeFunction = useCallback(async (sessions: Session[]): Promise<CoachingSummary> => {
+    // Get Supabase URL and construct Edge Function URL
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (!supabaseUrl) {
+      throw new Error('Supabase URL not configured');
+    }
+
+    const functionsUrl = `${supabaseUrl}/functions/v1/coaching-summary`;
+
+    // Require authentication - get JWT token from session
+    const supabase = getSupabaseClient();
+    let authToken: string;
+    
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session || !session.access_token) {
+        throw new Error('Your session has expired. Please refresh the page and log in again.');
+      }
+      
+      authToken = session.access_token;
+    } catch (error) {
+      console.error('[App] Failed to get auth token:', error);
+      throw new Error('Failed to authenticate. Please refresh the page and try again.');
+    }
+
+    // Prepare request with required Authorization header
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    };
+
+    // Make request to Edge Function
+    const response = await fetch(functionsUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ sessions }),
+    });
+
+    // Handle errors
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      const errorMessage = errorData.error || `Failed to generate coaching summary (${response.status})`;
+
+      // Map HTTP status codes to user-friendly messages
+      if (response.status === 401) {
+        throw new Error('Your session has expired. Please refresh the page and try again.');
+      } else if (response.status === 429) {
+        throw new Error('AI service is busy. Please try again in a moment.');
+      } else if (response.status === 504) {
+        throw new Error('Coaching summary generation timed out. Please try again.');
+      } else if (response.status === 500) {
+        throw new Error('AI service error. Please try again later.');
+      } else {
+        throw new Error(errorMessage);
+      }
+    }
+
+    // Parse and return response
+    const data = await response.json();
+    return data as CoachingSummary;
+  }, []);
+
   const handleGenerateCoachingSummary = useCallback(async () => {
         if (coachingSummary && !isGeneratingSummary) {
             setView(View.CoachingSummary);
@@ -274,7 +331,7 @@ const AppContent: React.FC = () => {
                  setIsGeneratingSummary(false);
                  return;
             }
-            const reportObject = await generateCoachingSummary(premiumSessions);
+            const reportObject = await generateCoachingSummaryFromEdgeFunction(premiumSessions);
             setCoachingSummary(reportObject);
         } catch (error) {
             console.error("Failed to generate coaching summary:", error);
@@ -283,7 +340,7 @@ const AppContent: React.FC = () => {
         } finally {
             setIsGeneratingSummary(false);
         }
-    }, [coachingSummary, isGeneratingSummary, userTier, sessions, setView, setCoachingSummaryError, setIsGeneratingSummary, setCoachingSummary]);
+    }, [coachingSummary, isGeneratingSummary, userTier, sessions, setView, setCoachingSummaryError, setIsGeneratingSummary, setCoachingSummary, generateCoachingSummaryFromEdgeFunction]);
 
   const handleNavigate = useCallback((targetView: View) => setView(targetView), [setView]);
   
