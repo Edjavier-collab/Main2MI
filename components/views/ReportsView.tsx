@@ -65,12 +65,40 @@ const ReportsView: React.FC<ReportsViewProps> = ({
         </header>
 
         {/* Executive Summary Card - Always visible (FREE) */}
-        <Card variant="elevated" padding="lg" className="mb-6">
-          <ExecutiveSummary 
-            data={reportData} 
-            isLoading={reportData.isLoading} 
-          />
-        </Card>
+        {reportData.isLoading ? (
+          <Card variant="elevated" padding="lg" className="mb-6">
+            <div className="animate-pulse space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-[var(--color-neutral-200)] rounded-full"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-[var(--color-neutral-200)] rounded w-3/4"></div>
+                  <div className="h-3 bg-[var(--color-neutral-200)] rounded w-1/2"></div>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4 mt-6">
+                <div className="space-y-2">
+                  <div className="h-8 bg-[var(--color-neutral-200)] rounded"></div>
+                  <div className="h-3 bg-[var(--color-neutral-200)] rounded w-2/3 mx-auto"></div>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-8 bg-[var(--color-neutral-200)] rounded"></div>
+                  <div className="h-3 bg-[var(--color-neutral-200)] rounded w-2/3 mx-auto"></div>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-8 bg-[var(--color-neutral-200)] rounded"></div>
+                  <div className="h-3 bg-[var(--color-neutral-200)] rounded w-2/3 mx-auto"></div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        ) : (
+          <Card variant="elevated" padding="lg" className="mb-6">
+            <ExecutiveSummary 
+              data={reportData} 
+              isLoading={reportData.isLoading} 
+            />
+          </Card>
+        )}
 
         {/* Premium Skill Radar - current vs previous period */}
         {isPremium && (

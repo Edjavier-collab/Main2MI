@@ -285,13 +285,13 @@ export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ on
                     <div className="shadow-lg rounded-lg overflow-hidden">
                         <button
                             onClick={handleStart}
-                            className="w-full py-3 px-4 bg-white border-2 border-b border-[var(--color-neutral-400)] text-[var(--color-text-primary)] font-semibold text-base hover:bg-[var(--color-bg-accent)] transition-colors"
+                            className="w-full min-h-[var(--touch-target-min)] py-3 px-4 bg-white border-2 border-b border-[var(--color-neutral-400)] text-[var(--color-text-primary)] font-semibold text-base hover:bg-[var(--color-bg-accent)] transition-colors"
                         >
                             Start Selected Scenario
                         </button>
                         <button
                             onClick={handleRandomStart}
-                            className="w-full py-3 px-4 bg-white border-2 border-t-0 border-[var(--color-neutral-400)] text-[var(--color-text-primary)] font-semibold text-base hover:bg-[var(--color-bg-accent)] transition-colors"
+                            className="w-full min-h-[var(--touch-target-min)] py-3 px-4 bg-white border-2 border-t-0 border-[var(--color-neutral-400)] text-[var(--color-text-primary)] font-semibold text-base hover:bg-[var(--color-bg-accent)] transition-colors"
                         >
                             Start a Random Scenario
                         </button>

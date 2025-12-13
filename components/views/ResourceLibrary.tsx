@@ -406,6 +406,7 @@ const ResourceLibrary: React.FC<ResourceLibraryProps> = ({ onUpgrade, userTier, 
                 <input
                     type="text"
                     placeholder="Search resources"
+                    aria-label="Search resources"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-white border border-[var(--color-neutral-300)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-[var(--color-text-primary)]"

@@ -60,7 +60,7 @@ const EmpathyGauge: React.FC<{ score: number }> = ({ score }) => {
             <svg className="w-full h-full" viewBox="0 0 100 100">
                 {/* Background circle */}
                 <circle
-                    className="text-slate-200"
+                    className="text-[var(--color-neutral-200)]"
                     strokeWidth="10"
                     stroke="currentColor"
                     fill="transparent"
@@ -70,7 +70,7 @@ const EmpathyGauge: React.FC<{ score: number }> = ({ score }) => {
                 />
                 {/* Progress circle */}
                 <circle
-                    className="text-sky-500"
+                    className="text-[var(--color-primary)]"
                     strokeWidth="10"
                     strokeLinecap="round"
                     stroke="currentColor"
@@ -88,8 +88,8 @@ const EmpathyGauge: React.FC<{ score: number }> = ({ score }) => {
                 />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-3xl font-bold text-slate-800">{score}</span>
-                <span className="text-sm font-medium text-slate-500">/ 5</span>
+                <span className="text-3xl font-bold text-[var(--color-text-primary)]">{score}</span>
+                <span className="text-sm font-medium text-[var(--color-text-muted)]">/ 5</span>
             </div>
         </div>
     );

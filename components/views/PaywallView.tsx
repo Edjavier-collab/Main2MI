@@ -38,7 +38,7 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                     <button 
                         onClick={onBack}
                         aria-label="Go back"
-                        className="inline-flex items-center justify-center w-10 h-10 bg-white border border-[var(--color-neutral-300)] rounded-full shadow-md hover:bg-[var(--color-bg-accent)] hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+                        className="inline-flex items-center justify-center min-w-[var(--touch-target-min)] min-h-[var(--touch-target-min)] w-11 h-11 bg-white border border-[var(--color-neutral-300)] rounded-full shadow-md hover:bg-[var(--color-bg-accent)] hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
                     >
                         <i className="fa-solid fa-arrow-left text-[var(--color-text-primary)]" aria-hidden="true"></i>
                     </button>
@@ -126,7 +126,7 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                     <button 
                         onClick={onBack}
                         aria-label="Go back"
-                        className="inline-flex items-center justify-center w-10 h-10 bg-white border border-[var(--color-neutral-300)] rounded-full shadow-md hover:bg-[var(--color-bg-accent)] hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+                        className="inline-flex items-center justify-center min-w-[var(--touch-target-min)] min-h-[var(--touch-target-min)] w-11 h-11 bg-white border border-[var(--color-neutral-300)] rounded-full shadow-md hover:bg-[var(--color-bg-accent)] hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
                     >
                         <i className="fa-solid fa-arrow-left text-[var(--color-text-primary)]" aria-hidden="true"></i>
                     </button>

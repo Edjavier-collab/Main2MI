@@ -62,7 +62,6 @@ const SettingsRow: React.FC<{ onClick?: () => void; isLast?: boolean; children: 
 
 const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywall, onLogout, onNavigate, user }) => {
     const [restoreLoading, setRestoreLoading] = useState(false);
-    const [restoreError, setRestoreError] = useState<string | null>(null);
     const [restoreSuccess, setRestoreSuccess] = useState<string | null>(null);
     const [logoutLoading, setLogoutLoading] = useState(false);
     const [logoutError, setLogoutError] = useState<string | null>(null);
@@ -227,18 +226,18 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
 
     const handleRestorePurchase = async () => {
         if (!user) {
-            alert('Please log in to restore your purchase');
+            showToast('Please log in to restore your purchase', 'warning');
             return;
         }
 
         setRestoreLoading(true);
-        setRestoreError(null);
         setRestoreSuccess(null);
 
         try {
             const result = await restoreSubscription(user.id);
             const message = result?.message || 'Your subscription has been restored successfully!';
             setRestoreSuccess(message);
+            showToast(message, 'success');
             
             // Reload the page after a short delay to refresh tier and subscription state
             setTimeout(() => {
@@ -251,12 +250,12 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
             // Improve error messages
             let displayError = errorMessage;
             if (errorMessage.includes('endpoint not found') || errorMessage.includes('Failed to fetch')) {
-                displayError = 'Unable to reach the subscription server. Please ensure your Supabase Edge Functions are deployed.';
+                displayError = 'Unable to reach the subscription server. Please check your connection.';
             } else if (errorMessage.includes('No subscription found')) {
-                displayError = 'No subscription found to restore. If you had a subscription, it may have expired or been cancelled.';
+                displayError = 'No subscription found to restore. It may have expired or been cancelled.';
             }
             
-            setRestoreError(displayError);
+            showToast(displayError, 'error');
         } finally {
             setRestoreLoading(false);
         }
@@ -392,7 +391,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                                         <span className="text-[var(--color-text-primary)]">Current Plan</span>
                                         {subscriptionLoading ? (
                                             <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                                                <i className="fa fa-spinner fa-spin mr-1" aria-hidden="true"></i>Loading...
+                                                <i className="fa fa-spinner fa-spin mr-1" aria-hidden="true"></i>Loading subscription...
                                             </p>
                                         ) : (
                                             <p className="text-sm font-semibold text-[var(--color-text-primary)] mt-1">
@@ -432,24 +431,19 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                             {subscriptionCancelled && (
                                 <SettingsRow onClick={handleRestorePurchase} isLast>
                                     <div className="flex-1">
-                                        <span className="text-primary-dark">Restore Purchase</span>
+                                        <span className="text-[var(--color-primary-dark)]">Restore Purchase</span>
                                         {restoreLoading && (
-                                            <span className="ml-2 text-xs text-neutral-500">
-                                                <i className="fa fa-spinner fa-spin"></i> Restoring...
+                                            <span className="ml-2 text-xs text-[var(--color-text-muted)]">
+                                                <i className="fa fa-spinner fa-spin" aria-hidden="true"></i> Restoring...
                                             </span>
                                         )}
                                         {restoreSuccess && (
-                                            <span className="ml-2 text-xs text-success-dark">
-                                                <i className="fa fa-check"></i> Restored!
-                                            </span>
-                                        )}
-                                        {restoreError && (
-                                            <span className="ml-2 text-xs text-error">
-                                                <i className="fa fa-exclamation-triangle"></i> {restoreError}
+                                            <span className="ml-2 text-xs text-[var(--color-success-dark)]">
+                                                <i className="fa fa-check" aria-hidden="true"></i> Restored!
                                             </span>
                                         )}
                                     </div>
-                                    {!restoreLoading && <i className="fa fa-chevron-right text-neutral-400"></i>}
+                                    {!restoreLoading && <i className="fa fa-chevron-right text-[var(--color-text-muted)]" aria-hidden="true"></i>}
                                 </SettingsRow>
                             )}
                         </>
@@ -458,7 +452,13 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                             <SettingsRow onClick={onNavigateToPaywall} isLast={!subscriptionCancelled}>
                                 <div>
                                     <p className="text-[var(--color-text-primary)]">Current Plan</p>
-                                    <p className="text-[var(--color-primary)] text-sm font-semibold">Free Tier</p>
+                                    {subscriptionLoading ? (
+                                        <p className="text-sm text-[var(--color-text-muted)]">
+                                            <i className="fa fa-spinner fa-spin mr-1" aria-hidden="true"></i>Loading...
+                                        </p>
+                                    ) : (
+                                        <p className="text-[var(--color-primary)] text-sm font-semibold">Free Tier</p>
+                                    )}
                                 </div>
                                 {user ? (
                                     <Button
@@ -476,24 +476,19 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                             {subscriptionCancelled && (
                                 <SettingsRow onClick={handleRestorePurchase} isLast>
                                     <div className="flex-1">
-                                        <span className="text-primary-dark">Restore Purchase</span>
+                                        <span className="text-[var(--color-primary-dark)]">Restore Purchase</span>
                                         {restoreLoading && (
-                                            <span className="ml-2 text-xs text-neutral-500">
-                                                <i className="fa fa-spinner fa-spin"></i> Restoring...
+                                            <span className="ml-2 text-xs text-[var(--color-text-muted)]">
+                                                <i className="fa fa-spinner fa-spin" aria-hidden="true"></i> Restoring...
                                             </span>
                                         )}
                                         {restoreSuccess && (
-                                            <span className="ml-2 text-xs text-success-dark">
-                                                <i className="fa fa-check"></i> Restored!
-                                            </span>
-                                        )}
-                                        {restoreError && (
-                                            <span className="ml-2 text-xs text-error">
-                                                <i className="fa fa-exclamation-triangle"></i> {restoreError}
+                                            <span className="ml-2 text-xs text-[var(--color-success-dark)]">
+                                                <i className="fa fa-check" aria-hidden="true"></i> Restored!
                                             </span>
                                         )}
                                     </div>
-                                    {!restoreLoading && <i className="fa fa-chevron-right text-neutral-400"></i>}
+                                    {!restoreLoading && <i className="fa fa-chevron-right text-[var(--color-text-muted)]" aria-hidden="true"></i>}
                                 </SettingsRow>
                             )}
                         </>

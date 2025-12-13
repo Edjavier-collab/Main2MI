@@ -20,10 +20,10 @@ interface PracticeViewProps {
 
 const SpeechVisualizer: React.FC = () => (
     <div className="flex items-end justify-center space-x-1 pl-3 pr-2 h-6" aria-hidden="true">
-        <span className="w-1 h-2 bg-sky-400 rounded-full animate-wavey"></span>
-        <span className="w-1 h-4 bg-sky-400 rounded-full animate-wavey" style={{ animationDelay: '0.2s' }}></span>
-        <span className="w-1 h-5 bg-sky-400 rounded-full animate-wavey" style={{ animationDelay: '0.4s' }}></span>
-        <span className="w-1 h-3 bg-sky-400 rounded-full animate-wavey" style={{ animationDelay: '0.1s' }}></span>
+        <span className="w-1 h-2 bg-[var(--color-primary)] rounded-full animate-wavey"></span>
+        <span className="w-1 h-4 bg-[var(--color-primary)] rounded-full animate-wavey" style={{ animationDelay: '0.2s' }}></span>
+        <span className="w-1 h-5 bg-[var(--color-primary)] rounded-full animate-wavey" style={{ animationDelay: '0.4s' }}></span>
+        <span className="w-1 h-3 bg-[var(--color-primary)] rounded-full animate-wavey" style={{ animationDelay: '0.1s' }}></span>
     </div>
 );
 
