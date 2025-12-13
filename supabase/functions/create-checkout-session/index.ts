@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { corsHeaders, handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getStripe, getPriceIds } from '../_shared/stripe.ts';
+import { verifyJWT } from '../_shared/supabase.ts';
 
 serve(async (req: Request) => {
   // Handle CORS preflight
@@ -13,12 +14,33 @@ serve(async (req: Request) => {
       return errorResponse('Method not allowed', 405);
     }
 
+    // Verify JWT token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return errorResponse('Missing or invalid authorization header', 401);
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    let authenticatedUser;
+    try {
+      authenticatedUser = await verifyJWT(token);
+    } catch (authError) {
+      console.error('[create-checkout-session] Auth error:', authError);
+      return errorResponse('Invalid or expired token. Please log in and try again.', 401);
+    }
+
     const { userId, plan, email } = await req.json();
 
     // Validate required fields
     if (!userId || !plan) {
       console.error('[create-checkout-session] Missing userId or plan:', { userId, plan });
       return errorResponse('Missing userId or plan', 400);
+    }
+
+    // Verify userId matches authenticated user
+    if (userId !== authenticatedUser.id) {
+      console.error('[create-checkout-session] UserId mismatch:', { requested: userId, authenticated: authenticatedUser.id });
+      return errorResponse('Unauthorized: userId mismatch', 403);
     }
 
     if (!['monthly', 'annual'].includes(plan)) {

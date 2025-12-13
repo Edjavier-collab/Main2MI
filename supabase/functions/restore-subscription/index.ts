@@ -1,7 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { corsHeaders, handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { getStripe } from '../_shared/stripe.ts';
-import { getUserEmail, updateUserTier } from '../_shared/supabase.ts';
+import { getUserEmail, updateUserTier, verifyJWT } from '../_shared/supabase.ts';
 
 serve(async (req: Request) => {
   // Handle CORS preflight
@@ -14,10 +14,31 @@ serve(async (req: Request) => {
       return errorResponse('Method not allowed', 405);
     }
 
+    // Verify JWT token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return errorResponse('Missing or invalid authorization header', 401);
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    let authenticatedUser;
+    try {
+      authenticatedUser = await verifyJWT(token);
+    } catch (authError) {
+      console.error('[restore-subscription] Auth error:', authError);
+      return errorResponse('Invalid or expired token. Please log in and try again.', 401);
+    }
+
     const { userId } = await req.json();
 
     if (!userId) {
       return errorResponse('Missing userId', 400);
+    }
+
+    // Verify userId matches authenticated user
+    if (userId !== authenticatedUser.id) {
+      console.error('[restore-subscription] UserId mismatch:', { requested: userId, authenticated: authenticatedUser.id });
+      return errorResponse('Unauthorized: userId mismatch', 403);
     }
 
     console.log('[restore-subscription] Restoring subscription for user:', userId);

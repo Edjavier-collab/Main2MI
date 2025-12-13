@@ -1,5 +1,30 @@
 import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 
+// Verify JWT token and return authenticated user
+export async function verifyJWT(token: string): Promise<{ id: string; email?: string }> {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase environment variables not set');
+  }
+
+  const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+
+  const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+
+  if (authError || !user) {
+    throw new Error('Invalid or expired token');
+  }
+
+  return { id: user.id, email: user.email };
+}
+
 // Create Supabase admin client with service role key
 export function getSupabaseAdmin(): SupabaseClient {
   const supabaseUrl = Deno.env.get('SUPABASE_URL');

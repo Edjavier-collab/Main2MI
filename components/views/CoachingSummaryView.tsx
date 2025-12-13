@@ -118,19 +118,68 @@ const CertificateSeal: React.FC<{ sessions: number; dateRange: string }> = ({ se
     </div>
 );
 
+// Safe markdown renderer that parses text and renders with React components (no dangerouslySetInnerHTML)
 const MarkdownRenderer: React.FC<{ text: string }> = ({ text }) => {
+    // Parse text into React elements safely
+    const parseLine = (line: string): React.ReactNode[] => {
+        const parts: React.ReactNode[] = [];
+        let currentIndex = 0;
+        
+        // Find all bold markers (**text**)
+        const boldRegex = /\*\*(.*?)\*\*/g;
+        let match;
+        let lastIndex = 0;
+        
+        while ((match = boldRegex.exec(line)) !== null) {
+            // Add text before the bold marker
+            if (match.index > lastIndex) {
+                const beforeText = line.substring(lastIndex, match.index);
+                if (beforeText) {
+                    parts.push(beforeText);
+                }
+            }
+            
+            // Add the bold text as a <strong> element
+            parts.push(<strong key={`bold-${match.index}`}>{match[1]}</strong>);
+            lastIndex = match.index + match[0].length;
+        }
+        
+        // Add remaining text after last match
+        if (lastIndex < line.length) {
+            const remainingText = line.substring(lastIndex);
+            if (remainingText) {
+                parts.push(remainingText);
+            }
+        }
+        
+        // If no bold markers found, return the line as-is
+        if (parts.length === 0) {
+            return [line];
+        }
+        
+        return parts;
+    };
+
     const renderLine = (line: string, index: number) => {
-        // Handle bold text markers
-        const processedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        const parsedContent = parseLine(line);
         
         if (line.startsWith('* ')) {
+            // Remove the '* ' prefix and render as list item
+            const contentWithoutPrefix = line.substring(2);
+            const parsedContentWithoutPrefix = parseLine(contentWithoutPrefix);
+            
             return (
-                <li key={index} className="text-[var(--color-text-secondary)] leading-relaxed" 
-                    dangerouslySetInnerHTML={{ __html: processedLine.substring(2) }} />
+                <li key={index} className="text-[var(--color-text-secondary)] leading-relaxed">
+                    {parsedContentWithoutPrefix}
+                </li>
             );
         }
-        return <p key={index} className="text-[var(--color-text-secondary)] leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: processedLine }} />;
+        
+        return (
+            <p key={index} className="text-[var(--color-text-secondary)] leading-relaxed">
+                {parsedContent}
+            </p>
+        );
     };
 
     const lines = text.split('\n').filter(line => line.trim() !== '');
