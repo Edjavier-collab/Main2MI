@@ -91,7 +91,7 @@ export interface Feedback {
     skillCounts?: Record<string, number>; // Object with count per skill, e.g., {"Reflections": 4, "Open Questions": 2}
     nextPracticeFocus?: string; // Kept for backward compatibility
     nextFocus?: string; // Next practice recommendation
-    analysisStatus?: 'complete' | 'insufficient-data';
+    analysisStatus?: 'complete' | 'insufficient-data' | 'error';
     analysisMessage?: string;
 }
 

@@ -480,10 +480,10 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
                     <button
                         onClick={handleEndSession}
                         disabled={isEndingSession}
-                        className={`px-4 min-h-[var(--touch-target-min)] text-white font-semibold border-2 border-black disabled:opacity-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-error)] focus-visible:ring-offset-2 ${
+                        className={`px-4 min-h-[var(--touch-target-min)] text-white font-semibold border-2 border-black disabled:opacity-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 ${
                             isEndingSession 
-                                ? 'bg-[var(--color-error-dark)]' 
-                                : 'bg-[var(--color-error)] hover:bg-[var(--color-error-dark)]'
+                                ? 'bg-red-600' 
+                                : 'bg-red-500 hover:bg-red-600'
                         }`}
                     >
                         {isEndingSession ? (
@@ -605,7 +605,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
                             <button
                                 onClick={handleVoiceSend}
                                 disabled={isPatientTyping}
-                                className={`w-[var(--touch-target-min)] h-[var(--touch-target-min)] flex items-center justify-center border-2 border-black transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${isListening || isWaitingToRestart ? 'bg-[var(--color-error)] text-white animate-pulse focus-visible:ring-[var(--color-error)]' : 'bg-white text-[var(--color-text-primary)] hover:bg-[var(--color-primary-lighter)] focus-visible:ring-[var(--color-primary)]'}`}
+                                className={`w-[var(--touch-target-min)] h-[var(--touch-target-min)] flex items-center justify-center border-2 border-black transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${isListening || isWaitingToRestart ? 'bg-red-500 text-white animate-pulse focus-visible:ring-red-500' : 'bg-white text-[var(--color-text-primary)] hover:bg-[var(--color-primary-lighter)] focus-visible:ring-[var(--color-primary)]'}`}
                                 aria-label={isListening ? 'Stop recording' : isWaitingToRestart ? 'Listening for more speech' : 'Start recording'}
                                 aria-pressed={isListening || isWaitingToRestart}
                             >
