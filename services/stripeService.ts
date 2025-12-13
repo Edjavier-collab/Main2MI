@@ -1,4 +1,6 @@
 import { loadStripe } from '@stripe/stripe-js';
+import { isSupabaseConfigured } from '@/lib/supabase';
+import { getValidAuthToken } from '@/utils/sessionManager';
 
 // Get Stripe publishable key from environment
 const getStripePublishableKey = (): string => {
@@ -40,18 +42,27 @@ const getFunctionsUrl = (): string => {
 };
 
 /**
- * Get Supabase anon key for authorization
+ * Get user's JWT token from Supabase session
+ * Throws error if no session exists (user must be logged in)
  */
-const getAnonKey = (): string => {
-    const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    if (!key) {
-        throw new Error('VITE_SUPABASE_ANON_KEY is not set');
+const getAuthToken = async (): Promise<string> => {
+    if (!isSupabaseConfigured()) {
+        throw new Error('Supabase is not configured. Please check your environment variables.');
     }
-    return key;
+
+    // Use sessionManager utility which handles token refresh automatically
+    const token = await getValidAuthToken();
+    
+    if (!token) {
+        throw new Error('You must be logged in to perform this action. Please log in and try again.');
+    }
+
+    return token;
 };
 
 /**
  * Make a request to a Supabase Edge Function
+ * Requires user authentication (JWT token)
  */
 const callEdgeFunction = async (
     functionName: string,
@@ -63,7 +74,18 @@ const callEdgeFunction = async (
 ): Promise<Response> => {
     const { method = 'POST', body, params } = options;
     const functionsUrl = getFunctionsUrl();
-    const anonKey = getAnonKey();
+
+    // Get user's JWT token (requires authentication)
+    let authToken: string;
+    try {
+        authToken = await getAuthToken();
+    } catch (error) {
+        // Re-throw with clear error message
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error('Authentication failed. Please log in and try again.');
+    }
 
     let url = `${functionsUrl}/${functionName}`;
     
@@ -77,7 +99,7 @@ const callEdgeFunction = async (
         method,
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${anonKey}`,
+            'Authorization': `Bearer ${authToken}`,
         },
     };
 
