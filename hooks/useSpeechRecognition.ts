@@ -42,6 +42,7 @@ export const useSpeechRecognition = () => {
     const userExplicitlyStoppedRef = useRef(false); // Track if user explicitly stopped
     const stateSyncedInStopRef = useRef(false); // Track if state was synced in stopListening() to prevent onend from overwriting
     const lastAddedTextRef = useRef<{text: string, timestamp: number}>({text: '', timestamp: 0}); // Track timing of last added text for mobile duplicate detection
+    const interimTranscriptRef = useRef(''); // Mirror interim transcript in a ref (avoids stale state in stop/onend)
 
 
     useEffect(() => {
@@ -82,11 +83,6 @@ export const useSpeechRecognition = () => {
         recognition.lang = 'en-US';
         
         recognition.onresult = (event: SpeechRecognitionEvent) => {
-            // If stop was triggered, ignore any lingering results to prevent race conditions
-            if (stopTriggeredRef.current) {
-                return;
-            }
-
             // Process results starting from resultIndex (API tells us where new results start)
             // Don't try to detect restarts - just process what the API gives us
             // The API naturally cycles resultIndex (0->1->2->0) as it refines results
@@ -125,7 +121,7 @@ export const useSpeechRecognition = () => {
                         const lastAdded = lastAddedTextRef.current;
                         const isDuplicateTiming = lastAdded.text === normalizedText && 
                                                    (now - lastAdded.timestamp) < 500;
-                        
+
                         if (!processedFinalTextsRef.current.has(normalizedText) && 
                             !textAlreadyAtEnd && 
                             !textInRecent &&
@@ -144,9 +140,15 @@ export const useSpeechRecognition = () => {
                             
                             // Clear interim when we get final results (they're now part of final)
                             newInterimTranscript = '';
+                            interimTranscriptRef.current = '';
+
                         }
                     }
                 } else {
+                    // After stop is pressed, ignore late interim updates (but still allow finals above)
+                    if (stopTriggeredRef.current) {
+                        continue;
+                    }
                     // Build interim transcript from ONLY interim results in current event
                     // Don't accumulate - each event rebuilds interim from scratch
                     // Only include interim results from the current processing range
@@ -163,10 +165,13 @@ export const useSpeechRecognition = () => {
                     setFinalTranscript(finalTranscriptRef.current);
                     // Always clear interim when we get final results
                     setInterimTranscript('');
+                    interimTranscriptRef.current = '';
                 } else {
                     // Update interim transcript (this replaces previous interim, doesn't append)
                     // Only show interim if we don't have new final results
-                    setInterimTranscript(newInterimTranscript.trim());
+                    const nextInterim = newInterimTranscript.trim();
+                    setInterimTranscript(nextInterim);
+                    interimTranscriptRef.current = nextInterim;
                 }
             }
         };
@@ -179,9 +184,16 @@ export const useSpeechRecognition = () => {
 
             setIsListening(false);
             stopTriggeredRef.current = false;
-            // On end, clear any interim results and ensure we only show final transcript
-            // This cleans up any lingering interim results if recognition ends abruptly
+            // If we never received a final result, preserve whatever interim we had at stop time
+            // (web speech sometimes only emits interim for short utterances)
+            if (!finalTranscriptRef.current && interimTranscriptRef.current.trim()) {
+                finalTranscriptRef.current = interimTranscriptRef.current.trim();
+                persistedTranscript = finalTranscriptRef.current;
+                setFinalTranscript(() => finalTranscriptRef.current);
+            }
+            // Clear interim at end (we either promoted it above or we have finals)
             setInterimTranscript('');
+            interimTranscriptRef.current = '';
             
             // CRITICAL FIX: Don't rely on userExplicitlyStoppedRef in onend to decide whether to clear
             // The flag can be stale from a previous message. Instead, always preserve the transcript
@@ -297,6 +309,7 @@ export const useSpeechRecognition = () => {
             
             // Clear interim when starting new session
             setInterimTranscript('');
+            interimTranscriptRef.current = '';
             recognitionRef.current.start();
             setIsListening(true);
         } catch (err) {
@@ -316,8 +329,16 @@ export const useSpeechRecognition = () => {
             stopTriggeredRef.current = true; // Signal to ignore subsequent results
             recognitionRef.current.stop();
             setIsListening(false);
-            // Clear interim when stopping
+            // Preserve whatever interim we have by promoting it to final if we don't have a final yet
+            const interimAtStop = interimTranscriptRef.current.trim();
+            if (!finalTranscriptRef.current && interimAtStop) {
+                finalTranscriptRef.current = interimAtStop;
+                persistedTranscript = finalTranscriptRef.current;
+                setFinalTranscript(() => finalTranscriptRef.current);
+            }
+            // Clear interim when stopping (we either promoted it or already have finals)
             setInterimTranscript('');
+            interimTranscriptRef.current = '';
             // Clear processed texts tracking when stopping
             // processedFinalTextsRef.current.clear(); // Removed - keep history across restarts
             
@@ -350,6 +371,7 @@ export const useSpeechRecognition = () => {
             // Clear React state immediately so UI clears right away
             setFinalTranscript('');
             setInterimTranscript('');
+            interimTranscriptRef.current = '';
             return;
         }
 
@@ -361,6 +383,7 @@ export const useSpeechRecognition = () => {
         persistedTranscript = text;
         setFinalTranscript(text);
         setInterimTranscript('');
+        interimTranscriptRef.current = '';
         // Clear processed texts tracking when manually setting transcript
         // processedFinalTextsRef.current.clear(); // Removed - keep history across restarts
     }, []);
