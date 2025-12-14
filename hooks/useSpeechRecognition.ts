@@ -28,6 +28,11 @@ interface SpeechRecognition {
 // Module-level variable to persist transcript across React Strict Mode remounts
 let persistedTranscript = '';
 
+// Mobile detection function
+const isMobileDevice = (): boolean => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
 export const useSpeechRecognition = () => {
     const [isListening, setIsListening] = useState(false);
     const [finalTranscript, setFinalTranscript] = useState(''); // Only FINAL confirmed text
@@ -38,10 +43,8 @@ export const useSpeechRecognition = () => {
     const recognitionRef = useRef<SpeechRecognition | null>(null);
     const finalTranscriptRef = useRef(persistedTranscript); // Ref to hold only the FINAL transcript text, initialized from persisted value
     const stopTriggeredRef = useRef(false); // Flag to ignore late-coming results after stop is called
-    const processedFinalTextsRef = useRef<Set<string>>(new Set()); // Track processed final texts to prevent duplicates
     const userExplicitlyStoppedRef = useRef(false); // Track if user explicitly stopped
     const stateSyncedInStopRef = useRef(false); // Track if state was synced in stopListening() to prevent onend from overwriting
-    const lastAddedTextRef = useRef<{text: string, timestamp: number}>({text: '', timestamp: 0}); // Track timing of last added text for mobile duplicate detection
     const interimTranscriptRef = useRef(''); // Mirror interim transcript in a ref (avoids stale state in stop/onend)
 
 
@@ -78,80 +81,39 @@ export const useSpeechRecognition = () => {
         }
 
         const recognition: SpeechRecognition = new SpeechRecognitionAPI();
-        recognition.continuous = true;
+        const isMobile = isMobileDevice();
+        recognition.continuous = !isMobile; // continuous on desktop, single-utterance on mobile
         recognition.interimResults = true;
         recognition.lang = 'en-US';
         
         recognition.onresult = (event: SpeechRecognitionEvent) => {
-            // Process results starting from resultIndex (API tells us where new results start)
-            // Don't try to detect restarts - just process what the API gives us
-            // The API naturally cycles resultIndex (0->1->2->0) as it refines results
-            
             // Build interim transcript from ONLY the latest interim results in this event
             // Don't accumulate - rebuild from scratch each time
             let newInterimTranscript = '';
             let hasNewFinal = false;
 
             // Process results from resultIndex to end of results array
-            // The API's resultIndex tells us where new results start, so we trust it
             const startIndex = event.resultIndex;
             
             for (let i = startIndex; i < event.results.length; ++i) {
                 const result = event.results[i];
                 if (result.isFinal) {
-                    // Only append final results - these are confirmed transcriptions
-                    let final_text = result[0].transcript.trim();
+                    const final_text = result[0].transcript.trim();
                     if (final_text) {
-                        // Prevent duplicate final results by tracking processed texts
-                        // This handles cases where the same audio gets transcribed multiple times
-                        // Use a normalized key (lowercase, trimmed, normalized whitespace) to catch duplicates
-                        const normalizedText = final_text.toLowerCase().trim().replace(/\s+/g, ' ');
-                        
-                        // Also check if this text already exists at the end of the current transcript
-                        const currentTranscriptLower = finalTranscriptRef.current.toLowerCase();
-                        const textAlreadyAtEnd = currentTranscriptLower.endsWith(normalizedText) || 
-                                                 currentTranscriptLower.endsWith(' ' + normalizedText);
-                        
-                        // Check if text appears anywhere in the last 150 characters (mobile-specific duplicate detection)
-                        const last150Chars = currentTranscriptLower.slice(-150);
-                        const textInRecent = last150Chars.includes(normalizedText);
-                        
-                        // Time-based debouncing: reject duplicates added within 500ms (mobile-specific)
-                        const now = Date.now();
-                        const lastAdded = lastAddedTextRef.current;
-                        const isDuplicateTiming = lastAdded.text === normalizedText && 
-                                                   (now - lastAdded.timestamp) < 500;
-
-                        if (!processedFinalTextsRef.current.has(normalizedText) && 
-                            !textAlreadyAtEnd && 
-                            !textInRecent &&
-                            !isDuplicateTiming) {
-                            // Mark as processed BEFORE adding to prevent race conditions
-                            processedFinalTextsRef.current.add(normalizedText);
-                            
-                            // Add to final transcript
-                            const textToAdd = finalTranscriptRef.current ? ' ' + final_text : final_text;
-                            finalTranscriptRef.current += textToAdd;
-                            // Sync with persisted transcript
-                            persistedTranscript = finalTranscriptRef.current;
-                            // Track timing of added text for mobile duplicate detection
-                            lastAddedTextRef.current = {text: normalizedText, timestamp: now};
-                            hasNewFinal = true;
-                            
-                            // Clear interim when we get final results (they're now part of final)
-                            newInterimTranscript = '';
-                            interimTranscriptRef.current = '';
-
-                        }
+                        // Simply append final results to the transcript
+                        const textToAdd = finalTranscriptRef.current ? ' ' + final_text : final_text;
+                        finalTranscriptRef.current += textToAdd;
+                        persistedTranscript = finalTranscriptRef.current;
+                        hasNewFinal = true;
+                        newInterimTranscript = '';
+                        interimTranscriptRef.current = '';
                     }
                 } else {
-                    // After stop is pressed, ignore late interim updates (but still allow finals above)
+                    // After stop is pressed, ignore late interim updates
                     if (stopTriggeredRef.current) {
                         continue;
                     }
                     // Build interim transcript from ONLY interim results in current event
-                    // Don't accumulate - each event rebuilds interim from scratch
-                    // Only include interim results from the current processing range
                     if (i >= startIndex) {
                         newInterimTranscript += result[0].transcript;
                     }
@@ -168,7 +130,6 @@ export const useSpeechRecognition = () => {
                     interimTranscriptRef.current = '';
                 } else {
                     // Update interim transcript (this replaces previous interim, doesn't append)
-                    // Only show interim if we don't have new final results
                     const nextInterim = newInterimTranscript.trim();
                     setInterimTranscript(nextInterim);
                     interimTranscriptRef.current = nextInterim;
@@ -185,30 +146,19 @@ export const useSpeechRecognition = () => {
             setIsListening(false);
             stopTriggeredRef.current = false;
             // If we never received a final result, preserve whatever interim we had at stop time
-            // (web speech sometimes only emits interim for short utterances)
             if (!finalTranscriptRef.current && interimTranscriptRef.current.trim()) {
                 finalTranscriptRef.current = interimTranscriptRef.current.trim();
                 persistedTranscript = finalTranscriptRef.current;
                 setFinalTranscript(() => finalTranscriptRef.current);
             }
-            // Clear interim at end (we either promoted it above or we have finals)
+            // Clear interim at end
             setInterimTranscript('');
             interimTranscriptRef.current = '';
             
-            // CRITICAL FIX: Don't rely on userExplicitlyStoppedRef in onend to decide whether to clear
-            // The flag can be stale from a previous message. Instead, always preserve the transcript
-            // in onend - it's only cleared in customSetTranscript('') when user sends
-            // Sync persisted transcript before updating state (preserve for natural end)
-            // Always use ref as source of truth - don't rely on React state which might be stale
+            // Always preserve the transcript in onend
             persistedTranscript = finalTranscriptRef.current;
-            // Always sync state in onend, even if it was synced in stopListening()
-            // This ensures React applies the update even if stopListening()'s update was batched
-            // Use a function form of setState to ensure we're setting the latest ref value
-            // This prevents race conditions where React state is stale
             setFinalTranscript(() => finalTranscriptRef.current);
-            // Reset the flag for next time (after syncing state)
             stateSyncedInStopRef.current = false;
-            // Reset userExplicitlyStoppedRef here too - it will be set again in customSetTranscript if needed
             userExplicitlyStoppedRef.current = false;
         };
 
@@ -220,12 +170,9 @@ export const useSpeechRecognition = () => {
             
             console.error('Speech recognition error', event.error);
             setIsListening(false);
-            stopTriggeredRef.current = false; // Reset on error too
-            userExplicitlyStoppedRef.current = false; // Reset on error
-            // Clear interim on error
+            stopTriggeredRef.current = false;
+            userExplicitlyStoppedRef.current = false;
             setInterimTranscript('');
-            // Clear processed texts tracking on error
-            // processedFinalTextsRef.current.clear(); // Removed - keep history across restarts
 
             // Provide user-friendly error messages
             let errorMessage = 'Microphone error occurred.';
@@ -276,10 +223,7 @@ export const useSpeechRecognition = () => {
             }
 
             // Reset refs (but preserve transcript refs to survive React Strict Mode remounts)
-            // DO NOT clear finalTranscriptRef.current - it will be lost on React Strict Mode remounts
-            // finalTranscriptRef.current = ''; // Commented out - preserve transcript across remounts
             stopTriggeredRef.current = false;
-            // processedFinalTextsRef.current.clear(); // Removed - keep history across restarts
             userExplicitlyStoppedRef.current = false;
         };
     }, []);
@@ -299,13 +243,10 @@ export const useSpeechRecognition = () => {
         }
 
         try {
-            stopTriggeredRef.current = false; // Ensure we are ready for new results
-            // Reset userExplicitlyStoppedRef when starting a new listening session
-            // This ensures the flag is false for the new session (user hasn't sent a message yet)
-            // The flag will be set to true only when customSetTranscript('') is called (user sends message)
+            stopTriggeredRef.current = false;
             userExplicitlyStoppedRef.current = false;
-            stateSyncedInStopRef.current = false; // Reset flag when starting new session
-            setError(null); // Clear any previous errors
+            stateSyncedInStopRef.current = false;
+            setError(null);
             
             // Clear interim when starting new session
             setInterimTranscript('');
@@ -322,11 +263,8 @@ export const useSpeechRecognition = () => {
     };
 
     const stopListening = () => {
-        // DON'T set userExplicitlyStoppedRef here - user might just be pausing to review/edit
-        // Only set it when the user actually sends the message (in customSetTranscript when clearing)
-        
         if (recognitionRef.current && isListening) {
-            stopTriggeredRef.current = true; // Signal to ignore subsequent results
+            stopTriggeredRef.current = true;
             recognitionRef.current.stop();
             setIsListening(false);
             // Preserve whatever interim we have by promoting it to final if we don't have a final yet
@@ -336,20 +274,13 @@ export const useSpeechRecognition = () => {
                 persistedTranscript = finalTranscriptRef.current;
                 setFinalTranscript(() => finalTranscriptRef.current);
             }
-            // Clear interim when stopping (we either promoted it or already have finals)
+            // Clear interim when stopping
             setInterimTranscript('');
             interimTranscriptRef.current = '';
-            // Clear processed texts tracking when stopping
-            // processedFinalTextsRef.current.clear(); // Removed - keep history across restarts
             
-            // Sync React state with ref immediately to ensure UI shows transcript
-            // This prevents the transcript from disappearing if onend fires later
-            // Use a function form to ensure we're setting the latest ref value
+            // Sync React state with ref immediately
             setFinalTranscript(() => finalTranscriptRef.current);
-            // Mark that we synced state so onend doesn't overwrite it
             stateSyncedInStopRef.current = true;
-            
-            // DON'T clear the ref - preserve transcript so user can review/edit before sending
         }
     };
 
@@ -360,15 +291,10 @@ export const useSpeechRecognition = () => {
         }
 
         // If text is empty, this means user sent the message - clear everything for fresh start
-        // Clear ref immediately to prevent race condition if user starts listening again before onend fires
         if (text === '') {
-            // Mark that user sent message (so onend doesn't restore transcript)
             userExplicitlyStoppedRef.current = true;
-            // Clear ref immediately to prevent race condition
-            // If user starts listening again before onend fires, ref will be empty
             finalTranscriptRef.current = '';
             persistedTranscript = '';
-            // Clear React state immediately so UI clears right away
             setFinalTranscript('');
             setInterimTranscript('');
             interimTranscriptRef.current = '';
@@ -376,16 +302,13 @@ export const useSpeechRecognition = () => {
         }
 
         // Non-empty text: full reset (for explicit transcript setting)
-        userExplicitlyStoppedRef.current = true; // Mark as explicitly stopped when transcript is manually set
+        userExplicitlyStoppedRef.current = true;
         
         finalTranscriptRef.current = text;
-        // Sync with persisted transcript
         persistedTranscript = text;
         setFinalTranscript(text);
         setInterimTranscript('');
         interimTranscriptRef.current = '';
-        // Clear processed texts tracking when manually setting transcript
-        // processedFinalTextsRef.current.clear(); // Removed - keep history across restarts
     }, []);
 
     // Combined transcript for backward compatibility (final + interim)
