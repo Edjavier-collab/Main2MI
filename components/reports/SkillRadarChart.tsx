@@ -34,27 +34,27 @@ const COMPETENCY_ORDER: SkillScore['name'][] = [
 
 // Mastery Tier Glow Colors
 const PASTEL_GLOW: GlowColors = {
-  stroke: 'rgba(255, 179, 186, 0.8)', // --color-accent-warm (soft pink)
-  fill: 'rgba(255, 179, 186, 0.2)',
-  shadow: '0 0 20px rgba(255, 179, 186, 0.4)',
+  stroke: 'rgba(245, 158, 11, 0.8)', // Amber (was soft pink)
+  fill: 'rgba(245, 158, 11, 0.2)',
+  shadow: '0 0 20px rgba(245, 158, 11, 0.4)',
 };
 
 const SEAFOAM_GLOW: GlowColors = {
-  stroke: 'rgba(127, 212, 193, 0.9)', // --color-primary (seafoam green)
-  fill: 'rgba(127, 212, 193, 0.25)',
-  shadow: '0 0 24px rgba(127, 212, 193, 0.5)',
+  stroke: 'var(--color-primary)', // Amber primary color
+  fill: 'rgba(245, 158, 11, 0.25)', // Amber with 25% opacity
+  shadow: '0 0 24px rgba(245, 158, 11, 0.5)', // Amber shadow
 };
 
 const MULTI_CHROME_GLOW: GlowColors = {
-  stroke: 'url(#multiChromeGradient)', // Gradient: seafoam → blue → purple
-  fill: 'rgba(127, 212, 193, 0.15)',
-  shadow: '0 0 28px rgba(127, 212, 193, 0.6), 0 0 16px rgba(180, 181, 252, 0.4)',
+  stroke: 'url(#multiChromeGradient)', // Gradient: amber → orange → red
+  fill: 'rgba(245, 158, 11, 0.15)', // Amber with 15% opacity
+  shadow: '0 0 28px rgba(245, 158, 11, 0.6), 0 0 16px rgba(249, 115, 22, 0.4)', // Amber + orange shadow
 };
 
 const CHAMPION_GLOW: GlowColors = {
   stroke: 'url(#championGradient)', // Enhanced gradient with more colors
-  fill: 'rgba(127, 212, 193, 0.2)',
-  shadow: '0 0 32px rgba(127, 212, 193, 0.7), 0 0 20px rgba(180, 181, 252, 0.5), 0 0 12px rgba(255, 179, 186, 0.4)',
+  fill: 'rgba(245, 158, 11, 0.2)', // Amber with 20% opacity
+  shadow: '0 0 32px rgba(245, 158, 11, 0.7), 0 0 20px rgba(249, 115, 22, 0.5), 0 0 12px rgba(239, 68, 68, 0.4)', // Amber + orange + red shadow
 };
 
 /**
@@ -226,15 +226,15 @@ const SkillRadarChart: React.FC<SkillRadarChartProps> = ({
         <RadarChart data={chartDataWithPath}>
           <defs>
             <linearGradient id="multiChromeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="rgba(127, 212, 193, 1)" /> {/* Seafoam */}
-              <stop offset="50%" stopColor="rgba(179, 229, 252, 1)" /> {/* Blue */}
-              <stop offset="100%" stopColor="rgba(212, 179, 255, 1)" /> {/* Purple */}
+              <stop offset="0%" stopColor="rgba(245, 158, 11, 1)" /> {/* Amber */}
+              <stop offset="50%" stopColor="rgba(249, 115, 22, 1)" /> {/* Orange */}
+              <stop offset="100%" stopColor="rgba(239, 68, 68, 1)" /> {/* Red */}
             </linearGradient>
             <linearGradient id="championGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="rgba(127, 212, 193, 1)" />
-              <stop offset="33%" stopColor="rgba(179, 229, 252, 1)" />
-              <stop offset="66%" stopColor="rgba(212, 179, 255, 1)" />
-              <stop offset="100%" stopColor="rgba(255, 179, 186, 1)" /> {/* Pink accent */}
+              <stop offset="0%" stopColor="rgba(245, 158, 11, 1)" /> {/* Amber */}
+              <stop offset="33%" stopColor="rgba(249, 115, 22, 1)" /> {/* Orange */}
+              <stop offset="66%" stopColor="rgba(239, 68, 68, 1)" /> {/* Red */}
+              <stop offset="100%" stopColor="rgba(220, 38, 38, 1)" /> {/* Dark red accent */}
             </linearGradient>
           </defs>
           <PolarGrid stroke="var(--color-neutral-200)" />

@@ -20,9 +20,9 @@ const getScoreColor = (score: number): string => {
  * Get score background color (lighter variant)
  */
 const getScoreBgColor = (score: number): string => {
-  if (score >= 70) return 'rgba(34, 197, 94, 0.1)';
-  if (score >= 40) return 'rgba(234, 179, 8, 0.1)';
-  return 'rgba(239, 68, 68, 0.1)';
+  if (score >= 70) return 'var(--color-success-light)';
+  if (score >= 40) return 'var(--color-warning-light)';
+  return 'var(--color-error-light)';
 };
 
 /**

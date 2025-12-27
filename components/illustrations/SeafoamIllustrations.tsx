@@ -28,11 +28,11 @@ export const WavePattern: React.FC<{ className?: string }> = ({ className = '' }
       <defs>
         <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="var(--color-primary)" />
-          <stop offset="100%" stopColor="var(--color-aquatic-blue)" />
+          <stop offset="100%" stopColor="var(--color-primary-light)" />
         </linearGradient>
         <linearGradient id="waveGradient2" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="var(--color-aquatic-blue)" />
-          <stop offset="100%" stopColor="var(--color-primary-light)" />
+          <stop offset="0%" stopColor="var(--color-primary-light)" />
+          <stop offset="100%" stopColor="var(--color-primary-lighter)" />
         </linearGradient>
       </defs>
     </svg>
@@ -49,10 +49,10 @@ export const FishIcon: React.FC<{
   className?: string;
 }> = ({ size = 40, color = 'orange', className = '' }) => {
   const colors = {
-    orange: '#FFB3BA',
-    yellow: '#FFE5B4',
-    grey: '#D4D4D4',
-    blue: '#B3E5FC',
+    orange: '#F59E0B', // Amber-500 (was pastel pink)
+    yellow: '#FCD34D', // Amber-300 (was pastel yellow)
+    grey: '#A8A29E', // Stone-400 (was light grey)
+    blue: '#0EA5E9', // Sky-500 (was pastel blue)
   };
 
   return (
@@ -149,12 +149,12 @@ export const WaterDroplet: React.FC<{
     >
       <path
         d="M16 4 Q20 8 22 12 Q24 16 24 20 Q24 24 20 26 Q16 28 12 26 Q8 24 8 20 Q8 16 10 12 Q12 8 16 4 Z"
-        fill="var(--color-aquatic-blue)"
+        fill="var(--color-primary)"
         opacity="0.8"
       />
       <path
         d="M16 4 Q20 8 22 12 Q24 16 24 20 Q24 24 20 26 Q16 28 12 26 Q8 24 8 20 Q8 16 10 12 Q12 8 16 4 Z"
-        stroke="var(--color-aquatic-blue-dark)"
+        stroke="var(--color-primary-dark)"
         strokeWidth="1.5"
         fill="none"
       />
@@ -182,7 +182,7 @@ export const UnderwaterScene: React.FC<{ className?: string }> = ({ className = 
   return (
     <div className={`relative w-full h-full ${className}`} style={{ minHeight: '200px' }}>
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[var(--color-aquatic-blue-light)] to-[var(--color-primary-lighter)] opacity-40" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[var(--color-primary-light)] to-[var(--color-primary-lighter)] opacity-40" />
       
       {/* Wave pattern overlay */}
       <div className="absolute bottom-0 left-0 right-0">

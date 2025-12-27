@@ -57,7 +57,7 @@ const BadgeUnlockToast: React.FC<BadgeUnlockToastProps> = ({
         style={{
           backgroundColor: 'var(--color-bg-card, #ffffff)',
           borderColor: 'var(--color-primary)',
-          boxShadow: '0 8px 32px rgba(127, 212, 193, 0.3)',
+          boxShadow: '0 8px 32px rgba(245, 158, 11, 0.3)',
         }}
       >
         {/* Badge Icon with bounce animation */}

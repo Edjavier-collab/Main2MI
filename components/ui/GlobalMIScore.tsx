@@ -223,7 +223,7 @@ const DarkRadialProgress: React.FC<{
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="rgba(255, 255, 255, 0.1)"
+          stroke="var(--color-neutral-200)"
           strokeWidth={strokeWidth}
         />
         {/* Progress circle */}
@@ -232,7 +232,7 @@ const DarkRadialProgress: React.FC<{
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="#60A5FA"
+          stroke="var(--color-primary)"
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={offset}
@@ -242,7 +242,7 @@ const DarkRadialProgress: React.FC<{
       </svg>
       {/* Center text */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-4xl font-bold text-white">{value}%</span>
+        <span className="text-4xl font-bold" style={{ color: 'var(--color-text-inverse)' }}>{value}%</span>
       </div>
     </div>
   );
@@ -263,19 +263,24 @@ const GlobalMIScore: React.FC<GlobalMIScoreProps> = ({
     <div
       className="rounded-2xl p-6 mb-6 shadow-lg"
       style={{
-        backgroundColor: '#1a1a1a',
-        color: '#ffffff',
+        backgroundColor: 'var(--color-neutral-900, #1C1917)',
+        color: 'var(--color-text-inverse, #FFFFFF)',
       }}
     >
       {/* Header with title and settings icon */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-xl font-bold text-white mb-1">Global MI Score</h3>
-          <p className="text-sm text-gray-400">Average across all sessions</p>
+          <h3 className="text-xl font-bold mb-1" style={{ color: 'var(--color-text-inverse)' }}>Global MI Score</h3>
+          <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Average across all sessions</p>
         </div>
         <button
           onClick={onSettingsClick}
-          className="text-gray-400 hover:text-gray-300 transition-colors p-2 -mr-2"
+          className="transition-colors p-2 -mr-2"
+          style={{ 
+            color: 'var(--color-text-muted)',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text-light)'}
+          onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
           aria-label="Settings"
         >
           <i className="fa-solid fa-gear text-lg" aria-hidden="true"></i>
@@ -298,7 +303,7 @@ const GlobalMIScore: React.FC<GlobalMIScoreProps> = ({
                   trend.isPositive ? 'up' : 'down'
                 }`}
                 style={{
-                  color: trend.isPositive ? '#4ADE80' : '#F87171',
+                  color: trend.isPositive ? 'var(--color-success)' : 'var(--color-error)',
                   fontSize: '14px',
                 }}
                 aria-hidden="true"
@@ -306,7 +311,7 @@ const GlobalMIScore: React.FC<GlobalMIScoreProps> = ({
               <span
                 className="text-sm font-semibold"
                 style={{
-                  color: trend.isPositive ? '#4ADE80' : '#F87171',
+                  color: trend.isPositive ? 'var(--color-success)' : 'var(--color-error)',
                 }}
               >
                 {trend.isPositive ? '+' : '-'}
@@ -316,12 +321,12 @@ const GlobalMIScore: React.FC<GlobalMIScoreProps> = ({
           )}
           {!trend && (
             <div className="mb-4">
-              <span className="text-sm text-gray-400">
+              <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
                 Complete more sessions to see trends
               </span>
             </div>
           )}
-          <p className="text-sm text-gray-300 leading-relaxed" style={{ lineHeight: '1.6' }}>
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-light)', lineHeight: '1.6' }}>
             {skillMessage}
           </p>
         </div>

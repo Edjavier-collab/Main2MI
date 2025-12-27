@@ -125,7 +125,7 @@
 
 .practice-view__input-container:focus-within {
   border-color: var(--color-primary-light);
-  box-shadow: 0 0 0 3px rgba(123, 163, 144, 0.1);
+  box-shadow: 0 0 0 3px var(--color-primary-lighter);
 }
 
 .practice-view__speech-visualizer {
@@ -312,7 +312,7 @@
 .practice-view__overlay {
   position: absolute;
   inset: 0;
-  background: rgba(232, 245, 242, 0.95);
+  background: var(--color-bg-warm);
   backdrop-filter: blur(4px);
   display: flex;
   flex-direction: column;

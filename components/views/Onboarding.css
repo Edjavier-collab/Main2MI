@@ -74,7 +74,7 @@
 
 .onboarding__logo,
 .onboarding__illustration {
-  filter: drop-shadow(0 8px 16px rgba(123, 163, 144, 0.2));
+  filter: drop-shadow(0 8px 16px rgba(245, 158, 11, 0.2));
 }
 
 .onboarding__title {

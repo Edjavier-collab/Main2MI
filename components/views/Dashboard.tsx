@@ -93,12 +93,12 @@ const Dashboard: React.FC<DashboardProps> = ({
     return (
         <div className="min-h-screen bg-transparent pb-24">
             {/* Header */}
-            <div className="px-8 py-6 flex items-center justify-between">
+            <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex items-center justify-between">
                 <div>
-                    <h1 className="font-display text-5xl font-bold text-[var(--color-text-primary)] tracking-tight">
+                    <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--color-text-primary)] tracking-tight">
                         Welcome, {firstName}!
                     </h1>
-                    <p className="text-lg text-[var(--color-text-secondary)] mt-2 font-medium">
+                    <p className="text-sm sm:text-base lg:text-lg text-[var(--color-text-secondary)] mt-1 sm:mt-2 font-medium">
                         Ready to sharpen your MI skills?
                     </p>
                 </div>
@@ -118,7 +118,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 </div>
             </div>
 
-            <main className="px-8 max-w-7xl mx-auto">
+            <main className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
                 {/* Hero CTA Block */}
                 <Card variant="glass" padding="lg" className="mb-8 relative overflow-hidden">
                     {/* Subtle gradient background */}

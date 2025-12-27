@@ -34,20 +34,20 @@ export const MasteryGoalCard: React.FC<MasteryGoalCardProps> = ({
       case 'novice':
         return {
           ...baseStyles,
-          background: 'rgba(255, 179, 186, 0.15)', // Pastel pink
-          borderColor: 'rgba(255, 179, 186, 0.4)',
+          background: 'rgba(245, 158, 11, 0.15)', // Amber (was pastel pink)
+          borderColor: 'rgba(245, 158, 11, 0.4)',
         };
       case 'intermediate':
         return {
           ...baseStyles,
-          background: 'rgba(127, 212, 193, 0.15)', // Seafoam green
-          borderColor: 'rgba(127, 212, 193, 0.4)',
+          background: 'rgba(245, 158, 11, 0.15)', // Amber
+          borderColor: 'rgba(245, 158, 11, 0.4)',
         };
       case 'master':
         return {
           ...baseStyles,
-          background: 'linear-gradient(135deg, rgba(127, 212, 193, 0.15) 0%, rgba(180, 181, 252, 0.15) 100%)',
-          borderColor: 'rgba(127, 212, 193, 0.5)',
+          background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(249, 115, 22, 0.15) 100%)',
+          borderColor: 'rgba(245, 158, 11, 0.5)',
         };
       default:
         return baseStyles;

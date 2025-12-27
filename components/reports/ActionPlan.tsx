@@ -24,9 +24,9 @@ const getPriorityColor = (priority: number): string => {
  * Get priority background color
  */
 const getPriorityBgColor = (priority: number): string => {
-  if (priority === 1) return 'rgba(239, 68, 68, 0.1)';
-  if (priority === 2) return 'rgba(234, 179, 8, 0.1)';
-  return 'rgba(135, 168, 120, 0.1)';
+  if (priority === 1) return 'var(--color-error-light)';
+  if (priority === 2) return 'var(--color-warning-light)';
+  return 'var(--color-primary-lighter)'; // Amber (was seafoam green)
 };
 
 /**

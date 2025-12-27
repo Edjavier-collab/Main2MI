@@ -1,37 +1,9 @@
 /* ===== DESIGN TOKENS ===== */
-/* This file extends theme.css with additional design system tokens */
+/* Extended tokens for MI Mastery - Warm Amber Theme */
+/* This file works alongside theme.css */
 
 :root {
-  /* Typography Scale */
-  --font-size-xs: 12px;
-  --font-size-sm: 14px;
-  --font-size-base: 16px;
-  --font-size-lg: 18px;
-  --font-size-xl: 20px;
-  --font-size-2xl: 24px;
-  --font-size-3xl: 32px;
-  
-  /* Font Weights */
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-  
-  /* Line Heights */
-  --line-height-tight: 1.25;
-  --line-height-normal: 1.5;
-  --line-height-relaxed: 1.75;
-  
-  /* Spacing Scale (4px base) */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-12: 48px;
+  /* ===== COMPONENT-SPECIFIC TOKENS ===== */
   
   /* Button Heights (minimum 44px for touch targets per WCAG 2.5.5) */
   --button-height-sm: 44px;
@@ -45,43 +17,238 @@
   --button-padding-sm: var(--space-2) var(--space-4);
   --button-padding-md: var(--space-3) var(--space-6);
   --button-padding-lg: var(--space-4) var(--space-8);
+
+  /* ===== INPUT TOKENS ===== */
+  --input-height: 48px;
+  --input-padding: var(--space-3) var(--space-4);
+  --input-border-radius: var(--radius-md);
+  --input-border: 1px solid var(--color-neutral-200);
+  --input-border-focus: 2px solid var(--color-primary);
+  --input-bg: var(--color-bg-card);
+  --input-bg-disabled: var(--color-neutral-100);
+
+  /* ===== CARD TOKENS ===== */
+  --card-padding-sm: var(--space-3);
+  --card-padding-md: var(--space-4);
+  --card-padding-lg: var(--space-6);
+  --card-border-radius: var(--radius-lg);
+  --card-bg: var(--color-bg-card);
+  --card-border: var(--border-light);
+
+  /* ===== SCORE DISPLAY TOKENS ===== */
+  --score-ring-size-sm: 80px;
+  --score-ring-size-md: 120px;
+  --score-ring-size-lg: 160px;
+  --score-ring-thickness: 8px;
+  --score-ring-bg: var(--color-neutral-200);
   
-  /* Semantic Colors */
-  --color-success: #10b981;
-  --color-success-light: #d1fae5;
-  --color-success-dark: #059669;
-  
-  --color-warning: #f59e0b;
-  --color-warning-light: #fef3c7;
-  --color-warning-dark: #d97706;
-  
-  --color-error: #ef4444;
-  --color-error-light: #fee2e2;
-  --color-error-dark: #dc2626;
-  
-  --color-info: #3b82f6;
-  --color-info-light: #dbeafe;
-  --color-info-dark: #2563eb;
-  
-  --color-neutral-50: #f9fafb;
-  --color-neutral-100: #f3f4f6;
-  --color-neutral-200: #e5e7eb;
-  --color-neutral-300: #d1d5db;
-  --color-neutral-400: #9ca3af;
-  --color-neutral-500: #6b7280;
-  --color-neutral-600: #4b5563;
-  --color-neutral-700: #374151;
-  --color-neutral-800: #1f2937;
-  --color-neutral-900: #111827;
-  
-  /* Transition Timing */
-  --transition-fast: 150ms;
-  --transition-normal: 200ms;
-  --transition-slow: 300ms;
-  
-  /* Easing Functions */
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-out: cubic-bezier(0, 0, 0.2, 1);
-  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  /* ===== METRIC CARD TOKENS ===== */
+  --metric-icon-size: 24px;
+  --metric-value-size: var(--font-size-2xl);
+  --metric-label-size: var(--font-size-sm);
+
+  /* ===== AVATAR TOKENS ===== */
+  --avatar-size-sm: 32px;
+  --avatar-size-md: 48px;
+  --avatar-size-lg: 64px;
+  --avatar-size-xl: 96px;
+  --avatar-border-radius: var(--radius-full);
+  --avatar-border: 2px solid var(--color-bg-card);
+
+  /* ===== BADGE TOKENS ===== */
+  --badge-padding: var(--space-1) var(--space-3);
+  --badge-font-size: var(--font-size-xs);
+  --badge-font-weight: var(--font-weight-semibold);
+  --badge-border-radius: var(--radius-full);
+
+  /* ===== PROGRESS BAR TOKENS ===== */
+  --progress-height-sm: 4px;
+  --progress-height-md: 8px;
+  --progress-height-lg: 12px;
+  --progress-border-radius: var(--radius-full);
+  --progress-bg: var(--color-neutral-200);
+
+  /* ===== NAVIGATION TOKENS ===== */
+  --nav-height: 64px;
+  --nav-item-padding: var(--space-2) var(--space-4);
+  --nav-icon-size: 24px;
+
+  /* ===== BOTTOM BAR TOKENS ===== */
+  --bottom-bar-height: 72px;
+  --bottom-bar-bg: var(--color-bg-card);
+  --bottom-bar-shadow: 0 -1px 3px rgba(28, 25, 23, 0.06);
+  --bottom-bar-icon-size: 24px;
+  --bottom-bar-label-size: var(--font-size-xs);
+
+  /* ===== CHAT BUBBLE TOKENS ===== */
+  --chat-bubble-padding: var(--space-3) var(--space-4);
+  --chat-bubble-radius: var(--radius-lg);
+  --chat-bubble-user-bg: var(--color-primary);
+  --chat-bubble-user-color: var(--color-text-inverse);
+  --chat-bubble-other-bg: var(--color-neutral-100);
+  --chat-bubble-other-color: var(--color-text-primary);
+
+  /* ===== PATIENT CARD TOKENS ===== */
+  --patient-card-image-size: 100px;
+  --patient-card-padding: var(--space-4);
+  --patient-card-gap: var(--space-4);
+
+  /* ===== SESSION ANALYSIS TOKENS ===== */
+  --analysis-score-size: 140px;
+  --analysis-metric-gap: var(--space-3);
+
+  /* ===== TALK RATIO BAR ===== */
+  --talk-ratio-height: 12px;
+  --talk-ratio-user-color: var(--color-neutral-400);
+  --talk-ratio-patient-color: var(--color-primary);
+
+  /* ===== KEY MOMENT TOKENS ===== */
+  --key-moment-border-left: 3px solid var(--color-primary);
+  --key-moment-bg: var(--color-bg-warm);
+  --key-moment-padding: var(--space-4);
+
+  /* ===== FILTER/TAG TOKENS ===== */
+  --filter-pill-padding: var(--space-2) var(--space-4);
+  --filter-pill-radius: var(--radius-full);
+  --filter-pill-active-bg: var(--color-primary);
+  --filter-pill-active-color: var(--color-text-inverse);
+  --filter-pill-inactive-bg: var(--color-neutral-100);
+  --filter-pill-inactive-color: var(--color-text-secondary);
+
+  /* ===== DIFFICULTY BADGE COLORS ===== */
+  --difficulty-beginner: #10B981;     /* Teal/Green */
+  --difficulty-intermediate: #F59E0B; /* Amber */
+  --difficulty-advanced: #EF4444;     /* Red */
+
+  /* ===== ANIMATION TOKENS ===== */
+  --animation-stagger-delay: 50ms;
+  --animation-entrance-duration: 300ms;
+  --animation-entrance-easing: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ===== UTILITY CLASSES FOR NEW DESIGN ===== */
+
+/* Warm background sections */
+.section-warm {
+  background: var(--color-bg-warm);
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+}
+
+/* Cream background sections */
+.section-cream {
+  background: var(--color-bg-accent);
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+}
+
+/* Metric grid (2 columns) */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+
+/* Metric grid (4 columns for larger screens) */
+@media (min-width: 640px) {
+  .metric-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Talk ratio visualization */
+.talk-ratio-bar {
+  display: flex;
+  height: var(--talk-ratio-height);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.talk-ratio-user {
+  background: var(--talk-ratio-user-color);
+}
+
+.talk-ratio-patient {
+  background: var(--talk-ratio-patient-color);
+}
+
+/* Score ring container */
+.score-ring-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-ring-value {
+  position: absolute;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.score-ring-label {
+  position: absolute;
+  bottom: 25%;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* Patient list card */
+.patient-list-card {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-bg-card);
+  border: var(--border-light);
+  border-radius: var(--radius-lg);
+  transition: box-shadow var(--transition-normal);
+}
+
+.patient-list-card:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* Floating action button */
+.fab {
+  position: fixed;
+  bottom: calc(var(--bottom-bar-height) + var(--space-4));
+  right: var(--space-4);
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+  border: none;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.fab:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-xl);
+}
+
+/* Staggered animation for lists */
+.stagger-item {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: stagger-in var(--animation-entrance-duration) var(--animation-entrance-easing) forwards;
+}
+
+.stagger-item:nth-child(1) { animation-delay: calc(var(--animation-stagger-delay) * 1); }
+.stagger-item:nth-child(2) { animation-delay: calc(var(--animation-stagger-delay) * 2); }
+.stagger-item:nth-child(3) { animation-delay: calc(var(--animation-stagger-delay) * 3); }
+.stagger-item:nth-child(4) { animation-delay: calc(var(--animation-stagger-delay) * 4); }
+.stagger-item:nth-child(5) { animation-delay: calc(var(--animation-stagger-delay) * 5); }
+
+@keyframes stagger-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -31,7 +31,7 @@ export const Button: React.FC<ButtonProps> = ({
   type = 'button',
   'aria-label': ariaLabel,
 }) => {
-  const baseClasses = 'inline-flex items-center justify-center font-semibold rounded-none transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]';
+  const baseClasses = 'inline-flex items-center justify-center font-semibold rounded-[var(--radius-lg)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]';
   
   const variantClasses = {
     primary: 'bg-[var(--color-primary)] text-[var(--color-text-primary)] border-2 border-black hover:bg-[var(--color-primary-dark)] hover:border-black focus:ring-[var(--color-primary)] shadow-sm hover:shadow-md',

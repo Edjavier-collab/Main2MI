@@ -45,7 +45,7 @@
   /* Body defaults */
   body {
     font-family: var(--font-family);
-    background: linear-gradient(180deg, #E8F5F2 0%, #D4F0EB 50%, #C5E8E0 100%);
+    background: linear-gradient(180deg, #FAFAF9 0%, #FEF7ED 50%, #FFFBEB 100%);
     background-attachment: fixed;
     color: var(--color-text-primary);
     line-height: var(--line-height-normal);

@@ -21,7 +21,7 @@ const NavItem: React.FC<NavItemProps> = ({ label, icon, isActive, onClick, isLoc
     return (
         <button
             onClick={onClick}
-            className="flex flex-1 flex-col items-center justify-center transition-all duration-200 min-h-[var(--touch-target-min)] min-w-[var(--touch-target-min)] touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 rounded-lg"
+            className="flex flex-1 flex-col items-center justify-center transition-all duration-200 min-h-[72px] min-w-[72px] p-3 touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 rounded-lg"
             aria-label={isLocked ? `${label} (Premium feature)` : label}
             aria-current={isActive ? 'page' : undefined}
         >
@@ -30,8 +30,8 @@ const NavItem: React.FC<NavItemProps> = ({ label, icon, isActive, onClick, isLoc
                 <div className="relative">
                     <i className={`${icon} ${isActive ? 'text-zinc-900' : 'text-zinc-400'} text-3xl transition-colors`} aria-hidden="true"></i>
                     {isLocked && (
-                        <div className="absolute -top-1 -right-2 bg-zinc-800 text-white w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white" title="Premium Feature">
-                            <i className="fa-solid fa-lock" style={{ fontSize: '7px' }} aria-hidden="true"></i>
+                        <div className="absolute -top-1 -right-2 bg-zinc-800 text-white w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm" title="Premium Feature">
+                            <i className="fa-solid fa-lock" style={{ fontSize: '10px' }} aria-hidden="true"></i>
                         </div>
                     )}
                 </div>

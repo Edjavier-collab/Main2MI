@@ -3,9 +3,9 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: white;
+  background: var(--color-bg-card);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  box-shadow: 0 -4px 20px rgba(127, 212, 193, 0.15);
+  box-shadow: 0 -4px 20px rgba(245, 158, 11, 0.15);
   padding-bottom: env(safe-area-inset-bottom, 0);
   z-index: 100;
   border-top: 2px solid var(--color-primary-lighter);
@@ -24,7 +24,7 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: var(--space-sm) var(--space-md);
+  padding: var(--space-3);
   background: none;
   border: none;
   cursor: pointer;
@@ -32,6 +32,8 @@
   transition: all var(--transition-normal);
   flex: 1;
   border-radius: var(--radius-md);
+  min-height: 72px; /* Ensure full touch target */
+  min-width: 72px;
 }
 
 .bottom-nav-bar__icon-wrapper {
@@ -89,14 +91,14 @@
   right: -6px;
   background: var(--color-accent-warm);
   color: white;
-  width: 16px;
-  height: 16px;
+  width: 20px; /* Increased from 16px */
+  height: 20px; /* Increased from 16px */
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-center;
   border: 2px solid white;
-  font-size: 8px;
+  font-size: 10px; /* Increased from 8px */
   z-index: 3;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }

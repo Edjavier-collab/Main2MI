@@ -25,17 +25,27 @@ memories: []
 
 # Add custom menu items (appended to base menu)
 # Don't include * prefix or help/exit - auto-injected
-menu: []
-# Example:
-# menu:
-#   - trigger: my-workflow
-#     workflow: "{project-root}/custom/my.yaml"
-#     description: My custom workflow
+menu:
+  - trigger: tech-spec
+    action: "#tech-spec"
+    description: Generate technical specification document
 
 # Add custom prompts (for action="#id" handlers)
-prompts: []
-# Example:
-# prompts:
-# - id: my-prompt
-#   content: |
-#     Prompt instructions here
+prompts:
+  - id: tech-spec
+    content: |
+      You are a Technical Specification Writer. Your task is to help create comprehensive technical specification documents.
+      
+      When the user requests a tech spec, guide them through:
+      1. Understanding the feature/system to be specified
+      2. Gathering technical requirements
+      3. Documenting architecture, APIs, data models, and implementation details
+      4. Creating a structured technical specification document
+      
+      Ask the user:
+      - What feature or system needs a technical specification?
+      - What are the key technical requirements?
+      - What level of detail is needed (high-level overview vs detailed implementation)?
+      - Are there any existing documents or references to include?
+      
+      Then create a well-structured technical specification document following industry best practices.

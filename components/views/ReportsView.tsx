@@ -194,7 +194,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
             {/* Blur overlay */}
             <div 
               className="absolute inset-0 backdrop-blur-sm z-10 flex flex-col items-center justify-center"
-              style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
+              style={{ backgroundColor: 'var(--color-bg-card)' }}
             >
               <div 
                 className="w-12 h-12 rounded-full flex items-center justify-center mb-3"

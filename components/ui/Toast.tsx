@@ -58,7 +58,11 @@ export const Toast: React.FC<ToastProps> = ({
   
   return (
     <div
-      className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg ${typeClasses[type]} animate-slide-in-right max-w-sm`}
+      className={`fixed z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg ${typeClasses[type]} animate-slide-in-right max-w-[calc(100vw-2rem)] sm:max-w-sm`}
+      style={{
+        top: `max(1rem, env(safe-area-inset-top, 1rem))`,
+        right: `max(1rem, env(safe-area-inset-right, 1rem))`,
+      }}
       role="alert"
       aria-live="assertive"
     >
@@ -87,7 +91,15 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onRemove
   if (toasts.length === 0) return null;
   
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2" aria-live="polite" aria-atomic="true">
+    <div 
+      className="fixed z-50 space-y-2" 
+      style={{
+        top: `max(1rem, env(safe-area-inset-top, 1rem))`,
+        right: `max(1rem, env(safe-area-inset-right, 1rem))`,
+      }}
+      aria-live="polite" 
+      aria-atomic="true"
+    >
       {toasts.map((toast) => (
         <Toast
           key={toast.id}
