@@ -1,0 +1,28 @@
+{
+  "keyTakeaway": "You demonstrated strong reflective listening by accurately capturing the patient's ambivalence about change.",
+  "empathyScore": 4,
+  "empathyBreakdown": "You showed genuine empathy throughout the session. When the patient said 'I know I should quit, but I'm scared of failing again,' you responded with 'It sounds like you've tried before and that experience left you feeling uncertain.' This reflection demonstrated that you were truly listening to both sides of their ambivalence. Your follow-up question 'What would make this attempt different from previous ones?' showed curiosity about their perspective rather than pushing an agenda.",
+  "whatWentRight": "You demonstrated excellent reflective listening skills. When the patient expressed fear about failing again, you reflected: 'It sounds like you've tried before and that experience left you feeling uncertain.' This showed you were truly hearing their concerns. You also used open-ended questions effectively, such as 'What would make this attempt different from previous ones?' which invited the patient to explore their own motivations rather than being told what to do.",
+  "constructiveFeedback": "A key area for growth is deepening your reflections to capture underlying emotions. For instance, when the patient said 'I want to change but I don't know if I can handle it,' you responded with 'You want to change.' A missed opportunity was to reflect the emotion behind their statement. You could have tried: 'You want to change, and at the same time you're feeling overwhelmed by the thought of what that would require.' This would have validated both their desire and their fear, which is central to MI.",
+  "areasForGrowth": "Focus on developing more complex reflections that capture both sides of ambivalence. When patients express mixed feelings, try to reflect both the change talk and the sustain talk in a single statement. Also, practice identifying and reflecting underlying emotions, not just the content of what patients say.",
+  "skillsDetected": [
+    "Open Questions",
+    "Reflections",
+    "Affirmations",
+    "Eliciting Change Talk"
+  ],
+  "keySkillsUsed": [
+    "Reflections",
+    "Open Questions"
+  ],
+  "skillCounts": {
+    "Reflections": 5,
+    "Open Questions": 4,
+    "Affirmations": 2,
+    "Eliciting Change Talk": 1
+  },
+  "nextPracticeFocus": "For your next session, focus on delivering at least three complex reflections that capture both sides of ambivalence. Practice reflecting both the patient's desire for change and their concerns simultaneously.",
+  "nextFocus": "Practice delivering complex reflections that capture ambivalence. When patients express mixed feelings, reflect both sides in a single statement.",
+  "analysisStatus": "complete",
+  "analysisMessage": ""
+}

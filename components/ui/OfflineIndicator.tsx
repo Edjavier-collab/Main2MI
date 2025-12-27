@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect, useCallback } from 'react';
 
 interface OfflineIndicatorProps {
@@ -142,5 +144,6 @@ const OfflineIndicator: React.FC<OfflineIndicatorProps> = ({
     );
 };
 
+export { OfflineIndicator };
 export default OfflineIndicator;
 

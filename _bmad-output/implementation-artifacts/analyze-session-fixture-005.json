@@ -1,0 +1,29 @@
+{
+  "keyTakeaway": "You effectively used affirmations to build the patient's confidence while maintaining a collaborative stance.",
+  "empathyScore": 4,
+  "empathyBreakdown": "You demonstrated strong empathy, particularly in your use of affirmations that validated the patient's efforts and strengths. When you said 'It takes courage to be this honest about your struggle,' you showed that you were seeing the patient's strengths, not just their problems. Your reflections were generally accurate, such as 'You've been thinking about this for a while' after the patient mentioned considering change. There were a few moments where you could have deepened your reflections to capture more of the emotional content, but overall you maintained a supportive, non-judgmental stance.",
+  "whatWentRight": "You used affirmations effectively to build the patient's confidence. Statements like 'It takes courage to be this honest about your struggle' and 'You've already taken a step by coming here today' validated their efforts. Your reflections were generally accurate, such as 'You've been thinking about this for a while' which showed you were listening. You also asked some good open questions, like 'What would need to happen for you to feel ready to make a change?'",
+  "constructiveFeedback": "A key area for growth is deepening your reflections to capture more emotional content. For instance, when the patient said 'I'm worried I'll fail again,' you reflected 'You're worried about failing.' A missed opportunity was to reflect the underlying emotion and perhaps the reason. You could have tried: 'You're worried about failing again, and that worry is holding you back from even trying.' This would have captured more of the emotional weight of their concern.",
+  "areasForGrowth": "Practice creating more complex reflections that capture both content and emotion. Work on identifying underlying emotions and reflecting them back to the patient. Also, continue developing your ability to summarize key points periodically throughout the conversation.",
+  "skillsDetected": [
+    "Open Questions",
+    "Reflections",
+    "Affirmations",
+    "Supporting Self-Efficacy"
+  ],
+  "keySkillsUsed": [
+    "Affirmations",
+    "Supporting Self-Efficacy",
+    "Reflections"
+  ],
+  "skillCounts": {
+    "Open Questions": 4,
+    "Reflections": 5,
+    "Affirmations": 4,
+    "Supporting Self-Efficacy": 2
+  },
+  "nextPracticeFocus": "For your next session, focus on creating more complex reflections that capture both the content and the emotion of what patients are saying.",
+  "nextFocus": "Practice creating complex reflections that capture both content and emotion. Identify underlying feelings and reflect them back.",
+  "analysisStatus": "complete",
+  "analysisMessage": ""
+}

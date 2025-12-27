@@ -1,0 +1,42 @@
+{
+  "totalSessions": 4,
+  "dateRange": "12/05/2024 to 12/18/2024",
+  "strengthsAndTrends": "Across your 4 sessions, you've demonstrated improvement in your MI skills, particularly in your ability to maintain a patient-centered approach. Your empathy scores have shown a positive trend, improving from 2.5 in your first session to 3.5 in your most recent session.\n\n* **Patient-Centered Approach**: You've consistently maintained a collaborative, patient-centered stance throughout all sessions, which has helped patients feel heard and respected.\n\n* **Open Questions**: You've used open-ended questions effectively, averaging 4.0 per session. Your questions have become less directive over time, which is appropriate for MI.\n\n* **Non-Judgmental Stance**: You've maintained a non-judgmental, supportive stance consistently, which is foundational to MI practice.",
+  "areasForFocus": "Two core themes emerged consistently across your 4 sessions:\n\n* **Eliminating Directive Language**: While you've improved, there are still instances where you use directive language or questions that push your agenda. In several sessions, you asked questions like 'Don't you think it would be better if...' which suggests a 'right' answer rather than inviting exploration.\n\n* **Deepening Reflections**: Your reflections are accurate but tend to be simple content reflections. There are opportunities to create more complex reflections that capture emotion, ambivalence, or multiple themes.\n\nThese patterns emerged from analyzing all 4 sessions. Focusing on these areas will help you move from a more directive approach to a truly collaborative MI approach.",
+  "summaryAndNextSteps": "You're making progress across 4 sessions! Your empathy scores are improving, and you're developing a more patient-centered approach. Your use of open questions is strong.\n\n**For your next practice session**, focus on eliminating all directive language. Practice asking only open-ended questions that invite exploration, and avoid any questions that suggest a 'right' answer. Also, practice creating at least two complex reflections that capture both content and emotion, or that reflect ambivalence when patients express mixed feelings.",
+  "skillProgression": [
+    {
+      "skillName": "Open Questions",
+      "totalCount": 16,
+      "averagePerSession": 4.0,
+      "trend": "increasing"
+    },
+    {
+      "skillName": "Reflections",
+      "totalCount": 12,
+      "averagePerSession": 3.0,
+      "trend": "increasing"
+    },
+    {
+      "skillName": "Affirmations",
+      "totalCount": 6,
+      "averagePerSession": 1.5,
+      "trend": "stable"
+    },
+    {
+      "skillName": "Eliciting Change Talk",
+      "totalCount": 3,
+      "averagePerSession": 0.8,
+      "trend": "stable"
+    }
+  ],
+  "topSkillsToImprove": [
+    "Reflections",
+    "Eliciting Change Talk"
+  ],
+  "specificNextSteps": [
+    "Eliminate all directive language and questions that push your agenda",
+    "Create at least two complex reflections that capture both content and emotion",
+    "Practice reflecting ambivalence when patients express mixed feelings about change"
+  ]
+}

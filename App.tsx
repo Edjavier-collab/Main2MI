@@ -248,12 +248,14 @@ const AppContent: React.FC = () => {
 
   const generateCoachingSummaryFromEdgeFunction = useCallback(async (sessions: Session[]): Promise<CoachingSummary> => {
     // Get Supabase URL and construct Edge Function URL
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     if (!supabaseUrl) {
       throw new Error('Supabase URL not configured');
     }
 
-    const functionsUrl = `${supabaseUrl}/functions/v1/coaching-summary`;
+    // Use dual-run wrapper for Strangler Fig migration tracking
+    // Calls both legacy and v2 functions, compares outputs, tracks matches
+    const functionsUrl = `${supabaseUrl}/functions/v1/dual-run-coaching-summary`;
 
     // Require authentication - get JWT token from session
     const supabase = getSupabaseClient();

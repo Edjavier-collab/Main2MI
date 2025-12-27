@@ -1,0 +1,11 @@
+{
+  "empathyScore": 0,
+  "empathyBreakdown": "No clinician responses were captured in this session, so empathy cannot be assessed.",
+  "whatWentRight": "There's not enough clinician input from this session to generate feedback.",
+  "areasForGrowth": "No clinician responses were captured. Please try another session when you're ready to practice.",
+  "skillsDetected": [],
+  "skillCounts": {},
+  "nextFocus": "Try another practice session and engage with the patient to receive detailed feedback.",
+  "analysisStatus": "insufficient-data",
+  "analysisMessage": "We didn't receive any clinician responses, so there isn't enough information to interpret this encounter. Try another session when you're ready to practice."
+}

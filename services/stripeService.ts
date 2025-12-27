@@ -4,9 +4,9 @@ import { getValidAuthToken } from '@/utils/sessionManager';
 
 // Get Stripe publishable key from environment
 const getStripePublishableKey = (): string => {
-    const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+    const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
     if (!key) {
-        throw new Error('VITE_STRIPE_PUBLISHABLE_KEY is not set in environment variables');
+        throw new Error('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set in environment variables');
     }
     return key;
 };
@@ -26,15 +26,15 @@ const getStripe = () => {
  */
 const getFunctionsUrl = (): string => {
     // First check for explicit functions URL
-    const functionsUrl = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL;
+    const functionsUrl = process.env.NEXT_PUBLIC_SUPABASE_FUNCTIONS_URL;
     if (functionsUrl) {
         return functionsUrl;
     }
 
     // Fall back to constructing from Supabase URL
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     if (!supabaseUrl) {
-        throw new Error('VITE_SUPABASE_URL is not set. Cannot determine Edge Functions URL.');
+        throw new Error('NEXT_PUBLIC_SUPABASE_URL is not set. Cannot determine Edge Functions URL.');
     }
 
     // Convert https://xxx.supabase.co to https://xxx.supabase.co/functions/v1

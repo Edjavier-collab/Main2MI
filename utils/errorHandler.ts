@@ -18,7 +18,7 @@ export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
  * Error Handler class for consistent error management
  */
 export class ErrorHandler {
-  private static logLevel: LogLevel = import.meta.env.PROD ? 'warn' : 'debug';
+  private static logLevel: LogLevel = process.env.NODE_ENV === 'production' ? 'warn' : 'debug';
 
   /**
    * Create a standardized error object

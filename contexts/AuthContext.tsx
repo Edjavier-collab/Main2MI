@@ -1,6 +1,8 @@
+'use client';
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
-import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
+import { createClient, isSupabaseConfigured } from '@/lib/supabase';
 
 // Sign up result interface
 export interface SignUpResult {
@@ -77,7 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         try {
-            const supabase = getSupabaseClient();
+            const supabase = createClient();
             const { data: authListener } = supabase.auth.onAuthStateChange(
                 async (event, session) => {
                     console.log('[AuthProvider] Auth state changed:', event);
@@ -135,7 +137,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 return;
             }
 
-            const supabase = getSupabaseClient();
+            const supabase = createClient();
             const { error } = await supabase.auth.signInWithPassword({
                 email,
                 password,
@@ -195,7 +197,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 return { requiresConfirmation: false, email };
             }
 
-            const supabase = getSupabaseClient();
+            const supabase = createClient();
             const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
@@ -293,7 +295,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 return;
             }
 
-            const supabase = getSupabaseClient();
+            const supabase = createClient();
             const { error } = await supabase.auth.signOut();
 
             if (error) {
@@ -328,7 +330,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 return;
             }
 
-            const supabase = getSupabaseClient();
+            const supabase = createClient();
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
                 redirectTo: `${window.location.origin}/reset-password`,
             });
@@ -363,7 +365,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 return;
             }
 
-            const supabase = getSupabaseClient();
+            const supabase = createClient();
             const { error } = await supabase.auth.updateUser({
                 password: newPassword,
             });
@@ -398,7 +400,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 return;
             }
 
-            const supabase = getSupabaseClient();
+            const supabase = createClient();
             const { error } = await supabase.auth.resend({
                 type: 'signup',
                 email: email,

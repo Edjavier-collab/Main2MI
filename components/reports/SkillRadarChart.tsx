@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useMemo } from 'react';
 import {
   ResponsiveContainer,
@@ -12,6 +14,13 @@ import {
 import type { TooltipProps } from 'recharts';
 import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
 import { SkillScore } from '../../hooks/useReportData';
+import { useXP } from '../../hooks/useXP';
+
+interface GlowColors {
+  stroke: string;
+  fill: string;
+  shadow: string;
+}
 
 const COMPETENCY_ORDER: SkillScore['name'][] = [
   'Reflective Listening',
@@ -22,10 +31,46 @@ const COMPETENCY_ORDER: SkillScore['name'][] = [
   'Rolling with Resistance',
 ];
 
+// Mastery Tier Glow Colors
+const PASTEL_GLOW: GlowColors = {
+  stroke: 'rgba(255, 179, 186, 0.8)', // --color-accent-warm (soft pink)
+  fill: 'rgba(255, 179, 186, 0.2)',
+  shadow: '0 0 20px rgba(255, 179, 186, 0.4)',
+};
+
+const SEAFOAM_GLOW: GlowColors = {
+  stroke: 'rgba(127, 212, 193, 0.9)', // --color-primary (seafoam green)
+  fill: 'rgba(127, 212, 193, 0.25)',
+  shadow: '0 0 24px rgba(127, 212, 193, 0.5)',
+};
+
+const MULTI_CHROME_GLOW: GlowColors = {
+  stroke: 'url(#multiChromeGradient)', // Gradient: seafoam → blue → purple
+  fill: 'rgba(127, 212, 193, 0.15)',
+  shadow: '0 0 28px rgba(127, 212, 193, 0.6), 0 0 16px rgba(180, 181, 252, 0.4)',
+};
+
+const CHAMPION_GLOW: GlowColors = {
+  stroke: 'url(#championGradient)', // Enhanced gradient with more colors
+  fill: 'rgba(127, 212, 193, 0.2)',
+  shadow: '0 0 32px rgba(127, 212, 193, 0.7), 0 0 20px rgba(180, 181, 252, 0.5), 0 0 12px rgba(255, 179, 186, 0.4)',
+};
+
+/**
+ * Get mastery tier glow colors based on XP level
+ */
+const getMasteryTierColors = (currentXP: number): GlowColors => {
+  if (currentXP < 100) return PASTEL_GLOW; // Level 1: Curious Beginner
+  if (currentXP < 500) return SEAFOAM_GLOW; // Level 2: Engaged Learner
+  if (currentXP < 1500) return MULTI_CHROME_GLOW; // Level 3: Skilled Practitioner
+  return CHAMPION_GLOW; // Level 4: MI Champion
+};
+
 type ChartPoint = {
   name: SkillScore['name'];
   current: number;
   previous: number;
+  recommended?: number; // For glow-path overlay
 };
 
 interface SkillRadarChartProps {
@@ -48,6 +93,33 @@ const buildChartData = (
       previous: previous?.score ?? current?.score ?? 0,
     };
   });
+};
+
+/**
+ * Build recommended path by sorting skills from weakest to strongest
+ */
+const buildRecommendedPath = (currentSkills: SkillScore[]): SkillScore['name'][] => {
+  if (currentSkills.length === 0) return [];
+  
+  // Sort by score ascending (weakest first)
+  const sorted = [...currentSkills].sort((a, b) => a.score - b.score);
+  
+  // Return array of skill names in recommended order
+  return sorted.map((skill) => skill.name);
+};
+
+/**
+ * Build path data where only recommended skills have values, others are 0
+ * Adds 'recommended' field to chart data for overlay visualization
+ */
+const buildPathData = (
+  data: ChartPoint[],
+  recommendedPath: SkillScore['name'][]
+): ChartPoint[] => {
+  return data.map((point) => ({
+    ...point,
+    recommended: recommendedPath.includes(point.name) ? point.current : 0,
+  }));
 };
 
 const renderTooltip = ({
@@ -87,10 +159,37 @@ const SkillRadarChart: React.FC<SkillRadarChartProps> = ({
   previousSkills,
   isLoading = false,
 }) => {
+  const { currentXP, isLoading: xpLoading } = useXP();
+  
   const data = useMemo(
     () => buildChartData(currentSkills, previousSkills),
     [currentSkills, previousSkills]
   );
+
+  // Get glow colors based on XP, default to Pastel during loading
+  const glowColors = useMemo(() => {
+    if (xpLoading) return PASTEL_GLOW;
+    try {
+      return getMasteryTierColors(currentXP);
+    } catch (error) {
+      console.error('[SkillRadarChart] Error getting mastery tier colors:', error);
+      return PASTEL_GLOW;
+    }
+  }, [currentXP, xpLoading]);
+
+  // Calculate recommended path
+  const recommendedPath = useMemo(() => {
+    if (currentSkills.length === 0) return [];
+    return buildRecommendedPath(currentSkills);
+  }, [currentSkills]);
+
+  // Build path data for overlay (adds 'recommended' field to data)
+  const chartDataWithPath = useMemo(() => {
+    if (recommendedPath.length === 0 || currentSkills.length === 0) {
+      return data;
+    }
+    return buildPathData(data, recommendedPath);
+  }, [data, recommendedPath, currentSkills]);
 
   const hasScores = data.some((point) => point.current > 0 || point.previous > 0);
 
@@ -114,7 +213,20 @@ const SkillRadarChart: React.FC<SkillRadarChartProps> = ({
   return (
     <div className="w-full" aria-label="MI Skill Radar Chart">
       <ResponsiveContainer width="100%" height={320}>
-        <RadarChart data={data}>
+        <RadarChart data={chartDataWithPath}>
+          <defs>
+            <linearGradient id="multiChromeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(127, 212, 193, 1)" /> {/* Seafoam */}
+              <stop offset="50%" stopColor="rgba(179, 229, 252, 1)" /> {/* Blue */}
+              <stop offset="100%" stopColor="rgba(212, 179, 255, 1)" /> {/* Purple */}
+            </linearGradient>
+            <linearGradient id="championGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(127, 212, 193, 1)" />
+              <stop offset="33%" stopColor="rgba(179, 229, 252, 1)" />
+              <stop offset="66%" stopColor="rgba(212, 179, 255, 1)" />
+              <stop offset="100%" stopColor="rgba(255, 179, 186, 1)" /> {/* Pink accent */}
+            </linearGradient>
+          </defs>
           <PolarGrid stroke="var(--color-neutral-200)" />
           <PolarAngleAxis
             dataKey="name"
@@ -140,6 +252,25 @@ const SkillRadarChart: React.FC<SkillRadarChartProps> = ({
             fill="var(--color-primary-200)"
             fillOpacity={0.25}
           />
+          {/* Recommended Path Overlay - only show if we have recommended skills */}
+          {recommendedPath.length > 0 && currentSkills.length > 0 && (
+            <Radar
+              name="Recommended Path"
+              dataKey="recommended"
+              stroke={glowColors.stroke}
+              fill={glowColors.fill}
+              fillOpacity={0.3}
+              strokeWidth={3}
+              dot={false}
+              isAnimationActive={true}
+              animationDuration={300}
+              style={{
+                filter: `drop-shadow(${glowColors.shadow})`,
+              }}
+              hide={true}
+              aria-label="Recommended practice path overlay"
+            />
+          )}
           <Tooltip content={renderTooltip} />
           <Legend
             verticalAlign="top"

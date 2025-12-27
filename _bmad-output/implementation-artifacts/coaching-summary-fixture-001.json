@@ -1,0 +1,60 @@
+{
+  "totalSessions": 5,
+  "dateRange": "12/01/2024 to 12/15/2024",
+  "strengthsAndTrends": "Across your 5 sessions, you've demonstrated consistent engagement and rapport-building. Your empathy scores have shown a positive trend, improving from an average of 3.2 in your first two sessions to 4.0 in your most recent sessions. This upward trajectory suggests you're becoming more attuned to patients' perspectives.\n\n* **Reflective Listening**: You've consistently used reflections throughout all sessions, with an average of 5.2 reflections per session. Your reflections have become more sophisticated over time, moving from simple content reflections to complex reflections that capture ambivalence.\n\n* **Open Questions**: You've maintained strong use of open-ended questions, averaging 4.8 per session. Your questions have evolved to be more evocative, exploring values and motivations rather than just gathering information.\n\n* **Consistency**: Your skill usage has remained consistent across sessions, which indicates you're developing reliable MI habits.",
+  "areasForFocus": "While your overall performance is strong, there are two core themes that emerged consistently across your 5 sessions:\n\n* **Deepening Reflections**: Although you're using reflections consistently, there's an opportunity to create more complex reflections that weave together multiple themes. In several sessions, you reflected individual points but missed opportunities to connect related themes the patient mentioned.\n\n* **Developing Discrepancy**: You've used developing discrepancy sparingly (only 2 instances across 5 sessions). This skill, when used effectively, can help patients explore the gap between their values and their current behavior, which is central to MI. Focusing on this will help patients discover their own motivation for change.\n\nThese patterns emerged from analyzing all 5 sessions, suggesting they represent consistent opportunities for growth rather than isolated incidents.",
+  "summaryAndNextSteps": "Nice work staying consistent across 5 sessions! Your empathy scores are trending upward, and you're developing reliable MI habits. Your reflective listening and open questioning are strong foundations.\n\n**For your next practice session**, pick one MI skill to emphasize and measure it. Specifically, focus on creating at least two complex reflections that weave together multiple themes the patient has mentioned. For example, if a patient mentions both their health concerns and their family, try reflecting: 'You're concerned about your health, and you're also thinking about how this affects your family.' This practice will help you develop more sophisticated reflection skills.",
+  "skillProgression": [
+    {
+      "skillName": "Reflections",
+      "totalCount": 26,
+      "averagePerSession": 5.2,
+      "trend": "increasing"
+    },
+    {
+      "skillName": "Open Questions",
+      "totalCount": 24,
+      "averagePerSession": 4.8,
+      "trend": "stable"
+    },
+    {
+      "skillName": "Affirmations",
+      "totalCount": 12,
+      "averagePerSession": 2.4,
+      "trend": "increasing"
+    },
+    {
+      "skillName": "Eliciting Change Talk",
+      "totalCount": 8,
+      "averagePerSession": 1.6,
+      "trend": "increasing"
+    },
+    {
+      "skillName": "Supporting Self-Efficacy",
+      "totalCount": 6,
+      "averagePerSession": 1.2,
+      "trend": "stable"
+    },
+    {
+      "skillName": "Summaries",
+      "totalCount": 2,
+      "averagePerSession": 0.4,
+      "trend": "stable"
+    },
+    {
+      "skillName": "Developing Discrepancy",
+      "totalCount": 2,
+      "averagePerSession": 0.4,
+      "trend": "stable"
+    }
+  ],
+  "topSkillsToImprove": [
+    "Developing Discrepancy",
+    "Summaries"
+  ],
+  "specificNextSteps": [
+    "Use at least two complex reflections in your next session that weave together multiple themes the patient has mentioned",
+    "Practice developing discrepancy by highlighting the gap between the patient's values and their current behavior in a collaborative, curious way",
+    "Create at least one summary during your next session that consolidates key themes and checks for accuracy"
+  ]
+}

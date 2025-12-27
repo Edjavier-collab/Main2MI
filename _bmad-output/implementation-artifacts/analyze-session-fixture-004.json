@@ -1,0 +1,21 @@
+{
+  "keyTakeaway": "You struggled to maintain a patient-centered approach, often steering the conversation toward your own agenda.",
+  "empathyScore": 2,
+  "empathyBreakdown": "Your empathy score reflects several instances where you seemed more focused on your own agenda than on understanding the patient's perspective. When the patient said 'I'm not sure I'm ready to change,' you responded with 'But you came here, so you must want to change, right?' This response dismissed their ambivalence rather than exploring it. There were moments where you showed some understanding, such as when you said 'It sounds like this is difficult for you,' but these were overshadowed by more directive responses.",
+  "whatWentRight": "You did show some understanding at moments, such as when you said 'It sounds like this is difficult for you' after the patient expressed frustration. You also asked a few open questions, though they were often followed by directive statements.",
+  "constructiveFeedback": "A key area for growth is shifting from a directive to a collaborative approach. For instance, when the patient said 'I'm not sure I'm ready to change,' you responded with 'But you came here, so you must want to change, right?' A missed opportunity was to explore their ambivalence. You could have tried: 'You're not sure you're ready, and at the same time you came here to talk about it. What's that like for you?' This would have invited exploration rather than dismissing their uncertainty.",
+  "areasForGrowth": "Focus on eliminating directive language and advice-giving. Practice asking open-ended questions that invite exploration. Work on reflecting both sides of ambivalence rather than trying to convince patients to change. Remember that your role is to help patients explore their own motivations, not to persuade them.",
+  "skillsDetected": [
+    "Open Questions",
+    "Reflections"
+  ],
+  "keySkillsUsed": [],
+  "skillCounts": {
+    "Open Questions": 2,
+    "Reflections": 1
+  },
+  "nextPracticeFocus": "For your next session, focus on asking only open-ended questions and reflecting what you hear without adding your own agenda or advice.",
+  "nextFocus": "Practice asking open-ended questions that invite exploration. Avoid directive language and advice-giving.",
+  "analysisStatus": "complete",
+  "analysisMessage": ""
+}

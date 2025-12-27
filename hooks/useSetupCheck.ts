@@ -37,7 +37,7 @@ export const useSetupCheck = (options: UseSetupCheckOptions = {}) => {
     enabled = false,
   } = options;
   
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   const [setupCheck, setSetupCheck] = useState<SetupCheckResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -50,7 +50,7 @@ export const useSetupCheck = (options: UseSetupCheckOptions = {}) => {
     }
 
     if (!supabaseUrl) {
-      console.warn('[useSetupCheck] VITE_SUPABASE_URL not configured');
+      console.warn('[useSetupCheck] NEXT_PUBLIC_SUPABASE_URL not configured');
       setError('Supabase URL not configured');
       return;
     }

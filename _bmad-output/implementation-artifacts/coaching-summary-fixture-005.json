@@ -1,0 +1,60 @@
+{
+  "totalSessions": 6,
+  "dateRange": "11/20/2024 to 12/19/2024",
+  "strengthsAndTrends": "Across your 6 sessions, you've demonstrated strong and consistent MI skills. Your empathy scores have been consistently high, averaging 4.2 across all sessions, which indicates you're developing reliable rapport-building and understanding skills.\n\n* **Consistent Skill Usage**: You've maintained consistent use of core MI skills across all sessions, with reflections averaging 5.5 per session and open questions averaging 5.0 per session. This consistency indicates you're developing reliable MI habits.\n\n* **Balanced Approach**: You've effectively balanced open questions and reflections throughout sessions, creating a collaborative atmosphere where patients feel heard and understood.\n\n* **Affirmations**: You've used affirmations effectively to build patients' confidence, averaging 2.8 per session. Your affirmations have been specific and genuine, which strengthens their impact.\n\n* **Eliciting Change Talk**: You've become skilled at eliciting change talk, with usage increasing from 1.0 per session in early sessions to 3.0 in recent sessions. Your questions have evolved to explore values and motivations effectively.",
+  "areasForFocus": "One core theme emerged consistently across your 6 sessions:\n\n* **Summarizing**: While you're using other MI skills effectively, summarizing has been used sparingly (only 3 instances across 6 sessions, averaging 0.5 per session). Summarizing is a powerful skill that consolidates understanding, checks for accuracy, and gives patients a chance to correct misunderstandings. Incorporating more summaries will strengthen your MI practice.\n\nThis pattern emerged from analyzing all 6 sessions. While your other skills are strong, developing your summarizing skills will help you create more cohesive sessions and ensure you're understanding patients accurately.",
+  "summaryAndNextSteps": "Excellent work across 6 sessions! Your empathy scores are consistently high, and you're effectively using core MI skills. Your balanced approach of open questions and reflections creates a collaborative atmosphere.\n\n**For your next practice session**, focus on incorporating at least one summary. Practice creating a summary that consolidates key themes you've heard, checks for accuracy, and gives the patient a chance to correct any misunderstandings. For example, after exploring a topic for several minutes, you might try: 'Let me make sure I understand - you value your health and your family, and you're noticing that your current behavior is affecting both. At the same time, this behavior has been a way of managing stress. Is that accurate?'",
+  "skillProgression": [
+    {
+      "skillName": "Reflections",
+      "totalCount": 33,
+      "averagePerSession": 5.5,
+      "trend": "stable"
+    },
+    {
+      "skillName": "Open Questions",
+      "totalCount": 30,
+      "averagePerSession": 5.0,
+      "trend": "stable"
+    },
+    {
+      "skillName": "Affirmations",
+      "totalCount": 17,
+      "averagePerSession": 2.8,
+      "trend": "stable"
+    },
+    {
+      "skillName": "Eliciting Change Talk",
+      "totalCount": 12,
+      "averagePerSession": 2.0,
+      "trend": "increasing"
+    },
+    {
+      "skillName": "Supporting Self-Efficacy",
+      "totalCount": 8,
+      "averagePerSession": 1.3,
+      "trend": "stable"
+    },
+    {
+      "skillName": "Summaries",
+      "totalCount": 3,
+      "averagePerSession": 0.5,
+      "trend": "stable"
+    },
+    {
+      "skillName": "Developing Discrepancy",
+      "totalCount": 2,
+      "averagePerSession": 0.3,
+      "trend": "stable"
+    }
+  ],
+  "topSkillsToImprove": [
+    "Summaries",
+    "Developing Discrepancy"
+  ],
+  "specificNextSteps": [
+    "Create at least one summary in your next session that consolidates key themes and checks for accuracy",
+    "Practice developing discrepancy by highlighting the gap between the patient's values and their current behavior",
+    "Continue refining your reflections to create more complex reflections that weave together multiple themes"
+  ]
+}
