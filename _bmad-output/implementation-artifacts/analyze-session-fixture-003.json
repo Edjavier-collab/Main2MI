@@ -1,0 +1,34 @@
+{
+  "keyTakeaway": "You demonstrated exceptional skill in eliciting change talk by asking evocative questions about the patient's values.",
+  "empathyScore": 5,
+  "empathyBreakdown": "You demonstrated exceptional empathy throughout this session. Your ability to connect with the patient's values was remarkable. When you asked 'What matters most to you in life?' and then followed up with 'How does your current behavior align with those values?' you created space for the patient to discover their own motivation. Your reflections consistently captured both the content and the emotion of what the patient was saying, such as 'You're feeling torn because on one hand you value your health, and on the other hand, this habit has been a source of comfort.' This level of understanding and validation is what makes MI effective.",
+  "whatWentRight": "You demonstrated exceptional skill in eliciting change talk. When you asked 'What matters most to you in life?' and followed up with 'How does your current behavior align with those values?' you helped the patient discover their own motivation. Your reflections were sophisticated, capturing both content and emotion: 'You're feeling torn because on one hand you value your health, and on the other hand, this habit has been a source of comfort.' You also used affirmations effectively, such as 'It takes courage to be this honest about the struggle.'",
+  "constructiveFeedback": "This was an exemplary MI session. One minor area for continued growth is to occasionally summarize what you've heard to ensure you're understanding correctly and to give the patient a chance to correct any misunderstandings. For instance, after a series of exchanges, you could have tried: 'Let me make sure I understand - you value your health and your family, and you're noticing that your current behavior is getting in the way of those values. At the same time, this behavior has been a way of coping with stress. Is that accurate?'",
+  "areasForGrowth": "Continue refining your summarizing skills. Practice creating periodic summaries that capture key points and check for accuracy. Also, consider using more complex reflections that weave together multiple themes the patient has mentioned.",
+  "skillsDetected": [
+    "Open Questions",
+    "Reflections",
+    "Affirmations",
+    "Summaries",
+    "Eliciting Change Talk",
+    "Supporting Self-Efficacy"
+  ],
+  "keySkillsUsed": [
+    "Eliciting Change Talk",
+    "Reflections",
+    "Open Questions",
+    "Affirmations"
+  ],
+  "skillCounts": {
+    "Open Questions": 6,
+    "Reflections": 8,
+    "Affirmations": 3,
+    "Summaries": 1,
+    "Eliciting Change Talk": 4,
+    "Supporting Self-Efficacy": 2
+  },
+  "nextPracticeFocus": "For your next session, practice creating periodic summaries that capture key themes and check for accuracy with the patient.",
+  "nextFocus": "Continue refining your summarizing skills. Practice creating summaries that weave together multiple themes.",
+  "analysisStatus": "complete",
+  "analysisMessage": ""
+}

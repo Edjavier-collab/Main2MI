@@ -1,0 +1,21 @@
+{
+  "keyTakeaway": "You struggled with rolling with resistance, becoming argumentative when the patient expressed reluctance to change.",
+  "empathyScore": 1,
+  "empathyBreakdown": "Your empathy score reflects significant challenges in maintaining a collaborative, patient-centered approach. When the patient expressed reluctance to change, saying 'I don't think I can do this,' you responded with 'Of course you can - you just need to try harder.' This response dismissed their concerns and came across as argumentative rather than understanding. There were very few moments where you demonstrated genuine empathy or understanding of the patient's perspective. Your questions were often leading or directive, such as 'Don't you want to be healthier?' which pushed your agenda rather than exploring the patient's motivations.",
+  "whatWentRight": "You did maintain engagement with the patient throughout the session, which is important. There were a couple of moments where you attempted to reflect what you heard, though these were often followed by directive statements.",
+  "constructiveFeedback": "A critical area for growth is learning to roll with resistance rather than arguing against it. For instance, when the patient said 'I don't think I can do this,' you responded with 'Of course you can - you just need to try harder.' A missed opportunity was to reflect their concern and explore it. You could have tried: 'You're feeling uncertain about whether you can do this. What makes you feel that way?' This would have invited exploration rather than creating an argument. Remember that in MI, resistance is a signal to change your approach, not to push harder.",
+  "areasForGrowth": "Focus on eliminating argumentative and directive language entirely. Practice rolling with resistance - when patients express reluctance, reflect their concerns rather than trying to convince them. Work on asking open-ended questions that invite exploration rather than questions that suggest a 'right' answer. Consider taking additional MI training to strengthen your foundational skills.",
+  "skillsDetected": [
+    "Open Questions",
+    "Reflections"
+  ],
+  "keySkillsUsed": [],
+  "skillCounts": {
+    "Open Questions": 1,
+    "Reflections": 1
+  },
+  "nextPracticeFocus": "For your next session, focus entirely on listening and reflecting what you hear without adding your own agenda, advice, or attempts to convince the patient.",
+  "nextFocus": "Practice rolling with resistance. When patients express reluctance, reflect their concerns rather than arguing.",
+  "analysisStatus": "complete",
+  "analysisMessage": ""
+}

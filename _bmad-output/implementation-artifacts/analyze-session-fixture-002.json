@@ -1,0 +1,25 @@
+{
+  "keyTakeaway": "You maintained a non-judgmental stance when the patient became defensive, which helped them open up.",
+  "empathyScore": 3,
+  "empathyBreakdown": "You showed moderate empathy, particularly when the patient became defensive. Your response 'I can hear that this is frustrating for you' demonstrated that you were trying to understand their perspective. However, there were moments where you seemed to be pushing your own agenda, such as when you said 'Don't you think it would be better if you quit?' This question came across as directive rather than collaborative, which may have contributed to the patient's defensiveness.",
+  "whatWentRight": "You maintained composure when the patient became defensive, which is crucial in MI. When they said 'Everyone's always telling me what to do,' you responded with 'I can hear that this is frustrating for you' rather than becoming defensive yourself. You also used some good open questions, like 'What's your biggest concern about making a change?'",
+  "constructiveFeedback": "A key area for growth is avoiding directive questions that push your agenda. For instance, when you asked 'Don't you think it would be better if you quit?' this came across as telling rather than asking. A missed opportunity was to use a more open-ended, exploratory question. You could have tried: 'What are your thoughts about what might happen if you continued versus if you made a change?' This would have invited the patient to explore both sides rather than feeling pressured.",
+  "areasForGrowth": "Work on eliminating directive language and questions that push your agenda. Practice asking open-ended questions that invite exploration rather than questions that suggest a 'right' answer. Also, focus on rolling with resistance - when patients become defensive, reflect their concerns rather than trying to convince them.",
+  "skillsDetected": [
+    "Open Questions",
+    "Reflections",
+    "Rolling with Resistance"
+  ],
+  "keySkillsUsed": [
+    "Rolling with Resistance"
+  ],
+  "skillCounts": {
+    "Open Questions": 3,
+    "Reflections": 2,
+    "Rolling with Resistance": 1
+  },
+  "nextPracticeFocus": "For your next session, focus on asking only open-ended questions that invite exploration. Avoid any questions that suggest a 'right' answer or push your agenda.",
+  "nextFocus": "Practice asking open-ended questions that invite exploration. Avoid directive language that pushes your agenda.",
+  "analysisStatus": "complete",
+  "analysisMessage": ""
+}

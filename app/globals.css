@@ -1,0 +1,4 @@
+/* Import existing styles */
+@import '../index.css';
+@import '../styles/theme.css';
+@import '../styles/design-tokens.css';

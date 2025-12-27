@@ -1,0 +1,29 @@
+{
+  "keyTakeaway": "You balanced open questions and reflections effectively, creating space for the patient to explore their ambivalence.",
+  "empathyScore": 4,
+  "empathyBreakdown": "You demonstrated strong empathy throughout the session. Your ability to balance open questions with reflections created a collaborative atmosphere where the patient felt heard. When the patient expressed mixed feelings, saying 'Part of me wants to change, but part of me is scared,' you responded with 'You're feeling pulled in two directions - part of you wants to change, and part of you is scared about what that would mean.' This reflection captured their ambivalence accurately and validated both sides. Your questions invited exploration without pushing an agenda, such as 'What would need to happen for the part of you that wants to change to feel stronger?'",
+  "whatWentRight": "You balanced open questions and reflections effectively throughout the session. When the patient expressed ambivalence, saying 'Part of me wants to change, but part of me is scared,' you reflected 'You're feeling pulled in two directions - part of you wants to change, and part of you is scared about what that would mean.' This captured their ambivalence accurately. Your questions invited exploration, such as 'What would need to happen for the part of you that wants to change to feel stronger?' You also used affirmations appropriately, such as 'It takes courage to be this honest about the struggle.'",
+  "constructiveFeedback": "A key area for growth is developing your ability to summarize key points periodically throughout the conversation. For instance, after exploring the patient's ambivalence for several minutes, you could have tried: 'Let me make sure I understand - you want to change because you value your health, and at the same time you're scared because you've tried before and it didn't work. You're also worried about how you'll manage stress without this behavior. Is that accurate?' This would have consolidated understanding and given the patient a chance to correct any misunderstandings.",
+  "areasForGrowth": "Practice creating periodic summaries that capture key themes and check for accuracy. Work on developing your ability to weave together multiple themes the patient has mentioned into a cohesive summary. Also, continue refining your reflections to capture more emotional nuance.",
+  "skillsDetected": [
+    "Open Questions",
+    "Reflections",
+    "Affirmations",
+    "Eliciting Change Talk"
+  ],
+  "keySkillsUsed": [
+    "Reflections",
+    "Open Questions",
+    "Eliciting Change Talk"
+  ],
+  "skillCounts": {
+    "Open Questions": 5,
+    "Reflections": 6,
+    "Affirmations": 2,
+    "Eliciting Change Talk": 3
+  },
+  "nextPracticeFocus": "For your next session, focus on creating periodic summaries that capture key themes and check for accuracy with the patient.",
+  "nextFocus": "Practice creating summaries that consolidate understanding. Weave together multiple themes into cohesive summaries.",
+  "analysisStatus": "complete",
+  "analysisMessage": ""
+}

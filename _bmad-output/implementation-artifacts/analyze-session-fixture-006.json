@@ -1,0 +1,26 @@
+{
+  "keyTakeaway": "You demonstrated good basic MI skills but missed opportunities to explore the patient's values and motivations more deeply.",
+  "empathyScore": 3,
+  "empathyBreakdown": "You showed moderate empathy throughout the session. Your reflections were generally accurate, such as 'It sounds like you're feeling stuck' which showed you were listening. However, there were missed opportunities to explore deeper. When the patient mentioned their family, you didn't follow up to explore how their behavior might be affecting those relationships. Your questions were mostly open-ended, which is good, but they tended to stay at a surface level rather than inviting deeper exploration of values and motivations.",
+  "whatWentRight": "You demonstrated good basic MI skills. Your reflections were generally accurate, such as 'It sounds like you're feeling stuck' which showed you were listening. You asked open-ended questions throughout, which is appropriate for MI. You also maintained a non-judgmental stance, which helped the patient feel comfortable sharing.",
+  "constructiveFeedback": "A key area for growth is exploring the patient's values and motivations more deeply. For instance, when the patient mentioned their family, you didn't follow up to explore how their behavior might be affecting those relationships. A missed opportunity was to ask an evocative question. You could have tried: 'You mentioned your family - what do you hope they see in you? How does your current behavior align with those hopes?' This would have invited exploration of values, which is central to MI.",
+  "areasForGrowth": "Practice asking evocative questions that explore the patient's values and what matters most to them. Work on following up on important topics the patient mentions rather than moving on too quickly. Also, practice creating summaries that capture key themes and check for accuracy.",
+  "skillsDetected": [
+    "Open Questions",
+    "Reflections",
+    "Eliciting Change Talk"
+  ],
+  "keySkillsUsed": [
+    "Reflections",
+    "Open Questions"
+  ],
+  "skillCounts": {
+    "Open Questions": 5,
+    "Reflections": 4,
+    "Eliciting Change Talk": 1
+  },
+  "nextPracticeFocus": "For your next session, focus on asking evocative questions that explore the patient's values and what matters most to them.",
+  "nextFocus": "Practice asking evocative questions about values. Follow up on important topics patients mention.",
+  "analysisStatus": "complete",
+  "analysisMessage": ""
+}

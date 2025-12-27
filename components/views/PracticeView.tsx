@@ -191,7 +191,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
         }
 
         // Get Supabase URL and construct Edge Function URL
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
         if (!supabaseUrl) {
             throw new Error('Supabase URL not configured');
         }
@@ -336,6 +336,11 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
 
     /**
      * Call the analyze-session Edge Function to get feedback
+     * 
+     * Uses dual-run wrapper for Strangler Fig migration:
+     * - Calls both legacy and v2 functions in parallel
+     * - Compares outputs and tracks semantic-equal matches
+     * - Returns legacy output (for now) while monitoring drift
      */
     const getFeedbackFromEdgeFunction = useCallback(async (): Promise<Feedback> => {
         // Check session validity before making request
@@ -346,12 +351,13 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
         }
 
         // Get Supabase URL and construct Edge Function URL
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
         if (!supabaseUrl) {
             throw new Error('Supabase URL not configured');
         }
 
-        const functionsUrl = `${supabaseUrl}/functions/v1/analyze-session`;
+        // Use dual-run wrapper for Strangler Fig migration tracking
+        const functionsUrl = `${supabaseUrl}/functions/v1/dual-run-analyze-session`;
 
         // Require authentication
         if (!isSupabaseConfigured()) {

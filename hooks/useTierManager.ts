@@ -111,7 +111,7 @@ export const useTierManager = () => {
         return false;
       }
 
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const response = await fetch(`${supabaseUrl}/functions/v1/verify-premium-status`, {
         method: 'GET',
         headers: {

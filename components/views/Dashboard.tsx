@@ -7,6 +7,7 @@ import { useBadges } from '../../hooks/useBadges';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import BadgeDisplay from '../gamification/BadgeDisplay';
+import GlobalMIScore from '../ui/GlobalMIScore';
 
 interface DashboardProps {
     onStartPractice: () => void;
@@ -228,6 +229,9 @@ const Dashboard: React.FC<DashboardProps> = ({
                         </Card>
                     </div>
                 )}
+
+                {/* Global MI Score */}
+                <GlobalMIScore sessions={sessions} />
 
                 {/* Level Progress */}
                 <Card variant="default" padding="md" className="mb-6">

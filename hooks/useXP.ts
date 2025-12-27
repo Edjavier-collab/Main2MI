@@ -1,6 +1,8 @@
+'use client';
+
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
+import { createClient, isSupabaseConfigured } from '@/lib/supabase';
 import { XP_LEVELS } from '../constants';
 import {
   queueOperation,
@@ -132,7 +134,7 @@ export const useXP = (): UseXPReturn => {
     }
 
     try {
-      const supabase = getSupabaseClient();
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('profiles')
         .select('current_xp')
@@ -175,7 +177,7 @@ export const useXP = (): UseXPReturn => {
     }
 
     try {
-      const supabase = getSupabaseClient();
+      const supabase = createClient();
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -221,7 +223,7 @@ export const useXP = (): UseXPReturn => {
     const xpData = operation.data as XPSyncData;
 
     try {
-      const supabase = getSupabaseClient();
+      const supabase = createClient();
       
       // First, get current XP from Supabase
       const { data: profile, error: readError } = await supabase

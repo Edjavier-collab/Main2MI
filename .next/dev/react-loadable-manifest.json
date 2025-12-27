@@ -1,0 +1,140 @@
+{
+  "app/page.tsx -> @/components/views/Onboarding": {
+    "id": "app/page.tsx -> @/components/views/Onboarding",
+    "files": [
+      "static/chunks/_app-pages-browser_components_views_Onboarding_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ../legal/CookiePolicy": {
+    "id": "components/views/ViewRenderer.tsx -> ../legal/CookiePolicy",
+    "files": [
+      "static/chunks/_app-pages-browser_components_legal_CookiePolicy_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ../legal/Disclaimer": {
+    "id": "components/views/ViewRenderer.tsx -> ../legal/Disclaimer",
+    "files": [
+      "static/chunks/_app-pages-browser_components_legal_Disclaimer_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ../legal/PrivacyPolicy": {
+    "id": "components/views/ViewRenderer.tsx -> ../legal/PrivacyPolicy",
+    "files": [
+      "static/chunks/_app-pages-browser_components_legal_PrivacyPolicy_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ../legal/SubscriptionTerms": {
+    "id": "components/views/ViewRenderer.tsx -> ../legal/SubscriptionTerms",
+    "files": [
+      "static/chunks/_app-pages-browser_components_legal_SubscriptionTerms_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ../legal/TermsOfService": {
+    "id": "components/views/ViewRenderer.tsx -> ../legal/TermsOfService",
+    "files": [
+      "static/chunks/_app-pages-browser_components_legal_TermsOfService_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ./CalendarView": {
+    "id": "components/views/ViewRenderer.tsx -> ./CalendarView",
+    "files": [
+      "static/chunks/_app-pages-browser_components_views_CalendarView_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ./CancelSubscriptionView": {
+    "id": "components/views/ViewRenderer.tsx -> ./CancelSubscriptionView",
+    "files": [
+      "static/chunks/_app-pages-browser_components_views_CancelSubscriptionView_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ./CoachingSummaryView": {
+    "id": "components/views/ViewRenderer.tsx -> ./CoachingSummaryView",
+    "files": [
+      "static/chunks/_app-pages-browser_components_views_CoachingSummaryView_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ./Dashboard": {
+    "id": "components/views/ViewRenderer.tsx -> ./Dashboard",
+    "files": [
+      "static/chunks/_app-pages-browser_components_views_Dashboard_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ./EmailConfirmationView": {
+    "id": "components/views/ViewRenderer.tsx -> ./EmailConfirmationView",
+    "files": [
+      "static/chunks/_app-pages-browser_components_views_EmailConfirmationView_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ./FeedbackView": {
+    "id": "components/views/ViewRenderer.tsx -> ./FeedbackView",
+    "files": [
+      "static/chunks/_app-pages-browser_components_views_FeedbackView_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ./ForgotPasswordView": {
+    "id": "components/views/ViewRenderer.tsx -> ./ForgotPasswordView",
+    "files": [
+      "static/chunks/_app-pages-browser_components_views_ForgotPasswordView_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ./HistoryView": {
+    "id": "components/views/ViewRenderer.tsx -> ./HistoryView",
+    "files": [
+      "static/chunks/_app-pages-browser_components_views_HistoryView_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ./LoginView": {
+    "id": "components/views/ViewRenderer.tsx -> ./LoginView",
+    "files": [
+      "static/chunks/_app-pages-browser_components_views_LoginView_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ./PaywallView": {
+    "id": "components/views/ViewRenderer.tsx -> ./PaywallView",
+    "files": [
+      "static/chunks/_app-pages-browser_components_views_PaywallView_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ./PracticeView": {
+    "id": "components/views/ViewRenderer.tsx -> ./PracticeView",
+    "files": [
+      "static/chunks/_app-pages-browser_components_views_PracticeView_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ./ReportsView": {
+    "id": "components/views/ViewRenderer.tsx -> ./ReportsView",
+    "files": [
+      "static/chunks/_app-pages-browser_components_views_ReportsView_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ./ResetPasswordView": {
+    "id": "components/views/ViewRenderer.tsx -> ./ResetPasswordView",
+    "files": [
+      "static/chunks/_app-pages-browser_components_views_ResetPasswordView_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ./ResourceLibrary": {
+    "id": "components/views/ViewRenderer.tsx -> ./ResourceLibrary",
+    "files": [
+      "static/chunks/_app-pages-browser_components_views_ResourceLibrary_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ./SettingsView": {
+    "id": "components/views/ViewRenderer.tsx -> ./SettingsView",
+    "files": [
+      "static/chunks/_app-pages-browser_components_views_SettingsView_tsx.js"
+    ]
+  },
+  "components/views/ViewRenderer.tsx -> ./SupportView": {
+    "id": "components/views/ViewRenderer.tsx -> ./SupportView",
+    "files": [
+      "static/chunks/_app-pages-browser_components_views_SupportView_tsx.js"
+    ]
+  },
+  "lib/supabase.ts -> next/headers": {
+    "id": "lib/supabase.ts -> next/headers",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_next_dist_api_headers_js.js"
+    ]
+  }
+}

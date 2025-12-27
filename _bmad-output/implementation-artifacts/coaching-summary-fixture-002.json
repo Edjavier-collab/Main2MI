@@ -1,0 +1,48 @@
+{
+  "totalSessions": 3,
+  "dateRange": "12/10/2024 to 12/20/2024",
+  "strengthsAndTrends": "Across your 3 sessions, you've shown strong foundational MI skills, particularly in maintaining a non-judgmental stance. Your empathy scores have been consistent, averaging 3.7 across all sessions, which indicates you're developing reliable rapport-building skills.\n\n* **Non-Judgmental Approach**: You've consistently maintained a supportive, non-judgmental stance throughout all sessions, which has helped patients feel comfortable sharing their concerns.\n\n* **Open Questions**: You've used open-ended questions effectively, averaging 4.3 per session. Your questions have been appropriately exploratory rather than directive.\n\n* **Rolling with Resistance**: In your most recent session, you demonstrated improved ability to roll with resistance when a patient became defensive, reflecting their concerns rather than becoming argumentative.",
+  "areasForFocus": "One core theme emerged consistently across your 3 sessions:\n\n* **Deepening Reflections**: While you're using reflections (averaging 3.7 per session), they tend to be simple content reflections rather than complex reflections that capture emotion or ambivalence. In each session, there were opportunities to create more sophisticated reflections that would have invited deeper exploration.\n\nThis pattern emerged from analyzing all 3 sessions, suggesting it's a consistent opportunity for growth. Developing more complex reflection skills will help you better understand patients' perspectives and create more meaningful therapeutic connections.",
+  "summaryAndNextSteps": "You're building a solid foundation in MI! Your non-judgmental approach and use of open questions are strong. Your empathy scores are consistent, which shows you're developing reliable skills.\n\n**For your next practice session**, focus specifically on creating more complex reflections. Practice reflecting not just what patients say, but also the emotion behind it. For example, if a patient says 'I want to change but I'm scared,' try reflecting: 'You want to change, and at the same time you're feeling scared about what that would require.' This practice will help you develop more sophisticated reflection skills that capture ambivalence.",
+  "skillProgression": [
+    {
+      "skillName": "Open Questions",
+      "totalCount": 13,
+      "averagePerSession": 4.3,
+      "trend": "stable"
+    },
+    {
+      "skillName": "Reflections",
+      "totalCount": 11,
+      "averagePerSession": 3.7,
+      "trend": "stable"
+    },
+    {
+      "skillName": "Affirmations",
+      "totalCount": 5,
+      "averagePerSession": 1.7,
+      "trend": "stable"
+    },
+    {
+      "skillName": "Rolling with Resistance",
+      "totalCount": 2,
+      "averagePerSession": 0.7,
+      "trend": "increasing"
+    },
+    {
+      "skillName": "Eliciting Change Talk",
+      "totalCount": 2,
+      "averagePerSession": 0.7,
+      "trend": "stable"
+    }
+  ],
+  "topSkillsToImprove": [
+    "Reflections",
+    "Eliciting Change Talk"
+  ],
+  "specificNextSteps": [
+    "Create at least three complex reflections in your next session that capture both content and emotion",
+    "Practice reflecting ambivalence when patients express mixed feelings about change",
+    "Use at least one reflection that weaves together multiple themes the patient has mentioned"
+  ]
+}
