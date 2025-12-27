@@ -1,7 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
-    "./index.html",
+    "./app/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,ts,jsx,tsx}",
     "./**/*.{js,ts,jsx,tsx}",
     "!./node_modules/**",
   ],
@@ -79,7 +80,8 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['var(--font-inter)', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        display: ['var(--font-mulish)', 'var(--font-inter)', 'system-ui', 'sans-serif'],
       },
       animation: {
         'slide-fade-in': 'slide-fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards',

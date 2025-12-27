@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { UserTier, View } from '../../types';
 import { User } from '@supabase/supabase-js';

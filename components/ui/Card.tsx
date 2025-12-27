@@ -1,8 +1,10 @@
+'use client';
+
 import React from 'react';
 
 interface CardProps {
   children: React.ReactNode;
-  variant?: 'default' | 'elevated' | 'outlined' | 'accent';
+  variant?: 'default' | 'elevated' | 'outlined' | 'accent' | 'glass';
   padding?: 'none' | 'sm' | 'md' | 'lg';
   hoverable?: boolean;
   onClick?: () => void;
@@ -17,13 +19,17 @@ export const Card: React.FC<CardProps> = ({
   onClick,
   className = '',
 }) => {
-  const baseClasses = 'bg-white rounded-[var(--radius-lg)] transition-all duration-200';
+  // Base classes - bg-white only for non-glass variants
+  const baseClasses = variant === 'glass' 
+    ? 'rounded-[var(--radius-lg)] transition-all duration-200'
+    : 'bg-white rounded-[var(--radius-lg)] transition-all duration-200';
   
   const variantClasses = {
-    default: 'shadow-sm border border-[var(--color-primary-lighter)]',
-    elevated: 'shadow-md border border-[var(--color-primary-lighter)]',
-    outlined: 'border-2 border-[var(--color-primary-light)]',
-    accent: 'bg-[var(--color-bg-accent)] border border-[var(--color-primary-light)] shadow-sm',
+    default: 'shadow-sm border border-white/10 dark:border-slate-800/30',
+    elevated: 'shadow-md border border-white/10 dark:border-slate-800/30',
+    outlined: 'border border-white/20 dark:border-slate-800/40',
+    accent: 'bg-[var(--color-bg-accent)] border border-white/10 dark:border-slate-800/30 shadow-sm',
+    glass: 'backdrop-blur-md bg-white/5 dark:bg-slate-800/5 border border-white/10 dark:border-slate-800/30 shadow-2xl', // NEW: Glassmorphism variant
   };
   
   const paddingClasses = {

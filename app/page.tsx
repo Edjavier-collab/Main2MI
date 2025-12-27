@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useCallback, useRef, Suspense, lazy } from 'react';
 import { UserTier, View, PatientProfile, Session, Feedback, ChatMessage, PatientProfileFilters, CoachingSummary } from '@/types';
 import { generatePatientProfile } from '@/services/patientService';
 import { canStartSession } from '@/services/subscriptionService';
@@ -87,16 +87,22 @@ export default function AppPage() {
   // Track which badge to show in toast (one at a time)
   const [badgeToastQueue, setBadgeToastQueue] = useState<string[]>([]);
 
-  // When new badges are unlocked, add them to the toast queue
+  // When new badges are unlocked, add them to the toast queue - FIXED: Use ref to prevent loops
+  const previousBadgesRef = useRef<string[]>([]);
+  
   useEffect(() => {
-    if (newlyUnlockedBadges.length > 0) {
-      const newBadgeIds = newlyUnlockedBadges.map(b => b.id);
+    const currentBadgeIds = newlyUnlockedBadges.map(b => b.id);
+    const previousBadgeIds = previousBadgesRef.current;
+    
+    // Only process if badges actually changed
+    if (currentBadgeIds.length > 0 && JSON.stringify(currentBadgeIds) !== JSON.stringify(previousBadgeIds)) {
       setBadgeToastQueue(prev => {
         // Add only badges not already in queue
         const existingIds = new Set(prev);
-        const toAdd = newBadgeIds.filter(id => !existingIds.has(id));
+        const toAdd = currentBadgeIds.filter(id => !existingIds.has(id));
         return [...prev, ...toAdd];
       });
+      previousBadgesRef.current = currentBadgeIds;
     }
   }, [newlyUnlockedBadges]);
 
@@ -141,11 +147,12 @@ export default function AppPage() {
   // Use app router hook
   useAppRouter({ user, authLoading, view, setView });
 
-  // Load onboarding state
+  // Load onboarding state - FIXED: Only run once on mount
   useEffect(() => {
     const onboardingComplete = localStorage.getItem('mi-coach-onboarding-complete');
     setShowOnboarding(onboardingComplete !== 'true');
-  }, [setShowOnboarding]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps - only run once on mount
 
   const handleOnboardingFinish = useCallback(() => {
     localStorage.setItem('mi-coach-onboarding-complete', 'true');
