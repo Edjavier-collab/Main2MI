@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useMemo } from 'react';
 import { View } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';

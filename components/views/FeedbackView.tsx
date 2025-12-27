@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Session, UserTier } from '../../types';
 import { Button } from '../ui/Button';

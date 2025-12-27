@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { redirectToCheckout } from '../../services/stripeService';
 import { User } from '@supabase/supabase-js';

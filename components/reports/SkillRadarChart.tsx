@@ -15,6 +15,7 @@ import type { TooltipProps } from 'recharts';
 import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
 import { SkillScore } from '../../hooks/useReportData';
 import { useXP } from '../../hooks/useXP';
+import { getMasteryTier } from '../../utils/northStarLogic';
 
 interface GlowColors {
   stroke: string;
@@ -57,13 +58,22 @@ const CHAMPION_GLOW: GlowColors = {
 };
 
 /**
- * Get mastery tier glow colors based on XP level
+ * Get mastery tier glow colors based on user level
+ * Uses North Star Logic to map level to Mastery Tier
  */
-const getMasteryTierColors = (currentXP: number): GlowColors => {
-  if (currentXP < 100) return PASTEL_GLOW; // Level 1: Curious Beginner
-  if (currentXP < 500) return SEAFOAM_GLOW; // Level 2: Engaged Learner
-  if (currentXP < 1500) return MULTI_CHROME_GLOW; // Level 3: Skilled Practitioner
-  return CHAMPION_GLOW; // Level 4: MI Champion
+const getMasteryTierColors = (currentLevel: number): GlowColors => {
+  const masteryTier = getMasteryTier(currentLevel);
+  
+  switch (masteryTier) {
+    case 'novice':
+      return PASTEL_GLOW; // Levels 1-5: Curious Beginner
+    case 'intermediate':
+      return SEAFOAM_GLOW; // Levels 6-15: Engaged Learner
+    case 'master':
+      return MULTI_CHROME_GLOW; // Levels 16+: Skilled Practitioner
+    default:
+      return PASTEL_GLOW; // Fallback to pastel
+  }
 };
 
 type ChartPoint = {
@@ -159,23 +169,23 @@ const SkillRadarChart: React.FC<SkillRadarChartProps> = ({
   previousSkills,
   isLoading = false,
 }) => {
-  const { currentXP, isLoading: xpLoading } = useXP();
+  const { currentLevel, isLoading: xpLoading } = useXP();
   
   const data = useMemo(
     () => buildChartData(currentSkills, previousSkills),
     [currentSkills, previousSkills]
   );
 
-  // Get glow colors based on XP, default to Pastel during loading
+  // Get glow colors based on mastery tier (from North Star Logic), default to Pastel during loading
   const glowColors = useMemo(() => {
     if (xpLoading) return PASTEL_GLOW;
     try {
-      return getMasteryTierColors(currentXP);
+      return getMasteryTierColors(currentLevel);
     } catch (error) {
       console.error('[SkillRadarChart] Error getting mastery tier colors:', error);
       return PASTEL_GLOW;
     }
-  }, [currentXP, xpLoading]);
+  }, [currentLevel, xpLoading]);
 
   // Calculate recommended path
   const recommendedPath = useMemo(() => {

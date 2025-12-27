@@ -1,3 +1,5 @@
+'use client';
+
 import React, { Suspense, lazy } from 'react';
 import { View, UserTier, Session, PatientProfile, CoachingSummary, PatientProfileFilters } from '../../types';
 import { User } from '@supabase/supabase-js';

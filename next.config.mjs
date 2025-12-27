@@ -15,9 +15,6 @@ const nextConfig = {
     };
     return config;
   },
-  experimental: {
-    turbopack: {},
-  },
 };
 
 export default nextConfig;

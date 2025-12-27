@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { PatientProfileFilters, StageOfChange, DifficultyLevel } from '../../types';
 import { PATIENT_PROFILE_TEMPLATES, STAGE_DESCRIPTIONS } from '../../constants';

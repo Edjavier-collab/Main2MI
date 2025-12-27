@@ -1,4 +1,7 @@
+'use client';
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Mic, Send } from 'lucide-react';
 import { PatientProfile, UserTier, ChatMessage, Feedback } from '../../types';
 import { FREE_SESSION_DURATION, PREMIUM_SESSION_DURATION } from '../../constants';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
@@ -598,30 +601,36 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
                             style={{ caretColor: isListening ? 'transparent' : 'auto' }}
                         />
                     </div>
-                    {hasSupport && (
-                        <div className="relative group flex items-center">
-                            <button
-                                onClick={handleVoiceSend}
-                                disabled={isPatientTyping}
-                                className={`w-[var(--touch-target-min)]...`}
-                                aria-label={isListening ? 'Stop recording' : 'Start recording'}
-                                aria-pressed={isListening}
-                            >
-                                <i className="fa-solid fa-microphone text-xl" aria-hidden="true"></i>
-                            </button>
-                            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-[var(--color-neutral-800)] text-white text-xs font-semibold shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10 whitespace-nowrap rounded">
-                                {isListening ? 'Stop Recording' : 'Start Recording'}
-                                <svg className="absolute text-[var(--color-neutral-800)] h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255" xmlSpace="preserve"><polygon className="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
-                            </div>
+                    {/* Mic button - FORCED TO RENDER for testing */}
+                    <div className="relative group flex items-center">
+                        <button
+                            onClick={handleVoiceSend}
+                            disabled={isPatientTyping}
+                            className={`w-[var(--touch-target-min)] h-[var(--touch-target-min)] flex items-center justify-center bg-white text-[var(--color-text-primary)] border-2 border-black hover:bg-[var(--color-bg-accent)] disabled:bg-[var(--color-neutral-300)] disabled:text-[var(--color-neutral-500)] disabled:border-[var(--color-neutral-400)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 ${
+                                isListening ? 'bg-[var(--color-error-light)] text-[var(--color-error)]' : ''
+                            }`}
+                            aria-label={isListening ? 'Stop recording' : 'Start recording'}
+                            aria-pressed={isListening}
+                        >
+                            <Mic 
+                                size={20} 
+                                className={isListening ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]'}
+                                aria-hidden="true"
+                            />
+                        </button>
+                        <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-[var(--color-neutral-800)] text-white text-xs font-semibold shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10 whitespace-nowrap rounded">
+                            {isListening ? 'Stop Recording' : 'Start Recording'}
+                            <svg className="absolute text-[var(--color-neutral-800)] h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255" xmlSpace="preserve"><polygon className="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
                         </div>
-                    )}
+                    </div>
+                    {/* Send button - FORCED TO RENDER for testing */}
                     <button
                         onClick={handleTextSend}
                         disabled={isPatientTyping || !speechTranscript.trim()}
-                        className="w-[var(--touch-target-min)] h-[var(--touch-target-min)] flex items-center justify-center bg-[var(--color-primary)] text-[var(--color-text-primary)] border-2 border-black hover:bg-[var(--color-primary-dark)] disabled:bg-[var(--color-neutral-300)] disabled:text-[var(--color-neutral-500)] disabled:border-[var(--color-neutral-400)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+                        className="w-[var(--touch-target-min)] h-[var(--touch-target-min)] flex items-center justify-center bg-[var(--color-primary)] text-white border-2 border-black hover:bg-[var(--color-primary-dark)] disabled:bg-[var(--color-neutral-300)] disabled:text-[var(--color-neutral-500)] disabled:border-[var(--color-neutral-400)] disabled:cursor-not-allowed transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
                         aria-label="Send message"
                     >
-                        <i className="fa-solid fa-paper-plane text-xl" aria-hidden="true"></i>
+                        <Send size={20} className="text-white" aria-hidden="true" />
                     </button>
                 </div>
             </div>

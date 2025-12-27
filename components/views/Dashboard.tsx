@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Session, UserTier, View } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';

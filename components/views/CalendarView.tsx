@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Session, UserTier } from '../../types';
 import FeedbackView from './FeedbackView';
