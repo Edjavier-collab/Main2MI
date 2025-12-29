@@ -31,26 +31,26 @@ export const Button: React.FC<ButtonProps> = ({
   type = 'button',
   'aria-label': ariaLabel,
 }) => {
-  const baseClasses = 'inline-flex items-center justify-center font-semibold rounded-none transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]';
-  
+  const baseClasses = 'inline-flex items-center justify-center font-semibold rounded-[var(--radius-md)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]';
+
   const variantClasses = {
-    primary: 'bg-[var(--color-primary)] text-[var(--color-text-primary)] border-2 border-black hover:bg-[var(--color-primary-dark)] hover:border-black focus:ring-[var(--color-primary)] shadow-sm hover:shadow-md',
-    secondary: 'bg-[var(--color-bg-accent)] text-[var(--color-text-primary)] border-2 border-black hover:bg-[var(--color-primary-lighter)] focus:ring-[var(--color-primary)]',
+    primary: 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)] focus:ring-[var(--color-primary)] shadow-[var(--shadow-sm)] hover:shadow-md border border-transparent',
+    secondary: 'bg-transparent text-[var(--color-text-primary)] border border-gray-300 hover:bg-gray-50 focus:ring-[var(--color-primary)]',
     ghost: 'bg-transparent text-[var(--color-text-primary)] hover:bg-[var(--color-bg-accent)] border border-transparent hover:border-[var(--color-primary-light)] focus:ring-[var(--color-primary)]',
-    danger: 'bg-[var(--color-error)] text-white border-2 border-black hover:bg-[var(--color-error-dark)] focus:ring-[var(--color-error)] shadow-sm hover:shadow-md',
-    success: 'bg-[var(--color-success)] text-white border-2 border-black hover:bg-[var(--color-success-dark)] focus:ring-[var(--color-success)] shadow-sm hover:shadow-md',
+    danger: 'bg-[var(--color-error)] text-white hover:bg-[#c82333] focus:ring-[var(--color-error)] shadow-sm hover:shadow-md border border-transparent',
+    success: 'bg-[var(--color-success)] text-white hover:bg-[#218838] focus:ring-[var(--color-success)] shadow-sm hover:shadow-md border border-transparent',
   };
-  
+
   const sizeClasses = {
     sm: 'h-[var(--button-height-sm)] px-4 text-sm gap-2',
     md: 'h-[var(--button-height-md)] px-6 text-base gap-2',
     lg: 'h-[var(--button-height-lg)] px-8 text-xl gap-3',
   };
-  
+
   const widthClass = fullWidth ? 'w-full' : '';
-  
+
   const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${widthClass} ${className}`;
-  
+
   return (
     <button
       type={type}

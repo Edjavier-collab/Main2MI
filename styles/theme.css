@@ -1,79 +1,50 @@
-/* ===== SEAFOAM AQUATIC COLOR PALETTE ===== */
+/* ===== MI PRACTICE DESIGN SYSTEM ===== */
 :root {
-  /* Primary - Seafoam Greens */
-  --color-primary: #7FD4C1;           /* Main seafoam green */
-  --color-primary-light: #A8E6D8;
-  --color-primary-lighter: #C5F0E6;
-  --color-primary-dark: #5FB8A8;
-  --color-primary-darker: #4A9A8C;
+  /* Primary - Blue #4A90E2 */
+  --color-primary: #4A90E2;
+  --color-primary-light: #76A9EA;
+  --color-primary-lighter: #A5C4F3;
+  --color-primary-dark: #357ABD;
+  --color-primary-darker: #245A8F;
 
-  /* Backgrounds - Light Aquatic */
-  --color-bg-main: #E8F5F2;           /* Light seafoam background */
+  /* Backgrounds - Off-White #F8F9FA */
+  --color-bg-main: #F8F9FA;
   --color-bg-card: #FFFFFF;
-  --color-bg-accent: #D4F0EB;         /* Soft seafoam accent */
-  --color-bg-warm: #F0F9F7;
+  --color-bg-accent: #EBF2FA;
+  --color-bg-warm: #FAFBFD;
 
-  /* Aquatic Blues */
-  --color-aquatic-blue: #B3E5FC;      /* Light blue */
-  --color-aquatic-blue-light: #D1F2FF;
-  --color-aquatic-blue-dark: #81D4FA;
+  /* Text - Dark Grey #333333 */
+  --color-text-primary: #333333;
+  --color-text-secondary: #555555;
+  --color-text-muted: #888888;
+  --color-text-light: #AAAAAA;
 
-  /* Text */
-  --color-text-primary: #2C4A44;
-  --color-text-secondary: #4A6B66;
-  --color-text-muted: #7A9A94;
-  --color-text-light: #9AB5B0;
+  /* Status Colors */
+  --color-success: #28A745;
+  --color-warning: #FFC107;
+  --color-error: #DC3545;
+  --color-info: #17A2B8;
 
-  /* Accents - Pastels */
-  --color-accent-warm: #FFB3BA;       /* Soft pink */
-  --color-accent-success: #7FD4C1;    /* Seafoam */
-  --color-accent-warning: #FFE5B4;   /* Soft yellow */
-  --color-accent-error: #FFB3BA;      /* Soft coral */
-  --color-accent-purple: #D4B3FF;     /* Soft purple */
-  --color-accent-orange: #FFD4A8;     /* Soft orange */
+  /* Shadows - Slight Drop Shadow */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08); /* Slight drop shadow for buttons */
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
 
-  /* Aquatic tones */
-  --color-water-light: #E0F7FA;
-  --color-water-medium: #B2EBF2;
-  --color-water-dark: #80DEEA;
-
-  /* ===== SHADOWS - Soft Aquatic ===== */
-  --shadow-xs: 0 1px 4px rgba(127, 212, 193, 0.08);
-  --shadow-sm: 0 2px 8px rgba(127, 212, 193, 0.12);
-  --shadow-md: 0 4px 16px rgba(127, 212, 193, 0.15);
-  --shadow-lg: 0 8px 32px rgba(127, 212, 193, 0.18);
-  --shadow-xl: 0 12px 48px rgba(127, 212, 193, 0.20);
-
-  /* ===== BORDER RADIUS - Rounded Aquatic ===== */
-  --radius-sm: 16px;
-  --radius-md: 20px;
-  --radius-lg: 28px;
-  --radius-xl: 36px;
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px; /* Buttons */
+  --radius-lg: 16px; /* Cards */
+  --radius-xl: 24px;
   --radius-full: 9999px;
 
-  /* ===== SPACING (8px Grid) ===== */
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
-  --space-2xl: 48px;
-  --space-3xl: 64px;
-
-  /* ===== TYPOGRAPHY ===== */
-  --font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-size-xs: 12px;
-  --font-size-sm: 14px;
-  --font-size-base: 16px;
-  --font-size-lg: 18px;
-  --font-size-xl: 22px;
-  --font-size-2xl: 28px;
-  --font-size-3xl: 36px;
-
-  /* ===== TRANSITIONS ===== */
+  /* Typography - Inter or Roboto */
+  --font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+  
+  /* Transitions */
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease;
   --transition-slow: 400ms ease;
-  --transition-bounce: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 

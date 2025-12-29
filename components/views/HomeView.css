@@ -1,196 +1,60 @@
-.home-view {
-  min-height: 100vh;
-  background: transparent;
-  padding-bottom: 100px; /* Space for bottom nav */
-  position: relative;
-  overflow: hidden;
-}
+/* HomeView.css - Animated mesh gradient only */
 
-/* Header */
-.home-view__header {
-  position: relative;
-  height: 200px;
-  background: transparent;
-}
-
-.home-view__wave {
+/* Animated mesh gradient for hero section */
+.home-view__mesh-gradient {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: transparent;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(74, 144, 226, 0.15) 0%, rgba(248, 249, 250, 0) 50%),
+    radial-gradient(circle at 80% 20%, rgba(209, 242, 255, 0.6) 0%, rgba(255, 255, 255, 0) 40%);
+  filter: blur(40px);
+  z-index: 0;
+  animation: mesh-drift 12s ease-in-out infinite;
 }
 
-.home-view__header-content {
-  position: relative;
-  z-index: 1;
-  padding: var(--space-xl);
-  padding-top: var(--space-2xl);
-  text-align: center;
+/* Dark mode gradient adjustments */
+@media (prefers-color-scheme: dark) {
+  .home-view__mesh-gradient {
+    background:
+      radial-gradient(circle at 50% 50%, rgba(74, 144, 226, 0.2) 0%, rgba(15, 23, 42, 0) 50%),
+      radial-gradient(circle at 80% 20%, rgba(74, 144, 226, 0.15) 0%, rgba(15, 23, 42, 0) 40%);
+  }
 }
 
-.home-view__logo {
-  margin-bottom: var(--space-md);
+/* Slow drifting animation for premium feel */
+@keyframes mesh-drift {
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  25% {
+    transform: translate(5%, -3%) scale(1.02);
+  }
+
+  50% {
+    transform: translate(-3%, 5%) scale(0.98);
+  }
+
+  75% {
+    transform: translate(-5%, -2%) scale(1.01);
+  }
 }
 
-.home-view__greeting {
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  color: var(--color-text-primary);
-  margin-bottom: var(--space-xs);
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .home-view__mesh-gradient {
+    animation: none;
+  }
 }
 
-.home-view__subtitle {
-  font-size: var(--font-size-base);
-  color: var(--color-text-secondary);
+/* Responsive: larger screens get more visible gradient */
+@media (min-width: 640px) {
+  .home-view__mesh-gradient {
+    filter: blur(60px);
+  }
 }
-
-/* Content */
-.home-view__content {
-  padding: var(--space-lg);
-  margin-top: -20px;
-  position: relative;
-  z-index: 2;
-}
-
-/* Practice Card */
-.home-view__practice-card {
-  margin-bottom: var(--space-lg);
-}
-
-.home-view__practice-inner {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  margin-bottom: var(--space-lg);
-}
-
-.home-view__practice-text h2 {
-  font-size: var(--font-size-lg);
-  font-weight: 600;
-  color: var(--color-text-primary);
-  margin-bottom: var(--space-xs);
-}
-
-.home-view__practice-text p {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-}
-
-/* Stats */
-.home-view__stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-md);
-  margin-bottom: var(--space-lg);
-}
-
-.home-view__stat-card {
-  text-align: center;
-  padding: var(--space-md);
-}
-
-.home-view__stat-icon {
-  font-size: 24px;
-  display: block;
-  margin-bottom: var(--space-xs);
-}
-
-.home-view__stat-value {
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  color: var(--color-primary-dark);
-  display: block;
-}
-
-.home-view__stat-label {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-}
-
-/* Level Progress Card */
-.home-view__level-card {
-  margin-bottom: var(--space-lg);
-  padding: var(--space-md);
-}
-
-.home-view__level-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-sm);
-}
-
-.home-view__level-icon {
-  font-size: 28px;
-  line-height: 1;
-}
-
-.home-view__level-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.home-view__level-name {
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-  color: var(--color-text-primary);
-}
-
-.home-view__level-xp {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  font-weight: 500;
-}
-
-.home-view__level-next {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  white-space: nowrap;
-}
-
-.home-view__level-bar {
-  height: 8px;
-  background: var(--color-neutral-200, #e5e7eb);
-  border-radius: var(--radius-full);
-  overflow: hidden;
-}
-
-.home-view__level-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  border-radius: var(--radius-full);
-  transition: width 500ms ease-out;
-}
-
-/* Tips Card */
-.home-view__tips-card h3 {
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  color: var(--color-primary-dark);
-  margin-bottom: var(--space-sm);
-}
-
-.home-view__tips-card p {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  line-height: 1.6;
-}
-
-/* Decorations */
-.home-view__decoration-left {
-  position: absolute;
-  bottom: 100px;
-  left: -20px;
-  opacity: 0.3;
-}
-
-.home-view__decoration-right {
-  position: absolute;
-  bottom: 150px;
-  right: -20px;
-  opacity: 0.3;
-}
-

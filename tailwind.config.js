@@ -87,6 +87,7 @@ export default {
         'slide-fade-in': 'slide-fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards',
         'wavey': 'wavey 1s ease-in-out infinite',
         'pulse-soft': 'pulse-soft 2s ease-in-out infinite',
+        'mesh-drift': 'mesh-drift 12s ease-in-out infinite',
       },
       keyframes: {
         'slide-fade-in': {
@@ -114,6 +115,12 @@ export default {
           '50%': {
             opacity: '0.7',
           },
+        },
+        'mesh-drift': {
+          '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+          '25%': { transform: 'translate(5%, -3%) scale(1.02)' },
+          '50%': { transform: 'translate(-3%, 5%) scale(0.98)' },
+          '75%': { transform: 'translate(-5%, -2%) scale(1.01)' },
         },
       },
       // Safe area insets for notched devices
