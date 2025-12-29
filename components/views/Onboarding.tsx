@@ -140,8 +140,8 @@ const Onboarding: React.FC<OnboardingProps> = ({ onFinish }) => {
                 </Button>
             </header>
 
-            <main className="flex flex-col items-center justify-center flex-grow w-full overflow-hidden">
-                <div key={currentStep} className="animate-slide-fade-in flex flex-col items-center text-center w-full">
+            <main className="flex flex-col items-center justify-center flex-grow w-full overflow-hidden pointer-events-none">
+                <div key={currentStep} className="animate-slide-fade-in flex flex-col items-center text-center w-full pointer-events-auto">
                     {isAcceptanceStep ? (
                         <>
                             <div className={'bg-[var(--color-primary-lighter)] rounded-full h-40 w-40 flex items-center justify-center mb-8'}>
@@ -227,7 +227,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onFinish }) => {
                 </div>
             </main>
 
-            <footer className="w-full max-w-sm">
+            <footer className="w-full max-w-sm relative z-20 pointer-events-auto">
                 {/* Progress indicator with proper accessibility */}
                 <nav aria-label="Onboarding progress" className="mb-8">
                     <ol className="flex justify-center space-x-2">
@@ -250,12 +250,13 @@ const Onboarding: React.FC<OnboardingProps> = ({ onFinish }) => {
                         Step {currentStep + 1} of {onboardingSteps.length}
                     </p>
                 </nav>
-                <div className="space-y-3">
+                <div className="space-y-3 touch-manipulation">
                     <Button
                         onClick={handleNext}
                         variant="primary"
                         size="lg"
                         fullWidth
+                        className="pointer-events-auto"
                     >
                         {isLastStep ? 'Get Started' : 'Next'}
                     </Button>

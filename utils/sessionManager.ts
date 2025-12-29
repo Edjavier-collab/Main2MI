@@ -8,7 +8,7 @@
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
 
 export interface SessionData {
-  transcript: Array<{ author: string; text: string }>;
+  transcript: Array<{ author: 'user' | 'patient'; text: string }>;
   patient: any;
   timestamp: number;
 }

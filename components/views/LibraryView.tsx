@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Card } from '../ui/Card';
+import { LeafDecoration } from '../ui/GrowthDecorations';
 import './LibraryView.css';
 
 interface Category {

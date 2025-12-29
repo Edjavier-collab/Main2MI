@@ -127,7 +127,7 @@ export const useStreak = (): UseStreakReturn => {
 
     try {
       const supabase = getSupabaseClient();
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('profiles')
         .select('current_streak, longest_streak, last_practice_date')
         .eq('user_id', userId)
@@ -183,7 +183,7 @@ export const useStreak = (): UseStreakReturn => {
 
     try {
       const supabase = getSupabaseClient();
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('profiles')
         .update({
           current_streak: data.currentStreak,
@@ -230,7 +230,7 @@ export const useStreak = (): UseStreakReturn => {
 
     try {
       const supabase = getSupabaseClient();
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('profiles')
         .update({
           current_streak: streakData.currentStreak,

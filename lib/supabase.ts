@@ -138,9 +138,10 @@ export async function createServerSupabaseClient() {
 }
 
 // Legacy export for backwards compatibility (use createClient() instead)
+// Note: Returns 'any' to avoid strict type checking for untyped database tables
 let browserClient: ReturnType<typeof createBrowserClient> | null = null;
 
-export const getSupabaseClient = () => {
+export const getSupabaseClient = (): any => {
   if (!browserClient) {
     browserClient = createClient();
   }

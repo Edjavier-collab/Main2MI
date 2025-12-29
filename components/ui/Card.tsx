@@ -9,6 +9,7 @@ interface CardProps {
   hoverable?: boolean;
   onClick?: () => void;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const Card: React.FC<CardProps> = ({
@@ -18,6 +19,7 @@ export const Card: React.FC<CardProps> = ({
   hoverable = false,
   onClick,
   className = '',
+  style,
 }) => {
   // Base classes - bg-white only for non-glass variants
   const baseClasses = variant === 'glass' 
@@ -46,6 +48,7 @@ export const Card: React.FC<CardProps> = ({
   return (
     <div
       className={classes}
+      style={style}
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}

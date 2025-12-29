@@ -137,7 +137,7 @@ export const useAppRouter = ({ user, authLoading, view, setView }: UseAppRouterO
     if (user) {
       // User is logged in, navigate to dashboard if on login-related screens
       // But don't navigate away from reset password if they're in the middle of resetting
-      if ((view === View.Login || view === View.ForgotPassword || view === View.EmailConfirmation) && view !== View.ResetPassword) {
+      if (view === View.Login || view === View.ForgotPassword || view === View.EmailConfirmation) {
         // Only redirect if user just logged in (userChanged) or if we haven't handled this redirect yet
         if (userChanged || !redirectHandledRef.current) {
           setView(View.Dashboard);

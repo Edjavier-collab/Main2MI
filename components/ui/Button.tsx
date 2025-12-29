@@ -3,8 +3,8 @@
 import React from 'react';
 
 interface ButtonProps {
-  children: React.ReactNode;
-  onClick?: () => void;
+  children?: React.ReactNode;
+  onClick?: (e?: React.MouseEvent<HTMLButtonElement>) => void;
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
   size?: 'sm' | 'md' | 'lg';
   fullWidth?: boolean;
@@ -66,7 +66,7 @@ export const Button: React.FC<ButtonProps> = ({
       {!loading && icon && iconPosition === 'left' && (
         <span className="flex-shrink-0" aria-hidden="true">{icon}</span>
       )}
-      <span>{children}</span>
+      {children && <span>{children}</span>}
       {!loading && icon && iconPosition === 'right' && (
         <span className="flex-shrink-0" aria-hidden="true">{icon}</span>
       )}

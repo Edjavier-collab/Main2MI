@@ -27,6 +27,12 @@ const BADGES_STORAGE_KEY = 'mi-coach-badges';
 // Storage key for badges pending sync to Supabase
 const BADGE_SYNC_QUEUE_KEY = 'mi-coach-badge-sync-queue';
 
+interface UserBadgeRow {
+  badge_id: string;
+  unlocked_at: string;
+  seen: boolean;
+}
+
 interface StoredBadge {
   badgeId: string;
   unlockedAt: string;
@@ -144,7 +150,7 @@ export const useBadges = (): UseBadgesReturn => {
 
     try {
       const supabase = getSupabaseClient();
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('user_badges')
         .select('badge_id, unlocked_at, seen')
         .eq('user_id', userId)
@@ -162,7 +168,7 @@ export const useBadges = (): UseBadgesReturn => {
 
       if (!data) return [];
 
-      return data
+      return (data as UserBadgeRow[])
         .map(row => toUnlockedBadge(row.badge_id, new Date(row.unlocked_at), row.seen))
         .filter((b): b is UnlockedBadge => b !== null);
     } catch (error) {
@@ -184,7 +190,7 @@ export const useBadges = (): UseBadgesReturn => {
 
     try {
       const supabase = getSupabaseClient();
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('user_badges')
         .insert({
           user_id: userId,
@@ -289,7 +295,7 @@ export const useBadges = (): UseBadgesReturn => {
     if (user && isSupabaseConfigured()) {
       try {
         const supabase = getSupabaseClient();
-        await supabase
+        await (supabase as any)
           .from('user_badges')
           .update({ seen: true })
           .eq('user_id', user.id)
@@ -313,7 +319,7 @@ export const useBadges = (): UseBadgesReturn => {
     if (user && isSupabaseConfigured()) {
       try {
         const supabase = getSupabaseClient();
-        await supabase
+        await (supabase as any)
           .from('user_badges')
           .update({ seen: true })
           .eq('user_id', user.id)
@@ -343,7 +349,7 @@ export const useBadges = (): UseBadgesReturn => {
             const supabase = getSupabaseClient();
             for (const queued of queuedBadges) {
               try {
-                const { error } = await supabase
+                const { error } = await (supabase as any)
                   .from('user_badges')
                   .insert({
                     user_id: user.id,

@@ -44,6 +44,11 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "_bmad-output",
+    "components_backup",
+    "archive",
+    "scripts",
+    "supabase/functions"
   ]
 }

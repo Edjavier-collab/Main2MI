@@ -4,6 +4,7 @@ import React from 'react';
 import { Session, UserTier, View } from '../../types';
 import { useReportData } from '../../hooks/useReportData';
 import { Button } from '../ui/Button';
+import { BackButton } from '../ui/BackButton';
 import { Card } from '../ui/Card';
 import ExecutiveSummary from '../reports/ExecutiveSummary';
 import SkillRadarChart from '../reports/SkillRadarChart';
@@ -40,7 +41,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
   // This ensures premium users can access features even if verification is pending or Edge Function is unavailable
   // Note: userTier comes from Supabase database, so it's reasonably trustworthy as a fallback
   const isPremium = isPremiumVerified || userTier === UserTier.Premium;
-  
+
   // SECURITY: Use server-verified premium status for gating premium features
   // But allow fallback to userTier for data computation to prevent race conditions
   // The UI still gates based on isPremiumVerified for security, but data loads based on sessions
@@ -52,12 +53,8 @@ const ReportsView: React.FC<ReportsViewProps> = ({
         {/* Header */}
         <header className="flex items-center justify-between mb-6">
           <div className="flex items-center">
-            <Button
-              variant="ghost"
-              size="sm"
+            <BackButton
               onClick={onBack}
-              icon={<i className="fa fa-arrow-left" />}
-              aria-label="Go back"
               className="mr-3"
             />
             <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
@@ -95,9 +92,9 @@ const ReportsView: React.FC<ReportsViewProps> = ({
           </Card>
         ) : (
           <Card variant="elevated" padding="lg" className="mb-6">
-            <ExecutiveSummary 
-              data={reportData} 
-              isLoading={reportData.isLoading} 
+            <ExecutiveSummary
+              data={reportData}
+              isLoading={reportData.isLoading}
             />
           </Card>
         )}
@@ -106,15 +103,15 @@ const ReportsView: React.FC<ReportsViewProps> = ({
         {isPremium && (
           <Card variant="default" padding="lg" className="mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 
+              <h3
                 className="text-sm font-bold uppercase tracking-wide"
                 style={{ color: 'var(--color-text-muted)' }}
               >
                 Skill Radar
               </h3>
-              <span 
+              <span
                 className="text-xs px-2 py-1 rounded-full"
-                style={{ 
+                style={{
                   backgroundColor: 'var(--color-primary-50)',
                   color: 'var(--color-primary-700)',
                 }}
@@ -134,15 +131,15 @@ const ReportsView: React.FC<ReportsViewProps> = ({
         {isPremium && (
           <Card variant="default" padding="lg" className="mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 
+              <h3
                 className="text-sm font-bold uppercase tracking-wide"
                 style={{ color: 'var(--color-text-muted)' }}
               >
                 Progress Trend
               </h3>
-              <span 
+              <span
                 className="text-xs px-2 py-1 rounded-full"
-                style={{ 
+                style={{
                   backgroundColor: 'var(--color-primary-50)',
                   color: 'var(--color-primary-700)',
                 }}
@@ -161,15 +158,15 @@ const ReportsView: React.FC<ReportsViewProps> = ({
         {isPremium && reportData.skillScores.length > 0 && (
           <Card variant="default" padding="lg" className="mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 
+              <h3
                 className="text-sm font-bold uppercase tracking-wide"
                 style={{ color: 'var(--color-text-muted)' }}
               >
                 Detailed Insights
               </h3>
-              <span 
+              <span
                 className="text-xs px-2 py-1 rounded-full"
-                style={{ 
+                style={{
                   backgroundColor: 'var(--color-primary-50)',
                   color: 'var(--color-primary-700)',
                 }}
@@ -186,33 +183,33 @@ const ReportsView: React.FC<ReportsViewProps> = ({
 
         {/* Premium Features Preview / Locked Section */}
         {!isPremium && reportData.sessionCount > 0 && (
-          <Card 
-            variant="default" 
-            padding="lg" 
+          <Card
+            variant="default"
+            padding="lg"
             className="mb-6 relative overflow-hidden"
           >
             {/* Blur overlay */}
-            <div 
+            <div
               className="absolute inset-0 backdrop-blur-sm z-10 flex flex-col items-center justify-center"
               style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
             >
-              <div 
+              <div
                 className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
                 style={{ backgroundColor: 'var(--color-primary-lighter)' }}
               >
-                <i 
+                <i
                   className="fa-solid fa-lock text-lg"
                   style={{ color: 'var(--color-primary-dark)' }}
                   aria-hidden="true"
                 />
               </div>
-              <h3 
+              <h3
                 className="text-lg font-bold mb-1"
                 style={{ color: 'var(--color-text-primary)' }}
               >
                 Detailed Analytics
               </h3>
-              <p 
+              <p
                 className="text-sm text-center mb-4 max-w-xs"
                 style={{ color: 'var(--color-text-secondary)' }}
               >
@@ -229,7 +226,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
 
             {/* Blurred preview content */}
             <div className="opacity-50">
-              <h3 
+              <h3
                 className="text-sm font-bold uppercase tracking-wide mb-4"
                 style={{ color: 'var(--color-text-muted)' }}
               >
@@ -238,25 +235,25 @@ const ReportsView: React.FC<ReportsViewProps> = ({
               <div className="space-y-3">
                 {['Reflective Listening', 'Open Questions', 'Affirmations', 'Summarizing', 'Evoking Change Talk', 'Rolling with Resistance'].map((skill) => (
                   <div key={skill} className="flex items-center gap-3">
-                    <span 
+                    <span
                       className="text-sm w-40 truncate"
                       style={{ color: 'var(--color-text-secondary)' }}
                     >
                       {skill}
                     </span>
-                    <div 
+                    <div
                       className="flex-1 h-2 rounded-full"
                       style={{ backgroundColor: 'var(--color-neutral-200)' }}
                     >
-                      <div 
+                      <div
                         className="h-full rounded-full"
-                        style={{ 
+                        style={{
                           width: `${Math.random() * 60 + 20}%`,
                           backgroundColor: 'var(--color-primary)',
                         }}
                       />
                     </div>
-                    <span 
+                    <span
                       className="text-sm font-medium w-10 text-right"
                       style={{ color: 'var(--color-text-muted)' }}
                     >
@@ -272,7 +269,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
         {/* Premium Skill Breakdown */}
         {isPremium && reportData.skillScores.length > 0 && (
           <Card variant="default" padding="lg" className="mb-6">
-            <h3 
+            <h3
               className="text-sm font-bold uppercase tracking-wide mb-4"
               style={{ color: 'var(--color-text-muted)' }}
             >
@@ -282,18 +279,18 @@ const ReportsView: React.FC<ReportsViewProps> = ({
               {reportData.skillScores.map((skill) => (
                 <div key={skill.name}>
                   <div className="flex items-center justify-between mb-1">
-                    <span 
+                    <span
                       className="text-sm font-medium"
                       style={{ color: 'var(--color-text-primary)' }}
                     >
                       {skill.name}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span 
+                      <span
                         className="text-xs"
-                        style={{ 
-                          color: skill.trend === 'improving' 
-                            ? 'var(--color-success)' 
+                        style={{
+                          color: skill.trend === 'improving'
+                            ? 'var(--color-success)'
                             : skill.trend === 'declining'
                               ? 'var(--color-error)'
                               : 'var(--color-text-muted)',
@@ -301,7 +298,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
                       >
                         {skill.trend === 'improving' ? '↑' : skill.trend === 'declining' ? '↓' : '→'}
                       </span>
-                      <span 
+                      <span
                         className="text-sm font-bold w-8 text-right"
                         style={{ color: 'var(--color-text-primary)' }}
                       >
@@ -309,23 +306,23 @@ const ReportsView: React.FC<ReportsViewProps> = ({
                       </span>
                     </div>
                   </div>
-                  <div 
+                  <div
                     className="w-full h-2 rounded-full overflow-hidden"
                     style={{ backgroundColor: 'var(--color-neutral-200)' }}
                   >
-                    <div 
+                    <div
                       className="h-full rounded-full transition-all duration-500"
-                      style={{ 
+                      style={{
                         width: `${skill.score}%`,
-                        backgroundColor: skill.score >= 60 
-                          ? 'var(--color-success)' 
-                          : skill.score >= 30 
-                            ? 'var(--color-warning)' 
+                        backgroundColor: skill.score >= 60
+                          ? 'var(--color-success)'
+                          : skill.score >= 30
+                            ? 'var(--color-warning)'
                             : 'var(--color-error)',
                       }}
                     />
                   </div>
-                  <p 
+                  <p
                     className="text-xs mt-1"
                     style={{ color: 'var(--color-text-muted)' }}
                   >
@@ -341,15 +338,15 @@ const ReportsView: React.FC<ReportsViewProps> = ({
         {isPremium && reportData.skillScores.length > 0 && (
           <Card variant="default" padding="lg" className="mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 
+              <h3
                 className="text-sm font-bold uppercase tracking-wide"
                 style={{ color: 'var(--color-text-muted)' }}
               >
                 Your Action Plan
               </h3>
-              <span 
+              <span
                 className="text-xs px-2 py-1 rounded-full"
-                style={{ 
+                style={{
                   backgroundColor: 'var(--color-primary-50)',
                   color: 'var(--color-primary-700)',
                 }}

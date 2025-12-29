@@ -170,7 +170,7 @@ export default function AppPage() {
     }
 
     // Guard: wait until userTier is loaded and verification is complete
-    if (!userTier || userTier === '' || isTierVerifying) {
+    if (!userTier || isTierVerifying) {
       console.warn('[App] User tier not yet loaded or still verifying, waiting...');
       return;
     }

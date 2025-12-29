@@ -21,7 +21,7 @@ interface DashboardProps {
     sessions: Session[];
     remainingFreeSessions: number | null;
     onNavigateToPaywall: () => void;
-    onNavigate?: (view: View) => void;
+    onNavigate: (view: View) => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ 
@@ -91,7 +91,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     const hasSessions = sessions.length > 0;
 
     return (
-        <div className="min-h-screen bg-transparent pb-24">
+        <div className="min-h-screen bg-transparent">
             {/* Header */}
             <div className="px-8 py-6 flex items-center justify-between">
                 <div>
@@ -164,7 +164,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 </p>
                                 
                                 <Button
-                                    onClick={() => onNavigate && onNavigate(View.Login)}
+                                    onClick={() => onNavigate(View.Login)}
                                     variant="primary"
                                     size="lg"
                                     fullWidth
@@ -180,7 +180,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                             </>
                         )}
 
-                        {hasSessions && onNavigate && (
+                        {hasSessions && (
                             <Button
                                 onClick={() => onNavigate(View.Calendar)}
                                 variant="ghost"
@@ -360,7 +360,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                             ))}
                         </div>
                         
-                        {sessions.length > 3 && onNavigate && (
+                        {sessions.length > 3 && (
                             <div className="text-center mt-3">
                                 <Button
                                     onClick={() => onNavigate(View.Calendar)}
@@ -415,17 +415,15 @@ const Dashboard: React.FC<DashboardProps> = ({
                             >
                                 Start Your First Practice
                             </Button>
-                        {onNavigate && (
-                            <Button
-                                onClick={() => onNavigate(View.ResourceLibrary)}
-                                variant="ghost"
-                                    size="md"
-                                    fullWidth
-                                icon={<i className="fa-solid fa-book-open" aria-hidden="true"></i>}
-                            >
-                                Browse Learning Resources
-                            </Button>
-                        )}
+                        <Button
+                            onClick={() => onNavigate(View.ResourceLibrary)}
+                            variant="ghost"
+                            size="md"
+                            fullWidth
+                            icon={<i className="fa-solid fa-book-open" aria-hidden="true"></i>}
+                        >
+                            Browse Learning Resources
+                        </Button>
                         </div>
                     </Card>
                 )}
