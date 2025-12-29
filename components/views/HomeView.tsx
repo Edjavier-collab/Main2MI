@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckCircle } from 'lucide-react';
 import { PillButton } from '../ui/PillButton';
+import './HomeView.css';
 
 interface HomeViewProps {
   onStartPractice: () => void;
@@ -12,7 +13,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onLogin,
 }) => {
   return (
-    <div className="flex flex-col min-h-screen bg-[var(--color-bg-main)] dark:bg-slate-950 relative overflow-hidden items-center w-full">
+    <div className="home-container">
       <div className="w-full max-w-[500px] flex flex-col flex-1 pb-[120px]">
         {/* Header with Logo */}
         <header className="px-6 py-4 flex justify-center items-center w-full">
@@ -30,17 +31,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </header>
 
         {/* Hero Section */}
-        <div className="w-[calc(100%-48px)] h-[300px] mx-auto mb-6 rounded-[24px] bg-[radial-gradient(120%_120%_at_50%_10%,#D1F2FF_0%,#F8F9FA_50%,#FFFFFF_100%)] dark:bg-[radial-gradient(120%_120%_at_50%_10%,#1e293b_0%,#0f172a_50%,#020617_100%)] flex flex-col items-center justify-center text-center p-6 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.5)] dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)] relative overflow-hidden">
+        <div className="hero-mesh">
           {/* Animated Mesh Gradient Overlay */}
-          <div
-            className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] animate-mesh-drift z-0 pointer-events-none filter blur-[40px] sm:blur-[60px]"
-            style={{
-              background: `
-                 radial-gradient(circle at 50% 50%, rgba(74, 144, 226, 0.15) 0%, rgba(248, 249, 250, 0) 50%),
-                 radial-gradient(circle at 80% 20%, rgba(209, 242, 255, 0.6) 0%, rgba(255, 255, 255, 0) 40%)
-               `
-            }}
-          />
+          <div className="hero-mesh__gradient-overlay" />
 
           <h1 className="font-semibold text-[32px] leading-[1.2] text-[var(--color-text-primary)] dark:text-white mb-0 tracking-tight relative z-10">
             Empathy in <span className="text-[var(--color-primary)]">Practice</span>
@@ -57,7 +50,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       </div>
 
       {/* Sticky Bottom Actions */}
-      <div className="fixed bottom-0 left-0 right-0 p-6 pb-10 bg-white/85 dark:bg-slate-950/85 backdrop-blur-md z-50 border-t border-black/5 dark:border-white/10 flex flex-col items-center">
+      <div className="bottom-actions">
         <div className="w-full max-w-[452px] flex flex-col gap-4">
           <PillButton
             variant="primary"

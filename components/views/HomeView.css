@@ -1,7 +1,52 @@
-/* HomeView.css - Animated mesh gradient only */
+/* HomeView.css - Clinical Blue Layout */
 
-/* Animated mesh gradient for hero section */
-.home-view__mesh-gradient {
+/* Main container */
+.home-container {
+  min-height: 100vh;
+  background-color: var(--color-bg-main);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* Dark mode container */
+@media (prefers-color-scheme: dark) {
+  .home-container {
+    background-color: #020617; /* slate-950 */
+  }
+}
+
+/* Hero mesh gradient section */
+.hero-mesh {
+  width: calc(100% - 48px);
+  height: 320px;
+  margin: 0 auto 24px;
+  border-radius: 24px;
+  background: radial-gradient(120% 120% at 50% 10%, #D1F2FF 0%, #F8F9FA 50%, #FFFFFF 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Dark mode hero */
+@media (prefers-color-scheme: dark) {
+  .hero-mesh {
+    background: radial-gradient(120% 120% at 50% 10%, #1e293b 0%, #0f172a 50%, #020617 100%);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Animated gradient overlay inside hero */
+.hero-mesh__gradient-overlay {
   position: absolute;
   top: -50%;
   left: -50%;
@@ -12,49 +57,72 @@
     radial-gradient(circle at 80% 20%, rgba(209, 242, 255, 0.6) 0%, rgba(255, 255, 255, 0) 40%);
   filter: blur(40px);
   z-index: 0;
+  pointer-events: none;
   animation: mesh-drift 12s ease-in-out infinite;
 }
 
-/* Dark mode gradient adjustments */
+/* Larger blur on bigger screens */
+@media (min-width: 640px) {
+  .hero-mesh__gradient-overlay {
+    filter: blur(60px);
+  }
+}
+
+/* Dark mode gradient overlay */
 @media (prefers-color-scheme: dark) {
-  .home-view__mesh-gradient {
+  .hero-mesh__gradient-overlay {
     background:
       radial-gradient(circle at 50% 50%, rgba(74, 144, 226, 0.2) 0%, rgba(15, 23, 42, 0) 50%),
       radial-gradient(circle at 80% 20%, rgba(74, 144, 226, 0.15) 0%, rgba(15, 23, 42, 0) 40%);
   }
 }
 
-/* Slow drifting animation for premium feel */
+/* Slow drifting animation */
 @keyframes mesh-drift {
-
   0%,
   100% {
     transform: translate(0, 0) scale(1);
   }
-
   25% {
     transform: translate(5%, -3%) scale(1.02);
   }
-
   50% {
     transform: translate(-3%, 5%) scale(0.98);
   }
-
   75% {
     transform: translate(-5%, -2%) scale(1.01);
   }
 }
 
-/* Respect reduced motion preference */
+/* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .home-view__mesh-gradient {
+  .hero-mesh__gradient-overlay {
     animation: none;
   }
 }
 
-/* Responsive: larger screens get more visible gradient */
-@media (min-width: 640px) {
-  .home-view__mesh-gradient {
-    filter: blur(60px);
+/* Fixed bottom actions */
+.bottom-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  padding: 24px 24px 40px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 50;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Dark mode bottom actions */
+@media (prefers-color-scheme: dark) {
+  .bottom-actions {
+    background: rgba(2, 6, 23, 0.85);
+    border-top-color: rgba(255, 255, 255, 0.1);
   }
 }

@@ -7,7 +7,13 @@ const __dirname = path.dirname(__filename);
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Import alias configuration
+  // Import alias configuration for Turbopack (Next.js 16+)
+  turbopack: {
+    resolveAlias: {
+      '@': path.resolve(__dirname, '.'),
+    },
+  },
+  // Import alias configuration for Webpack (fallback)
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
