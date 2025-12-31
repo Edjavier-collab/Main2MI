@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { createClient, isSupabaseConfigured } from '@/lib/supabase';
-import { XP_LEVELS } from '../constants';
+import { XP_LEVELS, PROFICIENCY_TIERS } from '../constants';
 import {
   queueOperation,
   processSyncQueue,
@@ -18,6 +18,15 @@ interface LevelInfo {
   maxXP: number;
 }
 
+// Professional Growth System types (Dreyfus Model)
+interface ProficiencyTierInfo {
+  tier: number;
+  name: string;
+  minHours: number;
+  maxHours: number;
+  description: string;
+}
+
 interface UseXPReturn {
   currentXP: number;
   currentLevel: number;
@@ -27,10 +36,33 @@ interface UseXPReturn {
   addXP: (amount: number, reason: string) => Promise<void>;
   isLoading: boolean;
   processQueue: () => Promise<void>; // Process queued operations (for online sync)
+  // Professional Growth System aliases
+  clinicalHours: number;  // currentXP converted to hours (XP / 10)
+  currentTier: number;    // Same as currentLevel
+  tierName: string;       // Same as levelName
+  tierDescription: string;
+  hoursToNextTier: number;
+  tierProgress: number;   // Same as xpProgress
+  addClinicalHours: (hours: number, reason: string) => Promise<void>;
 }
 
 // Storage key for anonymous/fallback XP data
 const XP_STORAGE_KEY = 'mi-coach-xp';
+
+// Conversion constant: 10 XP = 1 Clinical Hour
+const XP_TO_HOURS_RATIO = 10;
+
+/**
+ * Get proficiency tier info from clinical hours
+ */
+const getTierFromHours = (hours: number): ProficiencyTierInfo => {
+  for (let i = PROFICIENCY_TIERS.length - 1; i >= 0; i--) {
+    if (hours >= PROFICIENCY_TIERS[i].minHours) {
+      return { ...PROFICIENCY_TIERS[i] };
+    }
+  }
+  return { ...PROFICIENCY_TIERS[0] };
+};
 
 /**
  * Get level info from XP amount
@@ -347,10 +379,44 @@ export const useXP = (): UseXPReturn => {
     loadXP();
   }, [user, authLoading, loadFromSupabase, loadFromLocalStorage, processQueue]);
 
-  // Calculate derived values
+  // Calculate derived values (legacy XP system)
   const levelInfo = getLevelFromXP(currentXP);
 
+  // Professional Growth System values
+  const clinicalHours = currentXP / XP_TO_HOURS_RATIO;
+  const tierInfo = getTierFromHours(clinicalHours);
+
+  // Calculate hours to next tier
+  const getHoursToNextTier = (): number => {
+    if (tierInfo.tier === PROFICIENCY_TIERS.length) {
+      return 0; // Already at max tier
+    }
+    const nextTierIndex = PROFICIENCY_TIERS.findIndex(t => t.tier === tierInfo.tier + 1);
+    if (nextTierIndex === -1) return 0;
+    return PROFICIENCY_TIERS[nextTierIndex].minHours - clinicalHours;
+  };
+
+  // Calculate tier progress percentage
+  const getTierProgress = (): number => {
+    if (tierInfo.tier === PROFICIENCY_TIERS.length) {
+      return 100; // Max tier
+    }
+    const nextTierIndex = PROFICIENCY_TIERS.findIndex(t => t.tier === tierInfo.tier + 1);
+    if (nextTierIndex === -1) return 100;
+
+    const tierRange = PROFICIENCY_TIERS[nextTierIndex].minHours - tierInfo.minHours;
+    const hoursIntoTier = clinicalHours - tierInfo.minHours;
+    return Math.round((hoursIntoTier / tierRange) * 100);
+  };
+
+  // Add clinical hours (converts to XP internally)
+  const addClinicalHours = async (hours: number, reason: string): Promise<void> => {
+    const xpAmount = hours * XP_TO_HOURS_RATIO;
+    await addXP(xpAmount, reason);
+  };
+
   return {
+    // Legacy XP system (for backward compatibility)
     currentXP,
     currentLevel: levelInfo.level,
     levelName: levelInfo.name,
@@ -358,6 +424,14 @@ export const useXP = (): UseXPReturn => {
     xpProgress: getXPProgress(currentXP),
     addXP,
     isLoading,
-    processQueue, // Expose for online sync hook
+    processQueue,
+    // Professional Growth System aliases
+    clinicalHours,
+    currentTier: tierInfo.tier,
+    tierName: tierInfo.name,
+    tierDescription: tierInfo.description,
+    hoursToNextTier: getHoursToNextTier(),
+    tierProgress: getTierProgress(),
+    addClinicalHours,
   };
 };

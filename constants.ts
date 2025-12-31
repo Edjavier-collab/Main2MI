@@ -737,23 +737,137 @@ export const STAGE_DESCRIPTIONS: Record<StageOfChange, string> = {
 export const FREE_SESSION_DURATION = 90; // seconds
 export const PREMIUM_SESSION_DURATION = 300; // seconds
 
-// XP System Constants
-export const XP_LEVELS = [
-  { level: 1, name: 'Curious Beginner', minXP: 0, maxXP: 99 },
-  { level: 2, name: 'Engaged Learner', minXP: 100, maxXP: 499 },
-  { level: 3, name: 'Skilled Practitioner', minXP: 500, maxXP: 1499 },
-  { level: 4, name: 'MI Champion', minXP: 1500, maxXP: Infinity },
+// Professional Growth System Constants
+// Based on the Dreyfus Model of Skill Acquisition
+
+// Proficiency Tiers (formerly "Levels")
+// Clinical Hours replace XP - represents time invested in deliberate practice
+export const PROFICIENCY_TIERS = [
+  { tier: 1, name: 'Novice Clinician', minHours: 0, maxHours: 4, description: 'Learning foundational MI concepts' },
+  { tier: 2, name: 'Advanced Beginner', minHours: 5, maxHours: 19, description: 'Applying skills in structured scenarios' },
+  { tier: 3, name: 'Competent Practitioner', minHours: 20, maxHours: 49, description: 'Handling complex patient interactions' },
+  { tier: 4, name: 'Proficient Clinician', minHours: 50, maxHours: 99, description: 'Demonstrating consistent clinical excellence' },
+  { tier: 5, name: 'Expert', minHours: 100, maxHours: Infinity, description: 'Mastery of MI techniques' },
 ] as const;
 
-export const XP_AWARDS = {
-  SESSION_COMPLETE: 10,      // Base XP for completing a session
-  SCORE_70_PLUS_BONUS: 5,    // Bonus for 70%+ empathy score (3.5+/5)
-  SCORE_90_PLUS_BONUS: 10,   // Bonus for 90%+ empathy score (4.5+/5) - replaces 70% bonus
-  STREAK_DAY_BONUS: 2,       // XP per streak day
-  BADGE_UNLOCK: 25,          // XP for unlocking a badge
+// Legacy alias for backward compatibility
+export const XP_LEVELS = PROFICIENCY_TIERS.map(tier => ({
+  level: tier.tier,
+  name: tier.name,
+  minXP: tier.minHours * 10, // Convert hours to legacy XP (10 XP per "hour")
+  maxXP: tier.maxHours === Infinity ? Infinity : tier.maxHours * 10,
+}));
+
+// Clinical Hours Awards (formerly XP_AWARDS)
+// 1 Clinical Hour = 10 XP in the legacy system
+export const CLINICAL_HOURS_AWARDS = {
+  SESSION_COMPLETE: 1,           // 1 hour for completing a session (~6 minutes of practice)
+  SCORE_GOOD_BONUS: 0.5,         // Bonus for good empathy score (3.5+/5)
+  SCORE_EXCELLENT_BONUS: 1,      // Bonus for excellent empathy score (4.5+/5) - replaces good bonus
+  CONSISTENCY_BONUS: 0.2,        // Hours per day of consistent practice
+  CERTIFICATE_UNLOCK: 2.5,       // Hours for earning a certificate
 } as const;
 
-// Badge System Constants
+// Legacy alias for backward compatibility (multiply by 10 for XP)
+export const XP_AWARDS = {
+  SESSION_COMPLETE: CLINICAL_HOURS_AWARDS.SESSION_COMPLETE * 10,
+  SCORE_70_PLUS_BONUS: CLINICAL_HOURS_AWARDS.SCORE_GOOD_BONUS * 10,
+  SCORE_90_PLUS_BONUS: CLINICAL_HOURS_AWARDS.SCORE_EXCELLENT_BONUS * 10,
+  STREAK_DAY_BONUS: CLINICAL_HOURS_AWARDS.CONSISTENCY_BONUS * 10,
+  BADGE_UNLOCK: CLINICAL_HOURS_AWARDS.CERTIFICATE_UNLOCK * 10,
+} as const;
+
+// Certificate System Constants (Professional Growth System)
+// Certificates replace game-like "badges" with professional recognition
+
+export interface CertificateDefinition {
+  id: string;
+  name: string;
+  icon: string;  // FontAwesome icon class (no emoji)
+  description: string;
+  category: 'consistency' | 'dedication' | 'competency';
+  requirement: number;
+  shortName: string;  // For compact displays
+}
+
+export const CERTIFICATES: CertificateDefinition[] = [
+  // Consistency Certificates (formerly Streak Badges)
+  {
+    id: 'consistency-3',
+    name: 'Consistent Learner',
+    icon: 'fa-solid fa-calendar-check',
+    description: 'Practice for 3 consecutive days',
+    category: 'consistency',
+    requirement: 3,
+    shortName: '3-Day',
+  },
+  {
+    id: 'consistency-7',
+    name: 'Weekly Commitment',
+    icon: 'fa-solid fa-calendar-week',
+    description: 'Practice for 7 consecutive days',
+    category: 'consistency',
+    requirement: 7,
+    shortName: '7-Day',
+  },
+  {
+    id: 'consistency-30',
+    name: 'Monthly Dedication',
+    icon: 'fa-solid fa-award',
+    description: 'Practice for 30 consecutive days',
+    category: 'consistency',
+    requirement: 30,
+    shortName: '30-Day',
+  },
+  {
+    id: 'consistency-90',
+    name: 'Quarterly Excellence',
+    icon: 'fa-solid fa-certificate',
+    description: 'Practice for 90 consecutive days',
+    category: 'consistency',
+    requirement: 90,
+    shortName: '90-Day',
+  },
+  // Dedication Certificates (formerly Milestone Badges)
+  {
+    id: 'sessions-1',
+    name: 'Getting Started',
+    icon: 'fa-solid fa-play-circle',
+    description: 'Complete your first practice session',
+    category: 'dedication',
+    requirement: 1,
+    shortName: '1st Session',
+  },
+  {
+    id: 'sessions-10',
+    name: 'Clinical Foundations',
+    icon: 'fa-solid fa-clipboard-check',
+    description: 'Complete 10 practice sessions',
+    category: 'dedication',
+    requirement: 10,
+    shortName: '10 Sessions',
+  },
+  {
+    id: 'sessions-50',
+    name: 'Dedicated Practitioner',
+    icon: 'fa-solid fa-user-md',
+    description: 'Complete 50 practice sessions',
+    category: 'dedication',
+    requirement: 50,
+    shortName: '50 Sessions',
+  },
+  {
+    id: 'sessions-100',
+    name: 'MI Specialist',
+    icon: 'fa-solid fa-graduation-cap',
+    description: 'Complete 100 practice sessions',
+    category: 'dedication',
+    requirement: 100,
+    shortName: '100 Sessions',
+  },
+] as const;
+
+// Legacy aliases for backward compatibility
 export interface BadgeDefinition {
   id: string;
   name: string;
@@ -763,81 +877,33 @@ export interface BadgeDefinition {
   requirement: number;
 }
 
-export const BADGES: BadgeDefinition[] = [
-  // Streak Badges
-  {
-    id: 'streak-3',
-    name: 'First Flame',
-    emoji: '🔥',
-    description: 'Practice for 3 days in a row',
-    category: 'streak',
-    requirement: 3,
-  },
-  {
-    id: 'streak-7',
-    name: 'Week Warrior',
-    emoji: '💪',
-    description: 'Practice for 7 days in a row',
-    category: 'streak',
-    requirement: 7,
-  },
-  {
-    id: 'streak-30',
-    name: 'Monthly Master',
-    emoji: '🌟',
-    description: 'Practice for 30 days in a row',
-    category: 'streak',
-    requirement: 30,
-  },
-  {
-    id: 'streak-90',
-    name: 'Quarterly Champion',
-    emoji: '👑',
-    description: 'Practice for 90 days in a row',
-    category: 'streak',
-    requirement: 90,
-  },
-  // Milestone Badges
-  {
-    id: 'sessions-1',
-    name: 'First Steps',
-    emoji: '🌱',
-    description: 'Complete your first practice session',
-    category: 'milestone',
-    requirement: 1,
-  },
-  {
-    id: 'sessions-10',
-    name: 'Getting Serious',
-    emoji: '📚',
-    description: 'Complete 10 practice sessions',
-    category: 'milestone',
-    requirement: 10,
-  },
-  {
-    id: 'sessions-50',
-    name: 'Dedicated',
-    emoji: '🎯',
-    description: 'Complete 50 practice sessions',
-    category: 'milestone',
-    requirement: 50,
-  },
-  {
-    id: 'sessions-100',
-    name: 'MI Master',
-    emoji: '🏆',
-    description: 'Complete 100 practice sessions',
-    category: 'milestone',
-    requirement: 100,
-  },
-] as const;
+// Map certificates to legacy badge format
+export const BADGES: BadgeDefinition[] = CERTIFICATES.map(cert => ({
+  id: cert.id.replace('consistency-', 'streak-'),
+  name: cert.name,
+  emoji: cert.category === 'consistency' ?
+    (cert.requirement <= 3 ? '📅' : cert.requirement <= 7 ? '📆' : cert.requirement <= 30 ? '⭐' : '🏅') :
+    (cert.requirement <= 1 ? '🌱' : cert.requirement <= 10 ? '📚' : cert.requirement <= 50 ? '🎯' : '🏆'),
+  description: cert.description,
+  category: cert.category === 'consistency' ? 'streak' : 'milestone',
+  requirement: cert.requirement,
+}));
 
-// Helper to get badge by ID
+// Helper to get certificate by ID
+export const getCertificateById = (id: string): CertificateDefinition | undefined => {
+  return CERTIFICATES.find(cert => cert.id === id);
+};
+
+// Helper to get certificates by category
+export const getCertificatesByCategory = (category: CertificateDefinition['category']): CertificateDefinition[] => {
+  return CERTIFICATES.filter(cert => cert.category === category);
+};
+
+// Legacy helpers for backward compatibility
 export const getBadgeById = (id: string): BadgeDefinition | undefined => {
   return BADGES.find(badge => badge.id === id);
 };
 
-// Helper to get badges by category
 export const getBadgesByCategory = (category: BadgeDefinition['category']): BadgeDefinition[] => {
   return BADGES.filter(badge => badge.category === category);
 };

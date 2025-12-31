@@ -1,33 +1,53 @@
+'use client';
+
 import React from 'react';
 import { useXP } from '../../hooks/useXP';
+import { PROFICIENCY_TIERS } from '../../constants';
 
-interface LevelProgressProps {
-  /** Show XP numbers (current/next) */
-  showXPNumbers?: boolean;
+interface ProficiencyTrackerProps {
+  /** Show clinical hours numbers */
+  showHours?: boolean;
   /** Compact mode for smaller spaces */
   compact?: boolean;
   /** Additional CSS classes */
   className?: string;
 }
 
+// FontAwesome icons for each tier (Dreyfus Model)
+const TIER_ICONS = [
+  'fa-solid fa-seedling',      // Novice
+  'fa-solid fa-leaf',          // Advanced Beginner
+  'fa-solid fa-tree',          // Competent
+  'fa-solid fa-award',         // Proficient
+  'fa-solid fa-graduation-cap', // Expert
+];
+
 /**
- * Displays user's current level and XP progress toward next level
- * Uses the useXP hook for data
+ * Displays user's current proficiency tier and progress toward next tier
+ * Based on the Dreyfus Model of Skill Acquisition
  */
-const LevelProgress: React.FC<LevelProgressProps> = ({
-  showXPNumbers = true,
+const ProficiencyTracker: React.FC<ProficiencyTrackerProps> = ({
+  showHours = true,
   compact = false,
   className = '',
 }) => {
-  const { currentXP, currentLevel, levelName, xpToNextLevel, xpProgress, isLoading } = useXP();
+  const {
+    clinicalHours,
+    currentTier,
+    tierName,
+    tierDescription,
+    hoursToNextTier,
+    tierProgress,
+    isLoading,
+  } = useXP();
 
   if (isLoading) {
     return (
       <div className={`${className}`}>
-        <div 
+        <div
           className="animate-pulse h-4 rounded-full"
-          style={{ 
-            backgroundColor: 'var(--color-neutral-200, #e5e7eb)',
+          style={{
+            backgroundColor: 'var(--color-neutral-200)',
             width: compact ? '120px' : '100%',
           }}
         />
@@ -35,35 +55,31 @@ const LevelProgress: React.FC<LevelProgressProps> = ({
     );
   }
 
-  // Level icons/emojis for visual interest
-  const levelIcons = ['🌱', '🌿', '🌳', '🏆'];
-  const levelIcon = levelIcons[currentLevel - 1] || '🌱';
-
-  // Check if at max level
-  const isMaxLevel = currentLevel === 4;
+  const tierIcon = TIER_ICONS[currentTier - 1] || TIER_ICONS[0];
+  const isMaxTier = currentTier === PROFICIENCY_TIERS.length;
 
   if (compact) {
     return (
-      <div 
+      <div
         className={`inline-flex items-center gap-2 ${className}`}
-        title={`${levelName} - ${currentXP} XP${!isMaxLevel ? ` (${xpToNextLevel} to next level)` : ''}`}
+        title={`${tierName} - ${clinicalHours.toFixed(1)} Clinical Hours${!isMaxTier ? ` (${hoursToNextTier.toFixed(1)} to next tier)` : ''}`}
       >
-        <span className="text-base">{levelIcon}</span>
+        <i className={`${tierIcon} text-[var(--color-primary)]`} aria-hidden="true" />
         <div className="flex flex-col">
-          <span 
+          <span
             className="text-xs font-bold"
             style={{ color: 'var(--color-text-primary)' }}
           >
-            Lvl {currentLevel}
+            Tier {currentTier}
           </span>
-          <div 
+          <div
             className="w-16 h-1.5 rounded-full overflow-hidden"
-            style={{ backgroundColor: 'var(--color-neutral-200, #e5e7eb)' }}
+            style={{ backgroundColor: 'var(--color-neutral-200)' }}
           >
             <div
               className="h-full rounded-full transition-all duration-500 ease-out"
-              style={{ 
-                width: `${xpProgress}%`,
+              style={{
+                width: `${tierProgress}%`,
                 backgroundColor: 'var(--color-primary)',
               }}
             />
@@ -77,40 +93,51 @@ const LevelProgress: React.FC<LevelProgressProps> = ({
     <div className={`w-full ${className}`}>
       {/* Header row */}
       <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className="text-xl">{levelIcon}</span>
+        <div className="flex items-center gap-3">
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center"
+            style={{
+              backgroundColor: 'var(--color-primary-light)',
+            }}
+          >
+            <i
+              className={`${tierIcon} text-lg`}
+              style={{ color: 'var(--color-primary-dark)' }}
+              aria-hidden="true"
+            />
+          </div>
           <div>
-            <span 
+            <span
               className="text-sm font-bold block"
               style={{ color: 'var(--color-text-primary)' }}
             >
-              Level {currentLevel}
+              {tierName}
             </span>
-            <span 
+            <span
               className="text-xs"
               style={{ color: 'var(--color-text-secondary)' }}
             >
-              {levelName}
+              {tierDescription}
             </span>
           </div>
         </div>
-        
-        {showXPNumbers && (
-          <div 
+
+        {showHours && (
+          <div
             className="text-right"
             style={{ color: 'var(--color-text-muted)' }}
           >
             <span className="text-sm font-semibold tabular-nums">
-              {currentXP.toLocaleString()} XP
+              {clinicalHours.toFixed(1)} hrs
             </span>
-            {!isMaxLevel && (
+            {!isMaxTier && (
               <span className="text-xs block">
-                {xpToNextLevel.toLocaleString()} to next
+                {hoursToNextTier.toFixed(1)} to next
               </span>
             )}
-            {isMaxLevel && (
+            {isMaxTier && (
               <span className="text-xs block" style={{ color: 'var(--color-primary-dark)' }}>
-                Max level!
+                Expert Level
               </span>
             )}
           </div>
@@ -118,38 +145,56 @@ const LevelProgress: React.FC<LevelProgressProps> = ({
       </div>
 
       {/* Progress bar */}
-      <div 
+      <div
         className="w-full h-3 rounded-full overflow-hidden"
-        style={{ backgroundColor: 'var(--color-neutral-200, #e5e7eb)' }}
+        style={{ backgroundColor: 'var(--color-neutral-200)' }}
       >
         <div
           className="h-full rounded-full transition-all duration-500 ease-out"
-          style={{ 
-            width: `${xpProgress}%`,
-            background: isMaxLevel 
+          style={{
+            width: `${tierProgress}%`,
+            background: isMaxTier
               ? 'linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)'
               : 'var(--color-primary)',
           }}
           role="progressbar"
-          aria-valuenow={xpProgress}
+          aria-valuenow={tierProgress}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label={`Level ${currentLevel} progress: ${xpProgress}%`}
+          aria-label={`${tierName} progress: ${tierProgress}%`}
         />
       </div>
 
-      {/* Level milestones (optional visual) */}
+      {/* Tier milestones */}
       {!compact && (
-        <div className="flex justify-between mt-1 px-0.5">
-          {[1, 2, 3, 4].map((level) => (
+        <div className="flex justify-between mt-2 px-0.5">
+          {PROFICIENCY_TIERS.map((tier, index) => (
             <div
-              key={level}
+              key={tier.tier}
               className="flex flex-col items-center"
-              style={{ 
-                opacity: currentLevel >= level ? 1 : 0.4,
+              style={{
+                opacity: currentTier >= tier.tier ? 1 : 0.4,
               }}
             >
-              <span className="text-xs">{levelIcons[level - 1]}</span>
+              <i
+                className={`${TIER_ICONS[index]} text-xs`}
+                style={{
+                  color: currentTier >= tier.tier
+                    ? 'var(--color-primary)'
+                    : 'var(--color-text-muted)',
+                }}
+                aria-hidden="true"
+              />
+              <span
+                className="text-[10px] mt-0.5"
+                style={{
+                  color: currentTier >= tier.tier
+                    ? 'var(--color-text-secondary)'
+                    : 'var(--color-text-muted)',
+                }}
+              >
+                {tier.minHours}h
+              </span>
             </div>
           ))}
         </div>
@@ -158,4 +203,7 @@ const LevelProgress: React.FC<LevelProgressProps> = ({
   );
 };
 
-export default LevelProgress;
+// Legacy export alias for backward compatibility
+export const LevelProgress = ProficiencyTracker;
+
+export default ProficiencyTracker;
