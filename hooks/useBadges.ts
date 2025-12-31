@@ -1,9 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
-import { BADGES, BadgeDefinition, getBadgeById } from '../constants';
+import {
+  BADGES,
+  BadgeDefinition,
+  getBadgeById,
+  CERTIFICATES,
+  CertificateDefinition,
+  getCertificateById,
+} from '../constants';
 
 interface UnlockedBadge extends BadgeDefinition {
+  unlockedAt: Date;
+  seen: boolean;
+}
+
+// Professional Growth System: Certificate type
+interface UnlockedCertificate extends CertificateDefinition {
   unlockedAt: Date;
   seen: boolean;
 }
@@ -14,12 +27,19 @@ interface BadgeCheckContext {
 }
 
 interface UseBadgesReturn {
+  // Legacy badge system
   unlockedBadges: UnlockedBadge[];
   newlyUnlockedBadges: UnlockedBadge[];
   checkAndUnlockBadges: (context: BadgeCheckContext) => Promise<BadgeDefinition[]>;
   markBadgeAsSeen: (badgeId: string) => Promise<void>;
   markAllBadgesAsSeen: () => Promise<void>;
   isLoading: boolean;
+  // Professional Growth System aliases
+  unlockedCertificates: UnlockedCertificate[];
+  newlyUnlockedCertificates: UnlockedCertificate[];
+  checkAndUnlockCertificates: (context: BadgeCheckContext) => Promise<CertificateDefinition[]>;
+  markCertificateAsSeen: (certId: string) => Promise<void>;
+  markAllCertificatesAsSeen: () => Promise<void>;
 }
 
 // Storage key for anonymous/fallback badge data
@@ -413,12 +433,59 @@ export const useBadges = (): UseBadgesReturn => {
   // Compute newly unlocked (unseen) badges
   const newlyUnlockedBadges = unlockedBadges.filter(b => !b.seen);
 
+  // Professional Growth System: Map badges to certificates
+  const badgeIdToCertId = (badgeId: string): string => {
+    // Map legacy streak- prefix to consistency- prefix
+    return badgeId.replace('streak-', 'consistency-');
+  };
+
+  const unlockedCertificates: UnlockedCertificate[] = unlockedBadges
+    .map(badge => {
+      const certId = badgeIdToCertId(badge.id);
+      const cert = getCertificateById(certId);
+      if (!cert) return null;
+      return {
+        ...cert,
+        unlockedAt: badge.unlockedAt,
+        seen: badge.seen,
+      };
+    })
+    .filter((c): c is UnlockedCertificate => c !== null);
+
+  const newlyUnlockedCertificates = unlockedCertificates.filter(c => !c.seen);
+
+  // Certificate-specific methods (aliases to badge methods)
+  const checkAndUnlockCertificates = async (context: BadgeCheckContext): Promise<CertificateDefinition[]> => {
+    const badges = await checkAndUnlockBadges(context);
+    return badges
+      .map(badge => {
+        const certId = badgeIdToCertId(badge.id);
+        return getCertificateById(certId);
+      })
+      .filter((c): c is CertificateDefinition => c !== null);
+  };
+
+  const markCertificateAsSeen = async (certId: string): Promise<void> => {
+    // Convert cert ID back to badge ID
+    const badgeId = certId.replace('consistency-', 'streak-');
+    await markBadgeAsSeen(badgeId);
+  };
+
+  const markAllCertificatesAsSeen = markAllBadgesAsSeen;
+
   return {
+    // Legacy badge system
     unlockedBadges,
     newlyUnlockedBadges,
     checkAndUnlockBadges,
     markBadgeAsSeen,
     markAllBadgesAsSeen,
     isLoading,
+    // Professional Growth System aliases
+    unlockedCertificates,
+    newlyUnlockedCertificates,
+    checkAndUnlockCertificates,
+    markCertificateAsSeen,
+    markAllCertificatesAsSeen,
   };
 };
