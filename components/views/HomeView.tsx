@@ -1,6 +1,6 @@
 import React from 'react';
 import { CheckCircle } from 'lucide-react';
-import { PillButton } from '../ui/PillButton';
+import { Button } from '../ui/Button';
 import './HomeView.css';
 
 interface HomeViewProps {
@@ -52,23 +52,25 @@ export const HomeView: React.FC<HomeViewProps> = ({
       {/* Sticky Bottom Actions */}
       <div className="bottom-actions">
         <div className="w-full max-w-[452px] flex flex-col gap-4">
-          <PillButton
+          <Button
             variant="primary"
             size="lg"
             fullWidth
+            shape="pill"
             onClick={onStartPractice}
           >
             Start Practicing
-          </PillButton>
-          <PillButton
+          </Button>
+          <Button
             variant="ghost"
             size="lg"
             fullWidth
+            shape="pill"
             onClick={onLogin}
             className="border border-[#E1E4E8] dark:border-slate-700"
           >
             I already have an account
-          </PillButton>
+          </Button>
 
           {/* Footer in Sticky Area */}
           <footer className="w-full flex items-center justify-center gap-2 mt-2">

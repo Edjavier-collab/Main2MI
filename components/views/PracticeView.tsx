@@ -41,7 +41,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
     const [sendError, setSendError] = useState<string | null>(null);
     const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
     const [sessionExpired, setSessionExpired] = useState(false);
-    
+
     const { user } = useAuth();
     const { showToast, ToastContainer, toasts, removeToast } = useToast();
     const { isListening, finalTranscript, interimTranscript, startListening, stopListening, hasSupport, error: micError, setTranscript: setSpeechTranscript } = useSpeechRecognition();
@@ -183,72 +183,99 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
     }, [speechTranscript]);
 
     /**
-     * Get patient response from Edge Function
+     * Get patient response from local Next.js API route
+     * Falls back to Edge Function if local API fails
      */
-    const getPatientResponseFromEdgeFunction = useCallback(async (message: string): Promise<string> => {
-        // Check session validity before making request
-        const authToken = await getValidAuthToken();
-        if (!authToken) {
-            setSessionExpired(true);
-            throw new Error('Your session has expired. Please refresh the page and log in again.');
-        }
+    const getPatientResponse = useCallback(async (message: string): Promise<string> => {
+        // Try local Next.js API first (works without Supabase)
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message,
+                    patient,
+                    transcript,
+                }),
+            });
 
-        // Get Supabase URL and construct Edge Function URL
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        if (!supabaseUrl) {
-            throw new Error('Supabase URL not configured');
-        }
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                const errorMessage = errorData.error || `Failed to get patient response (${response.status})`;
 
-        const functionsUrl = `${supabaseUrl}/functions/v1/patient-response`;
-
-        // Require authentication
-        if (!isSupabaseConfigured()) {
-            throw new Error('Supabase is not configured. Please check your environment variables.');
-        }
-
-        if (!user) {
-            throw new Error('You must be logged in to chat with the patient. Please log in and try again.');
-        }
-
-        // Prepare request with required Authorization header
-        const headers: Record<string, string> = {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`,
-        };
-
-        // Make request to Edge Function
-        const response = await fetch(functionsUrl, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({
-                transcript,
-                patient,
-                message,
-            }),
-        });
-
-        // Handle errors
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-            const errorMessage = errorData.error || `Failed to get patient response (${response.status})`;
-
-            // Map HTTP status codes to user-friendly messages
-            if (response.status === 401) {
-                throw new Error('Your session has expired. Please refresh the page and try again.');
-            } else if (response.status === 429) {
-                throw new Error('AI service is busy. Please try again in a moment.');
-            } else if (response.status === 504) {
-                throw new Error('Patient response timed out. Please try again.');
-            } else if (response.status === 500) {
-                throw new Error('AI service error. Please try again later.');
-            } else {
-                throw new Error(errorMessage);
+                // Map HTTP status codes to user-friendly messages
+                if (response.status === 429) {
+                    throw new Error('AI service is busy. Please try again in a moment.');
+                } else if (response.status === 500) {
+                    throw new Error(errorMessage);
+                } else {
+                    throw new Error(errorMessage);
+                }
             }
-        }
 
-        // Parse and return response
-        const data = await response.json();
-        return data.response as string;
+            const data = await response.json();
+            return data.response as string;
+        } catch (error) {
+            // If the error is from our API (not a network error), rethrow it
+            if (error instanceof Error && !error.message.includes('Failed to fetch')) {
+                throw error;
+            }
+
+            // Network error - try Edge Function fallback if Supabase is configured
+            console.warn('[PracticeView] Local API failed, trying Edge Function fallback');
+
+            if (!isSupabaseConfigured() || !user) {
+                throw new Error('Unable to connect to AI service. Please check your connection and try again.');
+            }
+
+            // Fall back to Edge Function
+            const authToken = await getValidAuthToken();
+            if (!authToken) {
+                setSessionExpired(true);
+                throw new Error('Your session has expired. Please refresh the page and log in again.');
+            }
+
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+            if (!supabaseUrl) {
+                throw new Error('AI service is not configured');
+            }
+
+            const functionsUrl = `${supabaseUrl}/functions/v1/patient-response`;
+            const response = await fetch(functionsUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`,
+                },
+                body: JSON.stringify({
+                    transcript,
+                    patient,
+                    message,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                const errorMessage = errorData.error || `Failed to get patient response (${response.status})`;
+
+                if (response.status === 401) {
+                    throw new Error('Your session has expired. Please refresh the page and try again.');
+                } else if (response.status === 429) {
+                    throw new Error('AI service is busy. Please try again in a moment.');
+                } else if (response.status === 504) {
+                    throw new Error('Patient response timed out. Please try again.');
+                } else if (response.status === 500) {
+                    throw new Error('AI service error. Please try again later.');
+                } else {
+                    throw new Error(errorMessage);
+                }
+            }
+
+            const data = await response.json();
+            return data.response as string;
+        }
     }, [transcript, patient, user]);
 
     const handleSendMessage = useCallback(async (text: string, isRetry = false) => {
@@ -271,11 +298,11 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
         setIsPatientTyping(true);
 
         try {
-            // Get patient response from Edge Function
-            const patientResponse = await getPatientResponseFromEdgeFunction(text);
+            // Get patient response from local API (falls back to Edge Function)
+            const patientResponse = await getPatientResponse(text);
             const newPatientMessage: ChatMessage = { author: 'patient', text: patientResponse };
             setTranscript(prev => [...prev, newPatientMessage]);
-            
+
             // Auto-save after successful response
             autoSaveSession({
                 transcript: [...transcript, { author: 'user', text }, { author: 'patient', text: patientResponse }],
@@ -285,21 +312,21 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
         } catch (error) {
             console.error('[PracticeView] Failed to get patient response:', error);
             const errorMessage = error instanceof Error ? error.message : 'Failed to get patient response.';
-            
+
             // Check if it's a network error
-            const isNetworkError = errorMessage.includes('Failed to fetch') || 
-                                   errorMessage.includes('NetworkError') || 
-                                   errorMessage.includes('network');
-            
+            const isNetworkError = errorMessage.includes('Failed to fetch') ||
+                errorMessage.includes('NetworkError') ||
+                errorMessage.includes('network');
+
             if (isNetworkError) {
                 setSendError('Network connection lost. Check your connection and tap Retry.');
             } else {
                 setSendError(errorMessage);
             }
-            
+
             // Store the failed message for retry
             setLastFailedMessage(text);
-            
+
             // Auto-save transcript on error (don't add fallback message, let user retry)
             autoSaveSession({
                 transcript: [...transcript, { author: 'user', text }],
@@ -309,14 +336,14 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
         } finally {
             setIsPatientTyping(false);
         }
-    }, [getPatientResponseFromEdgeFunction, isPatientTyping, transcript, patient]);
+    }, [getPatientResponse, isPatientTyping, transcript, patient]);
 
     const handleRetryLastMessage = useCallback(() => {
         if (lastFailedMessage) {
             handleSendMessage(lastFailedMessage, true);
         }
     }, [lastFailedMessage, handleSendMessage]);
-    
+
     const handleVoiceSend = () => {
         // Clear any previous send error when user interacts with mic
         setSendError(null);
@@ -326,7 +353,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
             startListening();
         }
     };
-    
+
     const handleTextSend = () => {
         if (!speechTranscript.trim()) return;
         if (isListening) {
@@ -414,7 +441,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
     const handleEndSession = useCallback(async () => {
         setIsEndingSession(true);
         setFeedbackError(null);
-        
+
         // Show success toast immediately
         showToast('Session complete! Generating your feedback...', 'success');
 
@@ -430,7 +457,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
             setIsEndingSession(false);
             const errorMessage = error instanceof Error ? error.message : 'Failed to generate feedback. Please try again.';
             setFeedbackError(errorMessage);
-            
+
             // If session expired, auto-save before showing error
             if (errorMessage.includes('session has expired')) {
                 autoSaveSession({
@@ -477,185 +504,207 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
     return (
         <div className="flex flex-col h-screen bg-transparent">
             <ToastContainer toasts={toasts} onRemove={removeToast} />
-            <div className="flex justify-between items-center p-4 border-b-2 border-black bg-white">
+
+            {/* Header */}
+            <header className="flex justify-between items-center px-6 py-4 border-b border-[var(--color-bg-accent)] bg-white/80 backdrop-blur-md sticky top-0 z-10 transition-all duration-200">
                 <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-lg text-[var(--color-text-primary)] truncate">with {patient.name}</h3>
-                    {/* Progress indicator showing message count */}
-                    <p className="text-xs text-[var(--color-text-muted)]">
-                        {transcript.length === 0 ? 'Start the conversation...' : `${transcript.length} message${transcript.length !== 1 ? 's' : ''} exchanged`}
+                    <h3 className="font-display font-bold text-lg text-[var(--color-text-primary)] truncate">
+                        Practice Session
+                    </h3>
+                    <p className="text-xs font-medium text-[var(--color-text-secondary)] flex items-center gap-1.5 mt-0.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-success)] shadow-[0_0_8px_var(--color-success)]" aria-hidden="true" />
+                        Live with {patient.name}
                     </p>
                 </div>
-                <div className="flex items-center space-x-3 flex-shrink-0">
-                    <Timer initialSeconds={sessionDuration} onTimeUp={handleEndSession} />
-                    <button
+                <div className="flex items-center gap-4 flex-shrink-0">
+                    <div className="bg-[var(--color-bg-accent)] px-3 py-1.5 rounded-[var(--radius-md)] border border-transparent hover:border-[var(--color-primary-light)] transition-colors">
+                        <Timer initialSeconds={sessionDuration} onTimeUp={handleEndSession} />
+                    </div>
+                    <Button
                         onClick={handleEndSession}
                         disabled={isEndingSession}
-                        className={`px-4 min-h-[var(--touch-target-min)] text-white font-semibold border-2 border-black disabled:opacity-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 ${
-                            isEndingSession 
-                                ? 'bg-red-600' 
-                                : 'bg-red-500 hover:bg-red-600'
-                        }`}
+                        variant="danger"
+                        size="sm"
+                        loading={isEndingSession}
+                        className="shadow-sm"
                     >
-                        {isEndingSession ? (
-                            <span className="flex items-center gap-2">
-                                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                                Ending...
-                            </span>
-                        ) : (
-                            'End Session'
-                        )}
-                    </button>
+                        {isEndingSession ? 'Ending...' : 'End Session'}
+                    </Button>
                 </div>
-            </div>
+            </header>
 
-            <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 bg-white relative">
-                <div className="space-y-4">
+            {/* Chat Area */}
+            <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-4 py-8 bg-[var(--color-bg-main)] scroll-smooth relative">
+                {/* Background Pattern/Texture if desired, otherwise plain */}
+
+                <div className="max-w-3xl mx-auto space-y-6">
                     {transcript.length === 0 && !isPatientTyping && (
-                        <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center text-[var(--color-text-muted)]">
-                            <i className="fa-solid fa-comments text-4xl mb-3 opacity-40" aria-hidden="true"></i>
-                            <p className="text-sm">Say something to start the conversation</p>
+                        <div className="flex flex-col items-center justify-center py-20 text-center text-[var(--color-text-muted)] animate-slide-fade-in">
+                            <div className="w-16 h-16 bg-[var(--color-bg-accent)] rounded-full flex items-center justify-center mb-4 transition-transform hover:scale-105">
+                                <i className="fa-solid fa-comments text-2xl opacity-40 text-[var(--color-primary)]" aria-hidden="true"></i>
+                            </div>
+                            <h4 className="font-medium text-[var(--color-text-primary)] mb-1">Start the conversation</h4>
+                            <p className="text-xs text-[var(--color-text-secondary)]">Say "Hi {patient.name}, how are you doing today?"</p>
                         </div>
                     )}
                     {transcript.map((msg, index) => (
                         <ChatBubble key={index} message={msg} />
                     ))}
                     {isPatientTyping && (
-                        <div className="animate-slide-fade-in pt-4">
+                        <div className="animate-slide-fade-in pt-2">
+                            {/* Passing a dummy message since we are just showing the typing indicator */}
                             <ChatBubble message={{ author: 'patient', text: '...' }} isTyping={true} />
                         </div>
                     )}
                 </div>
             </div>
 
-            <div className="p-4 border-t-2 border-black bg-[var(--color-bg-accent)]">
-                {/* Screen reader announcement for voice recording status */}
-                <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-                    {isListening ? 'Recording started. Speak now.' : ''}
-                </div>
-                {sessionExpired && (
-                    <Card variant="accent" padding="sm" className="mb-3 border-l-4 border-[var(--color-error)]">
-                        <div className="flex flex-col gap-2" role="alert">
-                            <div className="flex items-center gap-2 text-[var(--color-error)] text-sm font-semibold">
-                                <i className="fa fa-exclamation-circle" aria-hidden="true"></i>
-                                <span>Your session has expired</span>
-                            </div>
-                            <p className="text-xs text-[var(--color-text-secondary)]">
-                                Your practice session has been saved. Please refresh the page and log in again to continue.
-                            </p>
-                            <Button
-                                variant="primary"
-                                size="sm"
-                                onClick={() => window.location.reload()}
-                                className="mt-2"
-                            >
-                                Refresh & Log In
-                            </Button>
+            {/* Input Area */}
+            <div className="p-4 sm:p-6 border-t border-[var(--color-bg-accent)] bg-white/90 backdrop-blur-md sticky bottom-0 z-20">
+                <div className="max-w-3xl mx-auto w-full">
+
+                    {/* Screen reader announcement for voice recording status */}
+                    <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+                        {isListening ? 'Recording started. Speak now.' : ''}
+                    </div>
+
+                    {sessionExpired && (
+                        <div className="mb-4 animate-slide-fade-in">
+                            <Card variant="soft-accent" padding="sm" className="border-l-4 border-[var(--color-error)]">
+                                <div className="flex flex-col gap-2" role="alert">
+                                    <div className="flex items-center gap-2 text-[var(--color-error)] text-sm font-bold">
+                                        <i className="fa fa-exclamation-circle" aria-hidden="true"></i>
+                                        <span>Session Expired</span>
+                                    </div>
+                                    <p className="text-xs text-[var(--color-text-secondary)]">
+                                        Your progress is saved. Please refresh to continue.
+                                    </p>
+                                    <Button
+                                        variant="primary"
+                                        size="sm"
+                                        onClick={() => window.location.reload()}
+                                        className="mt-1 w-fit"
+                                    >
+                                        Refresh & Log In
+                                    </Button>
+                                </div>
+                            </Card>
                         </div>
-                    </Card>
-                )}
-                {(micError || sendError) && !sessionExpired && (
-                    <Card variant="accent" padding="sm" className="mb-3 border-l-4 border-[var(--color-error)]">
-                        <div className="flex items-start justify-between gap-2" role="alert">
-                            <div className="flex items-start gap-2 text-[var(--color-error)] text-sm flex-1">
-                                <i className="fa fa-exclamation-circle mt-0.5" aria-hidden="true"></i>
-                                <span>{micError || sendError}</span>
-                            </div>
-                            {sendError && lastFailedMessage && (
-                                <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    onClick={handleRetryLastMessage}
+                    )}
+
+                    {(micError || sendError) && !sessionExpired && (
+                        <div className="mb-4 animate-slide-fade-in">
+                            <Card variant="soft-accent" padding="sm" className="border-l-4 border-[var(--color-error)]">
+                                <div className="flex items-start justify-between gap-3" role="alert">
+                                    <div className="flex items-start gap-2 text-[var(--color-error)] text-sm flex-1 font-medium">
+                                        <i className="fa fa-exclamation-circle mt-0.5" aria-hidden="true"></i>
+                                        <span>{micError || sendError}</span>
+                                    </div>
+                                    {sendError && lastFailedMessage && (
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={handleRetryLastMessage}
+                                            disabled={isPatientTyping}
+                                            icon={<i className="fa-solid fa-redo" aria-hidden="true"></i>}
+                                        >
+                                            Retry
+                                        </Button>
+                                    )}
+                                </div>
+                            </Card>
+                        </div>
+                    )}
+
+                    <div className="flex items-end gap-3">
+                        <div className="flex-1 flex flex-col relative transition-all duration-200">
+                            <div className={`relative flex items-end bg-[var(--color-bg-main)] border rounded-[var(--radius-lg)] transition-all duration-200 ${isListening ? 'border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20' : 'border-neutral-200 hover:border-neutral-300 focus-within:border-[var(--color-primary)] focus-within:ring-2 focus-within:ring-[var(--color-primary)]/20 shadow-sm'}`}>
+
+                                {isListening && (
+                                    <div className="absolute left-3 bottom-3 z-10 pointer-events-none">
+                                        <SpeechVisualizer />
+                                    </div>
+                                )}
+
+                                <textarea
+                                    ref={textareaRef}
+                                    value={speechTranscript}
+                                    onChange={(e) => setSpeechTranscript(e.target.value)}
+                                    placeholder={isListening ? "        Listening..." : "Type your response..."}
+                                    className={`flex-1 p-3.5 bg-transparent border-none focus:outline-none resize-none w-full max-h-48 overflow-y-auto text-base text-[var(--color-text-primary)] leading-relaxed rounded-[var(--radius-lg)] placeholder:text-[var(--color-text-light)] ${isListening ? 'pl-16 font-medium text-[var(--color-primary-dark)]' : ''}`}
+                                    rows={1}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleTextSend();
+                                        }
+                                    }}
+                                    onFocus={() => {
+                                        // Scroll textarea into view when mobile keyboard opens
+                                        setTimeout(() => {
+                                            textareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        }, 300);
+                                    }}
                                     disabled={isPatientTyping}
-                                    icon={<i className="fa-solid fa-redo" aria-hidden="true"></i>}
-                                >
-                                    Retry
-                                </Button>
-                            )}
+                                    readOnly={isListening}
+                                />
+
+                                <div className="p-2 flex-shrink-0">
+                                    <Button
+                                        onClick={handleVoiceSend}
+                                        disabled={isPatientTyping}
+                                        variant={isListening ? "danger" : "ghost"}
+                                        size="icon-only"
+                                        shape="pill"
+                                        className={`transition-all duration-200 ${isListening ? 'animate-pulse shadow-md' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-light)]'}`}
+                                        aria-label={isListening ? 'Stop recording' : 'Start recording'}
+                                        title={isListening ? 'Stop recording' : 'Start recording'}
+                                    >
+                                        <Mic size={20} className={isListening ? "text-white" : ""} />
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
-                    </Card>
-                )}
-                <div className="flex items-end space-x-3">
-                    <div className="flex-1 flex items-end bg-white border-2 border-black focus-within:ring-2 focus-within:ring-[var(--color-primary)] transition-shadow duration-200">
-                        {isListening && <SpeechVisualizer />}
-                        <textarea
-                            ref={textareaRef}
-                            value={speechTranscript}
-                            onChange={(e) => setSpeechTranscript(e.target.value)}
-                            placeholder={isListening ? "Listening..." : "Type your response or use the microphone..."}
-                            className="flex-1 p-3 bg-transparent focus:outline-none resize-none w-full max-h-56 overflow-y-auto text-[var(--color-text-primary)]"
-                            rows={2}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    handleTextSend();
-                                }
-                            }}
-                            onFocus={() => {
-                                // Scroll textarea into view when mobile keyboard opens
-                                setTimeout(() => {
-                                    textareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                }, 300);
-                            }}
-                            disabled={isPatientTyping}
-                            readOnly={isListening}
-                            style={{ caretColor: isListening ? 'transparent' : 'auto' }}
-                        />
-                    </div>
-                    {/* Mic button - FORCED TO RENDER for testing */}
-                    <div className="relative group flex items-center">
-                        <button
-                            onClick={handleVoiceSend}
-                            disabled={isPatientTyping}
-                            className={`w-[var(--touch-target-min)] h-[var(--touch-target-min)] flex items-center justify-center bg-white text-[var(--color-text-primary)] border-2 border-black hover:bg-[var(--color-bg-accent)] disabled:bg-[var(--color-neutral-300)] disabled:text-[var(--color-neutral-500)] disabled:border-[var(--color-neutral-400)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 ${
-                                isListening ? 'bg-[var(--color-error-light)] text-[var(--color-error)]' : ''
-                            }`}
-                            aria-label={isListening ? 'Stop recording' : 'Start recording'}
-                            aria-pressed={isListening}
+
+                        <Button
+                            onClick={handleTextSend}
+                            disabled={isPatientTyping || !speechTranscript.trim()}
+                            variant="primary"
+                            size="icon-only"
+                            shape="default"
+                            className="h-[52px] w-[52px] !rounded-[var(--radius-lg)] shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex-shrink-0"
+                            aria-label="Send message"
                         >
-                            <Mic 
-                                size={20} 
-                                className={isListening ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]'}
-                                aria-hidden="true"
-                            />
-                        </button>
-                        <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-[var(--color-neutral-800)] text-white text-xs font-semibold shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10 whitespace-nowrap rounded">
-                            {isListening ? 'Stop Recording' : 'Start Recording'}
-                            <svg className="absolute text-[var(--color-neutral-800)] h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255" xmlSpace="preserve"><polygon className="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
-                        </div>
+                            <Send size={22} className={!speechTranscript.trim() ? "opacity-70" : ""} />
+                        </Button>
                     </div>
-                    {/* Send button - FORCED TO RENDER for testing */}
-                    <button
-                        onClick={handleTextSend}
-                        disabled={isPatientTyping || !speechTranscript.trim()}
-                        className="w-[var(--touch-target-min)] h-[var(--touch-target-min)] flex items-center justify-center bg-[var(--color-primary)] text-white border-2 border-black hover:bg-[var(--color-primary-dark)] disabled:bg-[var(--color-neutral-300)] disabled:text-[var(--color-neutral-500)] disabled:border-[var(--color-neutral-400)] disabled:cursor-not-allowed transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
-                        aria-label="Send message"
-                    >
-                        <Send size={20} className="text-white" aria-hidden="true" />
-                    </button>
+                    <p className="text-center text-[10px] text-[var(--color-text-muted)] mt-2.5 font-medium opacity-60">
+                        Press Enter to send • Shift + Enter for new line • Server connection secured
+                    </p>
                 </div>
             </div>
             {(isEndingSession || isRetryingFeedback) && (
-                 <div className="absolute inset-0 bg-white bg-opacity-80 flex flex-col items-center justify-center rounded-2xl z-10">
+                <div className="absolute inset-0 bg-white bg-opacity-80 flex flex-col items-center justify-center rounded-2xl z-10">
                     <div className="w-16 h-16 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"></div>
                     <p className="mt-4 text-lg font-semibold text-[var(--color-text-primary)]">
                         {isRetryingFeedback ? 'Retrying feedback generation...' : 'Generating your feedback...'}
                     </p>
                 </div>
             )}
-            
+
             {feedbackError && !isEndingSession && !isRetryingFeedback && (
-                <div className="absolute inset-0 bg-white bg-opacity-95 flex flex-col items-center justify-center rounded-2xl z-10 p-6">
-                    <Card variant="elevated" padding="lg" className="max-w-md w-full">
+                <div className="absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center z-50 p-6 animate-fade-in">
+                    <Card variant="soft" padding="lg" className="max-w-md w-full shadow-xl">
                         <div className="text-center">
                             <div className="mb-4 flex justify-center">
-                                <div className="w-16 h-16 rounded-full bg-[var(--color-error-light)] flex items-center justify-center">
-                                    <i className="fa-solid fa-exclamation-triangle text-2xl text-[var(--color-error)]" aria-hidden="true"></i>
+                                <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
+                                    <i className="fa-solid fa-triangle-exclamation text-3xl text-[var(--color-error)]" aria-hidden="true"></i>
                                 </div>
                             </div>
                             <h3 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">
-                                Feedback Generation Failed
+                                Analysis Failed
                             </h3>
-                            <p className="text-[var(--color-text-secondary)] mb-6">
+                            <p className="text-[var(--color-text-secondary)] mb-6 text-sm">
                                 {feedbackError}
                             </p>
                             <div className="flex flex-col gap-3">
@@ -664,30 +713,29 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
                                     variant="primary"
                                     size="lg"
                                     fullWidth
-                                    disabled={isRetryingFeedback}
-                                    icon={<i className="fa-solid fa-redo" aria-hidden="true"></i>}
+                                    loading={isRetryingFeedback}
+                                    icon={<i className="fa-solid fa-rotate" aria-hidden="true"></i>}
                                 >
-                                    {isRetryingFeedback ? 'Retrying...' : 'Retry Feedback Generation'}
+                                    Retry Analysis
                                 </Button>
                                 <Button
                                     onClick={() => {
-                                        // Create a fallback feedback object
                                         const fallbackFeedback: Feedback = {
                                             empathyScore: 0,
-                                            empathyBreakdown: 'Feedback generation failed. Your practice session was still valuable!',
-                                            whatWentRight: 'We encountered an issue generating detailed feedback, but every practice session helps you improve your MI skills.',
-                                            areasForGrowth: 'Please try another session to receive detailed feedback.',
+                                            empathyBreakdown: 'Feedback generation failed.',
+                                            whatWentRight: 'Practice session completed.',
+                                            areasForGrowth: 'Feedback unavailable.',
                                             skillsDetected: [],
                                             skillCounts: {},
-                                            nextFocus: 'Try another practice session to receive detailed feedback.',
+                                            nextFocus: 'Continue practicing.',
                                             analysisStatus: 'error',
                                             analysisMessage: feedbackError,
                                         };
                                         setFeedbackError(null);
                                         onFinish(transcript, fallbackFeedback);
                                     }}
-                                    variant="secondary"
-                                    size="lg"
+                                    variant="ghost"
+                                    size="md"
                                     fullWidth
                                 >
                                     Continue Without Feedback

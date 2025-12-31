@@ -22,20 +22,22 @@ interface DashboardProps {
     remainingFreeSessions: number | null;
     onNavigateToPaywall: () => void;
     onNavigate: (view: View) => void;
+    isLoadingTier?: boolean;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ 
-    onStartPractice, 
-    userTier, 
-    sessions, 
-    remainingFreeSessions, 
+const Dashboard: React.FC<DashboardProps> = ({
+    onStartPractice,
+    userTier,
+    sessions,
+    remainingFreeSessions,
     onNavigateToPaywall,
-    onNavigate 
+    onNavigate,
+    isLoadingTier = false
 }) => {
     const { user } = useAuth();
     const firstName = user?.user_metadata?.full_name?.split(' ')[0] || 'there';
     const isPremium = userTier === UserTier.Premium;
-    
+
     // Calculate sessions this month
     const now = new Date();
     const sessionsThisMonth = sessions.filter(s => {
@@ -45,7 +47,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
     // Calculate average feedback score (empathy score if available)
     const sessionsWithScore = sessions.filter(s => s.feedback?.empathyScore !== undefined);
-    const avgScore = sessionsWithScore.length > 0 
+    const avgScore = sessionsWithScore.length > 0
         ? Math.round(sessionsWithScore.reduce((sum, s) => sum + (s.feedback.empathyScore || 0), 0) / sessionsWithScore.length)
         : null;
 
@@ -65,16 +67,16 @@ const Dashboard: React.FC<DashboardProps> = ({
     // BMAD Integration: Generate Mastery Goal using North Star Logic
     const masteryGoalData = useMemo(() => {
         if (xpLoading || currentLevel < 1) return null;
-        
+
         // Get mastery tier from North Star Logic
         const masteryTier = getMasteryTier(currentLevel);
-        
+
         // Generate goal based on tier, level, and session history
         return generateMasteryGoal(currentLevel, sessions);
     }, [currentLevel, sessions, xpLoading]);
 
-    const displayRemaining = remainingFreeSessions !== null 
-        ? remainingFreeSessions 
+    const displayRemaining = remainingFreeSessions !== null
+        ? remainingFreeSessions
         : (() => {
             const freeSessionsThisMonth = sessions.filter(s => {
                 const sessionDate = new Date(s.date);
@@ -108,11 +110,10 @@ const Dashboard: React.FC<DashboardProps> = ({
                         <MasteryTierBadge currentLevel={currentLevel} />
                     )}
                     {/* Premium Badge */}
-                    <span className={`px-4 py-2 text-xs font-medium rounded-full border border-white/10 dark:border-slate-800/30 ${
-                        isPremium 
-                            ? 'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-800 dark:from-amber-900/20 dark:to-orange-900/20 dark:text-amber-200' 
-                            : 'bg-gradient-to-r from-gray-50 to-gray-100 text-gray-600 dark:from-gray-800/20 dark:to-gray-900/20 dark:text-gray-300'
-                    }`}>
+                    <span className={`px-4 py-2 text-xs font-medium rounded-full border border-white/10 dark:border-slate-800/30 ${isPremium
+                        ? 'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-800 dark:from-amber-900/20 dark:to-orange-900/20 dark:text-amber-200'
+                        : 'bg-gradient-to-r from-gray-50 to-gray-100 text-gray-600 dark:from-gray-800/20 dark:to-gray-900/20 dark:text-gray-300'
+                        }`}>
                         {isPremium ? 'Premium' : 'Free'}
                     </span>
                 </div>
@@ -135,19 +136,20 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 <p className="text-base text-[var(--color-text-secondary)] mb-6 font-medium">
                                     Kick off a new MI scenario now
                                 </p>
-                                
+
                                 <Button
                                     onClick={onStartPractice}
                                     disabled={!isPremium && displayRemaining === 0}
                                     variant="primary"
                                     size="lg"
                                     fullWidth
+                                    loading={isLoadingTier}
                                     icon={<i className="fa-solid fa-play" aria-hidden="true"></i>}
                                     aria-label="Start a new practice session"
                                 >
                                     Start a New Practice
                                 </Button>
-                                
+
                                 {!isPremium && (
                                     <p className={`text-center text-xs font-semibold mt-3 ${displayRemaining === 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-text-muted)]'}`}>
                                         {displayRemaining} of 3 free sessions remaining this month
@@ -162,7 +164,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 <p className="text-base text-[var(--color-text-secondary)] mb-6 font-medium">
                                     Create a free account to practice Motivational Interviewing with AI-powered patient simulations
                                 </p>
-                                
+
                                 <Button
                                     onClick={() => onNavigate(View.Login)}
                                     variant="primary"
@@ -173,7 +175,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 >
                                     Sign in to Start
                                 </Button>
-                                
+
                                 <p className="text-center text-xs text-[var(--color-text-muted)] mt-3">
                                     Free account includes 3 practice sessions per month
                                 </p>
@@ -196,10 +198,10 @@ const Dashboard: React.FC<DashboardProps> = ({
 
                 {/* Free tier limit reached warning */}
                 {!isPremium && displayRemaining === 0 && (
-                    <Card 
-                        variant="glass" 
-                        padding="md" 
-                        hoverable 
+                    <Card
+                        variant="glass"
+                        padding="md"
+                        hoverable
                         onClick={onNavigateToPaywall}
                         className="mb-8 border border-red-200/50 dark:border-red-800/30 bg-gradient-to-r from-red-50/80 to-orange-50/80 dark:from-red-900/20 dark:to-orange-900/20 backdrop-blur-md"
                     >
@@ -260,8 +262,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                 <GlobalMIScore sessions={sessions} />
 
                 {/* BMAD-Powered Mastery Goal Card */}
-                <MasteryGoalCard 
-                    goalData={masteryGoalData} 
+                <MasteryGoalCard
+                    goalData={masteryGoalData}
                     isLoading={xpLoading}
                 />
 
@@ -295,15 +297,14 @@ const Dashboard: React.FC<DashboardProps> = ({
                             </div>
                         </div>
                     </div>
-                    <div 
-                        className="w-full h-2 rounded-full overflow-hidden"
-                        style={{ backgroundColor: 'var(--color-neutral-200, #e5e7eb)' }}
+                    <div
+                        className="w-full h-2 rounded-full overflow-hidden bg-neutral-200 dark:bg-neutral-700"
                     >
                         <div
                             className="h-full rounded-full transition-all duration-500 ease-out"
-                            style={{ 
+                            style={{
                                 width: `${xpProgress}%`,
-                                background: currentLevel === 4 
+                                background: currentLevel === 4
                                     ? 'linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)'
                                     : 'var(--color-primary)',
                             }}
@@ -348,9 +349,9 @@ const Dashboard: React.FC<DashboardProps> = ({
                                                 {session.patient.topic}
                                             </p>
                                             <p className="text-xs text-[var(--color-text-muted)]">
-                                                {new Date(session.date).toLocaleDateString('en-US', { 
-                                                    month: 'short', 
-                                                    day: 'numeric' 
+                                                {new Date(session.date).toLocaleDateString('en-US', {
+                                                    month: 'short',
+                                                    day: 'numeric'
                                                 })} • {session.patient.stageOfChange}
                                             </p>
                                         </div>
@@ -359,7 +360,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                                 </Card>
                             ))}
                         </div>
-                        
+
                         {sessions.length > 3 && (
                             <div className="text-center mt-3">
                                 <Button
@@ -391,19 +392,19 @@ const Dashboard: React.FC<DashboardProps> = ({
                         <div className="bg-white/10 dark:bg-slate-800/20 border border-white/10 dark:border-slate-800/30 rounded-lg p-6 mb-8 backdrop-blur-sm">
                             <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">How it works:</p>
                             <ul className="text-sm text-[var(--color-text-secondary)] text-left space-y-2">
-                            <li className="flex items-start gap-2">
+                                <li className="flex items-start gap-2">
                                     <i className="fa-solid fa-play text-[var(--color-primary)] mt-0.5" aria-hidden="true"></i>
                                     <span>Start a practice session with an AI patient</span>
-                            </li>
-                            <li className="flex items-start gap-2">
+                                </li>
+                                <li className="flex items-start gap-2">
                                     <i className="fa-solid fa-comments text-[var(--color-primary)] mt-0.5" aria-hidden="true"></i>
-                                <span>Practice your MI conversation skills</span>
-                            </li>
-                            <li className="flex items-start gap-2">
+                                    <span>Practice your MI conversation skills</span>
+                                </li>
+                                <li className="flex items-start gap-2">
                                     <i className="fa-solid fa-chart-line text-[var(--color-primary)] mt-0.5" aria-hidden="true"></i>
-                                <span>Get AI-powered feedback to improve</span>
-                            </li>
-                        </ul>
+                                    <span>Get AI-powered feedback to improve</span>
+                                </li>
+                            </ul>
                         </div>
                         <div className="space-y-3">
                             <Button
@@ -415,15 +416,15 @@ const Dashboard: React.FC<DashboardProps> = ({
                             >
                                 Start Your First Practice
                             </Button>
-                        <Button
-                            onClick={() => onNavigate(View.ResourceLibrary)}
-                            variant="ghost"
-                            size="md"
-                            fullWidth
-                            icon={<i className="fa-solid fa-book-open" aria-hidden="true"></i>}
-                        >
-                            Browse Learning Resources
-                        </Button>
+                            <Button
+                                onClick={() => onNavigate(View.ResourceLibrary)}
+                                variant="ghost"
+                                size="md"
+                                fullWidth
+                                icon={<i className="fa-solid fa-book-open" aria-hidden="true"></i>}
+                            >
+                                Browse Learning Resources
+                            </Button>
                         </div>
                     </Card>
                 )}

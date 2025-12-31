@@ -2,19 +2,15 @@
 
 import React from 'react';
 
-interface ButtonProps {
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children?: React.ReactNode;
-  onClick?: (e?: React.MouseEvent<HTMLButtonElement>) => void;
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
-  size?: 'sm' | 'md' | 'lg';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'soft';
+  size?: 'sm' | 'md' | 'lg' | 'icon-only';
+  shape?: 'default' | 'pill' | 'square';
   fullWidth?: boolean;
-  disabled?: boolean;
   loading?: boolean;
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
-  className?: string;
-  type?: 'button' | 'submit' | 'reset';
-  'aria-label'?: string;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -22,6 +18,7 @@ export const Button: React.FC<ButtonProps> = ({
   onClick,
   variant = 'primary',
   size = 'md',
+  shape = 'default',
   fullWidth = false,
   disabled = false,
   loading = false,
@@ -30,8 +27,15 @@ export const Button: React.FC<ButtonProps> = ({
   className = '',
   type = 'button',
   'aria-label': ariaLabel,
+  ...props
 }) => {
-  const baseClasses = 'inline-flex items-center justify-center font-semibold rounded-[var(--radius-md)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]';
+  const shapeClasses = {
+    default: 'rounded-[var(--radius-md)]',
+    pill: 'rounded-full',
+    square: 'rounded-[var(--radius-sm)]',
+  };
+
+  const baseClasses = 'inline-flex items-center justify-center font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]';
 
   const variantClasses = {
     primary: 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)] focus:ring-[var(--color-primary)] shadow-[var(--shadow-sm)] hover:shadow-md border border-transparent',
@@ -39,26 +43,29 @@ export const Button: React.FC<ButtonProps> = ({
     ghost: 'bg-transparent text-[var(--color-text-primary)] hover:bg-[var(--color-bg-accent)] border border-transparent hover:border-[var(--color-primary-light)] focus:ring-[var(--color-primary)]',
     danger: 'bg-[var(--color-error)] text-white hover:bg-[#c82333] focus:ring-[var(--color-error)] shadow-sm hover:shadow-md border border-transparent',
     success: 'bg-[var(--color-success)] text-white hover:bg-[#218838] focus:ring-[var(--color-success)] shadow-sm hover:shadow-md border border-transparent',
+    // New Variants
+    soft: 'bg-[var(--color-primary-light)] text-[var(--color-primary-darker)] hover:bg-[var(--color-primary)] hover:text-white border border-transparent',
   };
 
   const sizeClasses = {
     sm: 'h-[var(--button-height-sm)] px-4 text-sm gap-2',
     md: 'h-[var(--button-height-md)] px-6 text-base gap-2',
     lg: 'h-[var(--button-height-lg)] px-8 text-xl gap-3',
+    'icon-only': 'h-[var(--button-height-md)] w-[var(--button-height-md)] p-0 justify-center',
   };
 
   const widthClass = fullWidth ? 'w-full' : '';
 
-  const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${widthClass} ${className}`;
+  const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${shapeClasses[shape]} ${widthClass} ${className}`;
 
   return (
     <button
       type={type}
-      onClick={onClick}
-      disabled={disabled || loading}
       className={classes}
-      aria-label={ariaLabel}
+      disabled={disabled || loading}
       aria-busy={loading}
+      onClick={onClick}
+      {...props}
     >
       {loading && (
         <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />

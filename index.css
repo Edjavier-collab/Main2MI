@@ -1,11 +1,11 @@
+/* Design System - must come before @tailwind */
+@import './styles/theme.css';
+@import './styles/design-tokens.css';
+
 /* Tailwind CSS */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Design System */
-@import './styles/theme.css';
-@import './styles/design-tokens.css';
 
 /* Base styles */
 @layer base {
@@ -96,6 +96,16 @@
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
+    font-size: 18px !important;  /* Larger for better readability */
+    min-height: 48px;            /* Adequate touch target */
+    line-height: 1.5;
+  }
+
+  /* iOS-specific enhancement */
+  @supports (-webkit-touch-callout: none) {
+    select {
+      font-size: 18px !important;
+    }
   }
   
   /* Improve select option typography on mobile */

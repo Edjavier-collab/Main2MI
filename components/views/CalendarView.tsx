@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { Session, UserTier } from '../../types';
 import FeedbackView from './FeedbackView';
 import { Button } from '../ui/Button';
-import { BackButton } from '../ui/BackButton';
 import { Card } from '../ui/Card';
 import { useToast } from '../ui/Toast';
 
@@ -28,13 +27,13 @@ const CalendarView: React.FC<CalendarViewProps> = ({ sessions, onBack, userTier,
             onGenerateCoachingSummary(); // This will navigate to the paywall via App.tsx
             return;
         }
-        
+
         const premiumSessions = sessions.filter(s => s.tier === UserTier.Premium);
         if (premiumSessions.length === 0 && !hasCoachingSummary) {
-             showToast("You need to complete at least one Premium session to generate a summary.", 'warning');
-             return;
+            showToast("You need to complete at least one Premium session to generate a summary.", 'warning');
+            return;
         }
-        
+
         onGenerateCoachingSummary();
     };
 
@@ -43,7 +42,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ sessions, onBack, userTier,
             <FeedbackView
                 session={selectedSession}
                 onDone={() => setSelectedSession(null)}
-                onUpgrade={() => {}} // This view doesn't trigger upgrades
+                onUpgrade={() => { }} // This view doesn't trigger upgrades
             />
         );
     }
@@ -54,13 +53,20 @@ const CalendarView: React.FC<CalendarViewProps> = ({ sessions, onBack, userTier,
     return (
         <div className="min-h-screen bg-transparent pb-24">
             <ToastContainer toasts={toasts} onRemove={removeToast} />
-            
+
             {/* Header */}
             <div className="flex items-center px-6 py-4">
-                <BackButton onClick={onBack} className="mr-3" />
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onBack}
+                    icon={<i className="fa-solid fa-arrow-left" />}
+                    aria-label="Go back"
+                    className="mr-3"
+                />
                 <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">My Calendar</h1>
             </div>
-            
+
             <main className="px-6">
                 {sortedSessions.length === 0 ? (
                     <Card variant="accent" padding="lg" className="mt-6 text-center">

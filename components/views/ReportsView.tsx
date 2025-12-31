@@ -4,7 +4,6 @@ import React from 'react';
 import { Session, UserTier, View } from '../../types';
 import { useReportData } from '../../hooks/useReportData';
 import { Button } from '../ui/Button';
-import { BackButton } from '../ui/BackButton';
 import { Card } from '../ui/Card';
 import ExecutiveSummary from '../reports/ExecutiveSummary';
 import SkillRadarChart from '../reports/SkillRadarChart';
@@ -48,13 +47,17 @@ const ReportsView: React.FC<ReportsViewProps> = ({
   const reportData = useReportData(sessions, isPremium);
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-primary)] pb-24">
+    <div className="min-h-screen bg-transparent pb-24">
       <div className="p-4 sm:p-6 max-w-2xl mx-auto">
         {/* Header */}
         <header className="flex items-center justify-between mb-6">
           <div className="flex items-center">
-            <BackButton
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={onBack}
+              icon={<i className="fa-solid fa-arrow-left" />}
+              aria-label="Go back"
               className="mr-3"
             />
             <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
@@ -154,7 +157,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
           </Card>
         )}
 
-        {/* Premium Detailed Insights - per-skill breakdown with recommendations */}
+        {/* Premium Skill Breakdown - interactive per-skill breakdown with recommendations */}
         {isPremium && reportData.skillScores.length > 0 && (
           <Card variant="default" padding="lg" className="mb-6">
             <div className="flex items-center justify-between mb-4">
@@ -162,7 +165,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
                 className="text-sm font-bold uppercase tracking-wide"
                 style={{ color: 'var(--color-text-muted)' }}
               >
-                Detailed Insights
+                Skill Breakdown
               </h3>
               <span
                 className="text-xs px-2 py-1 rounded-full"
@@ -266,73 +269,6 @@ const ReportsView: React.FC<ReportsViewProps> = ({
           </Card>
         )}
 
-        {/* Premium Skill Breakdown */}
-        {isPremium && reportData.skillScores.length > 0 && (
-          <Card variant="default" padding="lg" className="mb-6">
-            <h3
-              className="text-sm font-bold uppercase tracking-wide mb-4"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
-              Skill Breakdown
-            </h3>
-            <div className="space-y-4">
-              {reportData.skillScores.map((skill) => (
-                <div key={skill.name}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span
-                      className="text-sm font-medium"
-                      style={{ color: 'var(--color-text-primary)' }}
-                    >
-                      {skill.name}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="text-xs"
-                        style={{
-                          color: skill.trend === 'improving'
-                            ? 'var(--color-success)'
-                            : skill.trend === 'declining'
-                              ? 'var(--color-error)'
-                              : 'var(--color-text-muted)',
-                        }}
-                      >
-                        {skill.trend === 'improving' ? '↑' : skill.trend === 'declining' ? '↓' : '→'}
-                      </span>
-                      <span
-                        className="text-sm font-bold w-8 text-right"
-                        style={{ color: 'var(--color-text-primary)' }}
-                      >
-                        {skill.score}
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    className="w-full h-2 rounded-full overflow-hidden"
-                    style={{ backgroundColor: 'var(--color-neutral-200)' }}
-                  >
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{
-                        width: `${skill.score}%`,
-                        backgroundColor: skill.score >= 60
-                          ? 'var(--color-success)'
-                          : skill.score >= 30
-                            ? 'var(--color-warning)'
-                            : 'var(--color-error)',
-                      }}
-                    />
-                  </div>
-                  <p
-                    className="text-xs mt-1"
-                    style={{ color: 'var(--color-text-muted)' }}
-                  >
-                    Used {skill.count} time{skill.count !== 1 ? 's' : ''}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </Card>
-        )}
 
         {/* Premium Action Plan - personalized next steps */}
         {isPremium && reportData.skillScores.length > 0 && (

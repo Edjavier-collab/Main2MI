@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { CoachingSummary } from '../../types';
 import { Button } from '../ui/Button';
-import { BackButton } from '../ui/BackButton';
 import { Card } from '../ui/Card';
 
 interface CoachingSummaryViewProps {
@@ -126,12 +125,12 @@ const MarkdownRenderer: React.FC<{ text: string }> = ({ text }) => {
     const parseLine = (line: string): React.ReactNode[] => {
         const parts: React.ReactNode[] = [];
         let currentIndex = 0;
-        
+
         // Find all bold markers (**text**)
         const boldRegex = /\*\*(.*?)\*\*/g;
         let match;
         let lastIndex = 0;
-        
+
         while ((match = boldRegex.exec(line)) !== null) {
             // Add text before the bold marker
             if (match.index > lastIndex) {
@@ -140,12 +139,12 @@ const MarkdownRenderer: React.FC<{ text: string }> = ({ text }) => {
                     parts.push(beforeText);
                 }
             }
-            
+
             // Add the bold text as a <strong> element
             parts.push(<strong key={`bold-${match.index}`}>{match[1]}</strong>);
             lastIndex = match.index + match[0].length;
         }
-        
+
         // Add remaining text after last match
         if (lastIndex < line.length) {
             const remainingText = line.substring(lastIndex);
@@ -153,30 +152,30 @@ const MarkdownRenderer: React.FC<{ text: string }> = ({ text }) => {
                 parts.push(remainingText);
             }
         }
-        
+
         // If no bold markers found, return the line as-is
         if (parts.length === 0) {
             return [line];
         }
-        
+
         return parts;
     };
 
     const renderLine = (line: string, index: number) => {
         const parsedContent = parseLine(line);
-        
+
         if (line.startsWith('* ')) {
             // Remove the '* ' prefix and render as list item
             const contentWithoutPrefix = line.substring(2);
             const parsedContentWithoutPrefix = parseLine(contentWithoutPrefix);
-            
+
             return (
                 <li key={index} className="text-[var(--color-text-secondary)] leading-relaxed">
                     {parsedContentWithoutPrefix}
                 </li>
             );
         }
-        
+
         return (
             <p key={index} className="text-[var(--color-text-secondary)] leading-relaxed">
                 {parsedContent}
@@ -208,15 +207,15 @@ const MarkdownRenderer: React.FC<{ text: string }> = ({ text }) => {
     return <>{elements}</>;
 };
 
-const SectionCard: React.FC<{ 
-    title: string; 
-    icon: string; 
+const SectionCard: React.FC<{
+    title: string;
+    icon: string;
     children: React.ReactNode;
     variant?: 'default' | 'accent';
 }> = ({ title, icon, children, variant = 'default' }) => (
-    <Card 
-        variant={variant === 'accent' ? 'accent' : 'elevated'} 
-        padding="md" 
+    <Card
+        variant={variant === 'accent' ? 'accent' : 'elevated'}
+        padding="md"
         className={`${variant === 'accent' ? 'border-2 border-[var(--color-primary)]' : ''}`}
     >
         <h2 className="text-lg font-bold text-[var(--color-text-primary)] mb-4 flex items-center gap-3">
@@ -274,7 +273,14 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
         return (
             <div className="min-h-screen bg-transparent p-6">
                 <header className="flex items-center mb-6 max-w-4xl mx-auto">
-                    <BackButton onClick={onBack} className="mr-3" />
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onBack}
+                        icon={<i className="fa-solid fa-arrow-left" />}
+                        aria-label="Go back"
+                        className="mr-3"
+                    />
                     <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Coaching Summary</h1>
                 </header>
                 <main className="max-w-2xl mx-auto">
@@ -282,7 +288,7 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
                         <i className="fa-solid fa-circle-exclamation text-5xl text-[var(--color-error)] mb-4" aria-hidden="true"></i>
                         <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Could Not Generate Summary</h2>
                         <p className="text-[var(--color-text-secondary)] mt-2 max-w-sm mx-auto">{error}</p>
-                        <BackButton onClick={onBack} className="mt-6" />
+                        <Button onClick={onBack} variant="ghost" className="mt-6 mx-auto">Go Back</Button>
                     </Card>
                 </main>
             </div>
@@ -293,7 +299,14 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
         return (
             <div className="min-h-screen bg-transparent p-6">
                 <header className="flex items-center mb-6 max-w-4xl mx-auto">
-                    <BackButton onClick={onBack} className="mr-3" />
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onBack}
+                        icon={<i className="fa-solid fa-arrow-left" />}
+                        aria-label="Go back"
+                        className="mr-3"
+                    />
                     <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Coaching Summary</h1>
                 </header>
                 <main className="max-w-2xl mx-auto">
@@ -301,7 +314,7 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
                         <i className="fa-regular fa-file-lines text-5xl text-[var(--color-text-muted)] mb-4" aria-hidden="true"></i>
                         <h2 className="text-xl font-bold text-[var(--color-text-primary)]">No Summary Available</h2>
                         <p className="text-[var(--color-text-secondary)] mt-2">Go back and generate a coaching summary from your sessions.</p>
-                        <BackButton onClick={onBack} className="mt-6" />
+                        <Button onClick={onBack} variant="ghost" className="mt-6 mx-auto">Go Back</Button>
                     </Card>
                 </main>
             </div>
@@ -421,7 +434,14 @@ const CoachingSummaryView: React.FC<CoachingSummaryViewProps> = ({ isLoading, su
                 {/* Screen Header - Hidden on print */}
                 <header className="px-6 py-4 flex items-center justify-between max-w-4xl mx-auto no-print">
                     <div className="flex items-center">
-                        <BackButton onClick={onBack} className="mr-3" />
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={onBack}
+                            icon={<i className="fa-solid fa-arrow-left" />}
+                            aria-label="Go back"
+                            className="mr-3"
+                        />
                         <div>
                             <h1 className="text-xl font-bold text-[var(--color-text-primary)]">Coaching Summary</h1>
                             <p className="text-xs text-[var(--color-text-muted)]">{summary.dateRange}</p>

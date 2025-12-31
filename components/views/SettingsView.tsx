@@ -20,11 +20,10 @@ interface SettingsViewProps {
 
 const SettingsSection: React.FC<{ title: string; children: React.ReactNode; prominent?: boolean }> = ({ title, children, prominent = false }) => (
     <div className="mb-6">
-        <h2 className={`font-bold uppercase px-4 mb-3 ${
-            prominent 
-                ? 'text-base text-[var(--color-text-primary)]' 
-                : 'text-sm text-[var(--color-text-muted)]'
-        }`}>{title}</h2>
+        <h2 className={`font-bold uppercase px-4 mb-3 ${prominent
+            ? 'text-base text-[var(--color-text-primary)]'
+            : 'text-sm text-[var(--color-text-muted)]'
+            }`}>{title}</h2>
         <Card variant="elevated" padding="none" className="overflow-hidden">
             {children}
         </Card>
@@ -106,7 +105,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
             try {
                 const subscription = await getUserSubscription(user.id);
                 console.log('[SettingsView] Subscription data received:', subscription);
-                
+
                 // Check for premium tier mismatch
                 if (subscription && typeof subscription === 'object' && '_premiumTierMismatch' in subscription) {
                     console.log('[SettingsView] Premium tier mismatch detected');
@@ -115,51 +114,51 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                     setSubscriptionPlan(null);
                     return;
                 }
-                
+
                 if (subscription) {
                     // Check if subscription is cancelled AND period hasn't ended
                     const isCancelled = subscription.cancelAtPeriodEnd === true;
                     const periodEndDate = subscription.currentPeriodEnd;
                     const periodHasEnded = periodEndDate ? new Date(periodEndDate) <= new Date() : false;
-                    
+
                     // Only mark as cancelled if subscription exists, is cancelled, and period hasn't ended
                     const cancelled = isCancelled && !periodHasEnded;
-                    
+
                     console.log('[SettingsView] Cancellation check:', {
                         cancelAtPeriodEnd: isCancelled,
                         currentPeriodEnd: periodEndDate,
                         periodHasEnded,
                         cancelled
                     });
-                    
+
                     setSubscriptionCancelled(cancelled);
                     setCancelAtPeriodEnd(isCancelled);
                     setCurrentPeriodEnd(periodEndDate || null);
                     setHasPremiumMismatch(false);
-                    
+
                     // Extract plan type from subscription
                     let plan = subscription.plan;
                     console.log('[SettingsView] Plan value from subscription:', plan, 'Type:', typeof plan);
                     console.log('[SettingsView] Cancellation status:', cancelled);
-                    
+
                     // Normalize plan value (handle case sensitivity, whitespace, etc.)
                     if (plan && typeof plan === 'string') {
                         plan = plan.trim().toLowerCase();
                     }
-                    
+
                     // Try to infer from price if plan is missing, null, undefined, or unknown
                     const originalPrice = subscription.originalPrice;
                     const currentPrice = subscription.currentPrice;
                     const price = originalPrice || currentPrice;
                     console.log('[SettingsView] Price values - originalPrice:', originalPrice, 'currentPrice:', currentPrice, 'using:', price);
-                    
+
                     if (plan === 'monthly' || plan === 'annual') {
                         console.log('[SettingsView] ✅ Setting plan to:', plan);
                         setSubscriptionPlan(plan);
                     } else if (!plan || plan === 'unknown' || plan === 'null' || plan === 'undefined') {
                         // Try to infer plan from price if available
                         console.log('[SettingsView] Plan is missing/unknown, attempting to infer from price:', price);
-                        
+
                         if (price && typeof price === 'number') {
                             // Annual plans are typically > $50, monthly < $50
                             // Mock annual: 99.99 (or 69.99 with discount), Mock monthly: 9.99 (or 6.99 with discount)
@@ -240,7 +239,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
             const message = result?.message || 'Your subscription has been restored successfully!';
             setRestoreSuccess(message);
             showToast(message, 'success');
-            
+
             // Reload the page after a short delay to refresh tier and subscription state
             setTimeout(() => {
                 window.location.reload();
@@ -248,7 +247,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
         } catch (err) {
             console.error('[SettingsView] Error restoring purchase:', err);
             const errorMessage = err instanceof Error ? err.message : 'Failed to restore purchase. Please try again.';
-            
+
             // Improve error messages
             let displayError = errorMessage;
             if (errorMessage.includes('endpoint not found') || errorMessage.includes('Failed to fetch')) {
@@ -256,7 +255,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
             } else if (errorMessage.includes('No subscription found')) {
                 displayError = 'No subscription found to restore. It may have expired or been cancelled.';
             }
-            
+
             showToast(displayError, 'error');
         } finally {
             setRestoreLoading(false);
@@ -279,7 +278,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
 
     const handleManageBilling = async () => {
         if (!user || billingPortalLoading) return;
-        
+
         setBillingPortalLoading(true);
         try {
             const returnUrl = `${window.location.origin}/settings`;
@@ -307,7 +306,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
     return (
         <div className="min-h-screen bg-transparent pb-24">
             <ToastContainer toasts={toasts} onRemove={removeToast} />
-            
+
             {/* Header */}
             <div className="flex items-center px-6 py-4">
                 <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Settings</h1>
@@ -319,7 +318,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                         <div className="p-6 flex flex-col gap-4">
                             <div className="flex items-center gap-4">
                                 {subscriptionLoading ? (
-                                    <div 
+                                    <div
                                         className="w-16 h-16 rounded-full bg-[var(--color-neutral-200)] animate-pulse"
                                         aria-label="Loading profile..."
                                     />
@@ -336,9 +335,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                                         {fullName}
                                     </h3>
                                     <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--color-text-muted)] mt-1">
-                                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
-                                            isPremium ? 'bg-[var(--color-warning-light)] text-[var(--color-warning-dark)] border border-[var(--color-warning)]' : 'bg-[var(--color-neutral-100)] text-[var(--color-neutral-600)] border border-[var(--color-neutral-200)]'
-                                        }`}>
+                                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${isPremium ? 'bg-[var(--color-warning-light)] text-[var(--color-warning-dark)] border border-[var(--color-warning)]' : 'bg-[var(--color-neutral-100)] text-[var(--color-neutral-600)] border border-[var(--color-neutral-200)]'
+                                            }`}>
                                             {isPremium
                                                 ? cancelAtPeriodEnd && currentPeriodEnd
                                                     ? `Premium - cancels ${new Date(currentPeriodEnd).toLocaleDateString()}`
@@ -504,6 +502,16 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                     )}
                 </SettingsSection>
 
+                <SettingsSection title="Privacy">
+                    <SettingsRow onClick={() => window.dispatchEvent(new CustomEvent('open-cookie-preferences'))} isLast>
+                        <div>
+                            <span className="text-[var(--color-text-primary)]">Manage Cookie Preferences</span>
+                            <p className="text-xs text-[var(--color-text-muted)] mt-1">Control analytics, functional, and marketing cookies</p>
+                        </div>
+                        <i className="fa fa-chevron-right text-[var(--color-text-muted)]" aria-hidden="true"></i>
+                    </SettingsRow>
+                </SettingsSection>
+
                 <SettingsSection title="Legal">
                     <SettingsRow onClick={() => onNavigate(View.PrivacyPolicy)}>
                         <span className="text-[var(--color-text-primary)]">Privacy Policy</span>
@@ -515,6 +523,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                     </SettingsRow>
                     <SettingsRow onClick={() => onNavigate(View.SubscriptionTerms)}>
                         <span className="text-[var(--color-text-primary)]">Subscription & Billing</span>
+                        <i className="fa fa-chevron-right text-[var(--color-text-muted)]" aria-hidden="true"></i>
+                    </SettingsRow>
+                    <SettingsRow onClick={() => window.dispatchEvent(new Event('open-cookie-preferences'))}>
+                        <span className="text-[var(--color-text-primary)]">Manage Cookie Preferences</span>
                         <i className="fa fa-chevron-right text-[var(--color-text-muted)]" aria-hidden="true"></i>
                     </SettingsRow>
                     <SettingsRow onClick={() => onNavigate(View.CookiePolicy)}>

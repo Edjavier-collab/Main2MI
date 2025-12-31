@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from './Button';
 
 interface CookiePreferences {
@@ -24,6 +24,24 @@ const CookieConsent: React.FC<CookieConsentProps> = ({ onConsent }) => {
         marketing: false,
     });
 
+    // Load stored preferences
+    const loadStoredPreferences = useCallback(() => {
+        const storedConsent = localStorage.getItem('mi-coach-cookie-consent');
+        if (storedConsent) {
+            try {
+                const parsed = JSON.parse(storedConsent) as CookiePreferences;
+                setPreferences({
+                    essential: true, // Always true
+                    functional: parsed.functional ?? false,
+                    analytics: parsed.analytics ?? false,
+                    marketing: parsed.marketing ?? false,
+                });
+            } catch {
+                // Invalid JSON, use defaults
+            }
+        }
+    }, []);
+
     useEffect(() => {
         // Check if user has already made a choice
         const storedConsent = localStorage.getItem('mi-coach-cookie-consent');
@@ -31,7 +49,27 @@ const CookieConsent: React.FC<CookieConsentProps> = ({ onConsent }) => {
             // No prior consent, show banner
             setShowBanner(true);
         }
+
+        const handleOpenPreferences = () => {
+            setShowDetails(true);
+        };
+
+        window.addEventListener('open-cookie-preferences', handleOpenPreferences);
+        return () => window.removeEventListener('open-cookie-preferences', handleOpenPreferences);
     }, []);
+
+    // Listen for custom event to open preferences modal
+    useEffect(() => {
+        const handleOpenPreferences = () => {
+            loadStoredPreferences();
+            setShowDetails(true);
+        };
+
+        window.addEventListener('open-cookie-preferences', handleOpenPreferences);
+        return () => {
+            window.removeEventListener('open-cookie-preferences', handleOpenPreferences);
+        };
+    }, [loadStoredPreferences]);
 
     const handleAcceptAll = () => {
         const allConsent: CookiePreferences = {
@@ -88,6 +126,7 @@ const CookieConsent: React.FC<CookieConsentProps> = ({ onConsent }) => {
     };
 
     if (!showBanner && !showDetails) {
+        // Even if banner is hidden, we might need to render if details are requested via event
         return null;
     }
 
@@ -119,7 +158,7 @@ const CookieConsent: React.FC<CookieConsentProps> = ({ onConsent }) => {
 
                         {/* Functional */}
                         <div className="flex items-start p-4 bg-white rounded-[var(--radius-md)] border border-[var(--color-neutral-200)] hover:border-[var(--color-primary)] cursor-pointer transition-colors shadow-sm"
-                             onClick={() => handleTogglePreference('functional')}>
+                            onClick={() => handleTogglePreference('functional')}>
                             <input
                                 type="checkbox"
                                 checked={preferences.functional}
@@ -136,7 +175,7 @@ const CookieConsent: React.FC<CookieConsentProps> = ({ onConsent }) => {
 
                         {/* Analytics */}
                         <div className="flex items-start p-4 bg-white rounded-[var(--radius-md)] border border-[var(--color-neutral-200)] hover:border-[var(--color-primary)] cursor-pointer transition-colors shadow-sm"
-                             onClick={() => handleTogglePreference('analytics')}>
+                            onClick={() => handleTogglePreference('analytics')}>
                             <input
                                 type="checkbox"
                                 checked={preferences.analytics}
@@ -153,7 +192,7 @@ const CookieConsent: React.FC<CookieConsentProps> = ({ onConsent }) => {
 
                         {/* Marketing */}
                         <div className="flex items-start p-4 bg-white rounded-[var(--radius-md)] border border-[var(--color-neutral-200)] hover:border-[var(--color-primary)] cursor-pointer transition-colors shadow-sm"
-                             onClick={() => handleTogglePreference('marketing')}>
+                            onClick={() => handleTogglePreference('marketing')}>
                             <input
                                 type="checkbox"
                                 checked={preferences.marketing}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BackButton } from '../ui/BackButton';
+import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 
 interface SupportViewProps {
@@ -10,7 +10,16 @@ const SupportView: React.FC<SupportViewProps> = ({ onBack }) => {
     return (
         <div className="min-h-screen bg-transparent pb-24">
             <div className="max-w-3xl mx-auto px-6 py-4">
-                <BackButton onClick={onBack} className="mb-6" />
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onBack}
+                    icon={<i className="fa-solid fa-arrow-left" />}
+                    aria-label="Go back"
+                    className="mb-6 pl-0"
+                >
+                    Back
+                </Button>
 
                 <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-6">Contact & Support</h1>
 

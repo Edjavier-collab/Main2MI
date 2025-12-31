@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { View } from '../../types';
 import { Button } from '../ui/Button';
-import { BackButton } from '../ui/BackButton';
 import { Card } from '../ui/Card';
 import { useToast } from '../ui/Toast';
 
@@ -109,7 +108,7 @@ const EmailConfirmationView: React.FC<EmailConfirmationViewProps> = ({ email, on
                     </div>
                     <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mt-4">Check Your Email</h1>
                 </div>
-                
+
                 <Card variant="accent" padding="lg" className="mb-6 border-l-4 border-[var(--color-success)]">
                     <div className="flex items-start space-x-3">
                         <i className="fa-solid fa-check-circle text-[var(--color-success)] text-xl mt-0.5 flex-shrink-0" aria-hidden="true"></i>
@@ -126,7 +125,7 @@ const EmailConfirmationView: React.FC<EmailConfirmationViewProps> = ({ email, on
                             </p>
                             <Card variant="accent" padding="sm" className="mt-2 bg-[var(--color-warning-light)]">
                                 <p className="text-xs text-[var(--color-text-primary)]">
-                                    <strong>Note:</strong> If emails aren't being sent, your Supabase project may need SMTP configuration. 
+                                    <strong>Note:</strong> If emails aren't being sent, your Supabase project may need SMTP configuration.
                                     See <code className="text-xs">EMAIL_SETUP.md</code> for setup instructions.
                                 </p>
                             </Card>
@@ -157,10 +156,13 @@ const EmailConfirmationView: React.FC<EmailConfirmationViewProps> = ({ email, on
                         I've Verified My Email
                     </Button>
 
-                    <BackButton
+                    <Button
                         onClick={onBack}
-                        className="w-full justify-center"
-                    />
+                        variant="ghost"
+                        fullWidth
+                    >
+                        Back to Login
+                    </Button>
                 </div>
             </div>
         </div>

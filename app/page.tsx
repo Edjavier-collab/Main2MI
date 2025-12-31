@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef, Suspense, lazy } from 'react';
-import { UserTier, View, PatientProfile, Session, Feedback, ChatMessage, PatientProfileFilters, CoachingSummary } from '@/types';
-import { generatePatientProfile } from '@/services/patientService';
+import { UserTier, View, PatientProfile, Session, Feedback, ChatMessage, CoachingSummary } from '@/types';
+import { generatePatientProfile as generatePatientProfileFromTemplate } from '@/services/patientService';
 import { canStartSession } from '@/services/subscriptionService';
 import { useAuth } from '@/contexts/AuthContext';
 import { getSupabaseClient } from '@/lib/supabase';
@@ -186,13 +186,13 @@ export default function AppPage() {
     if (userTier === UserTier.Premium) {
       setView(View.ScenarioSelection);
     } else {
-      const patient = generatePatientProfile();
+      const patient = generatePatientProfileFromTemplate();
       setCurrentPatient(patient);
       setView(View.Practice);
     }
   }, [user, userTier, isTierVerifying, setView, setCurrentPatient]);
   
-  const handleStartFilteredPractice = useCallback((filters: PatientProfileFilters) => {
+  const handleStartFilteredPractice = useCallback((patientProfile: PatientProfile) => {
     // Require authentication to start practice
     if (!user) {
       console.log('[App] User not authenticated, redirecting to login');
@@ -200,8 +200,8 @@ export default function AppPage() {
       return;
     }
 
-    const patient = generatePatientProfile(filters);
-    setCurrentPatient(patient);
+    // Use the AI-generated patient profile directly
+    setCurrentPatient(patientProfile);
     setView(View.Practice);
   }, [user, setCurrentPatient, setView]);
 
@@ -443,7 +443,7 @@ export default function AppPage() {
   const isAuthView = view === View.Login || view === View.ForgotPassword || view === View.EmailConfirmation || view === View.ResetPassword;
   const shouldRenderAuthViews = !user && !authLoading && isAuthView;
 
-  const viewsWithNavBar = [View.Dashboard, View.ResourceLibrary, View.Settings, View.Calendar];
+  const viewsWithNavBar = [View.Dashboard, View.Reports, View.ResourceLibrary, View.Settings, View.Calendar];
   const isPremiumFeedback = view === View.Feedback && userTier === UserTier.Premium;
   const shouldShowNavBar = viewsWithNavBar.includes(view) || isPremiumFeedback;
 

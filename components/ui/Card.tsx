@@ -4,7 +4,7 @@ import React from 'react';
 
 interface CardProps {
   children: React.ReactNode;
-  variant?: 'default' | 'elevated' | 'outlined' | 'accent' | 'glass';
+  variant?: 'default' | 'elevated' | 'outlined' | 'accent' | 'glass' | 'soft' | 'flat' | 'soft-accent' | 'soft-elevated';
   padding?: 'none' | 'sm' | 'md' | 'lg';
   hoverable?: boolean;
   onClick?: () => void;
@@ -32,6 +32,11 @@ export const Card: React.FC<CardProps> = ({
     outlined: 'border border-[#E1E4E8]',
     accent: 'bg-[var(--color-bg-accent)] border border-[#E1E4E8] shadow-sm',
     glass: 'backdrop-blur-md bg-white/60 border border-white/40 shadow-lg', // Updated Glassmorphism
+    soft: 'bg-white shadow-[var(--shadow-sm)] border border-transparent hover:shadow-md', // Soft, cleaner card
+    flat: 'bg-[var(--color-bg-main)] border border-transparent', // Flat, no shadow background
+    // Soft variants
+    'soft-accent': 'bg-[var(--color-bg-accent)] shadow-[var(--shadow-xs)] border border-[var(--color-primary-light)]',
+    'soft-elevated': 'shadow-[var(--shadow-md)] border border-[var(--color-primary-lighter)]',
   };
 
   const paddingClasses = {
@@ -41,7 +46,13 @@ export const Card: React.FC<CardProps> = ({
     lg: 'p-8',
   };
 
-  const hoverClasses = hoverable || onClick ? 'cursor-pointer tile-hover active:scale-[0.98]' : '';
+  // Enhanced hover effect for soft variants
+  const isSoftVariant = variant.startsWith('soft');
+  const hoverClasses = hoverable || onClick
+    ? isSoftVariant
+      ? 'cursor-pointer hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-[var(--shadow-lg)] hover:border-[var(--color-primary)] active:translate-y-0 active:scale-100 active:shadow-[var(--shadow-sm)] focus-visible:outline-2 focus-visible:outline-[var(--color-primary)] focus-visible:outline-offset-2'
+      : 'cursor-pointer tile-hover active:scale-[0.98]'
+    : '';
 
   const classes = `${baseClasses} ${variantClasses[variant]} ${paddingClasses[padding]} ${hoverClasses} ${className}`;
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BackButton } from '../ui/BackButton';
+import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 
 interface DisclaimerProps {
@@ -10,7 +10,16 @@ const Disclaimer: React.FC<DisclaimerProps> = ({ onBack }) => {
     return (
         <div className="min-h-screen bg-transparent pb-24">
             <div className="max-w-3xl mx-auto px-6 py-4">
-                <BackButton onClick={onBack} className="mb-6" />
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onBack}
+                    icon={<i className="fa-solid fa-arrow-left" />}
+                    aria-label="Go back"
+                    className="mb-6 pl-0"
+                >
+                    Back
+                </Button>
 
                 <Card variant="elevated" padding="lg">
                     <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-6">Medical & Educational Disclaimer</h1>
@@ -23,107 +32,107 @@ const Disclaimer: React.FC<DisclaimerProps> = ({ onBack }) => {
                             </p>
                         </Card>
 
-                    <section>
-                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">1. Educational Purpose Only</h2>
-                        <p>
-                            MI Mastery is designed to help healthcare professionals and students practice Motivational Interviewing (MI) techniques in a safe, simulated environment. The AI-simulated patients and feedback provided are for educational and training purposes only.
-                        </p>
-                    </section>
+                        <section>
+                            <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">1. Educational Purpose Only</h2>
+                            <p>
+                                MI Mastery is designed to help healthcare professionals and students practice Motivational Interviewing (MI) techniques in a safe, simulated environment. The AI-simulated patients and feedback provided are for educational and training purposes only.
+                            </p>
+                        </section>
 
-                    <section>
-                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">2. Not a Medical Service</h2>
-                        <p>
-                            The Service does NOT:
-                        </p>
-                        <ul className="list-disc list-inside space-y-2 ml-4">
-                            <li>Provide medical diagnosis, treatment, or professional advice.</li>
-                            <li>Replace consultation with a qualified healthcare provider or counselor.</li>
-                            <li>Manage, treat, or cure any medical or psychological condition.</li>
-                            <li>Function as telehealth or telemedicine.</li>
-                        </ul>
-                    </section>
+                        <section>
+                            <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">2. Not a Medical Service</h2>
+                            <p>
+                                The Service does NOT:
+                            </p>
+                            <ul className="list-disc list-inside space-y-2 ml-4">
+                                <li>Provide medical diagnosis, treatment, or professional advice.</li>
+                                <li>Replace consultation with a qualified healthcare provider or counselor.</li>
+                                <li>Manage, treat, or cure any medical or psychological condition.</li>
+                                <li>Function as telehealth or telemedicine.</li>
+                            </ul>
+                        </section>
 
-                    <section>
-                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">3. No Real Patient Data</h2>
-                        <p>
-                            All patient profiles are fictional and AI-generated. DO NOT enter real, sensitive, or identifiable health information into the Service. The Service is not HIPAA-compliant and is not designed to store or process real patient data or Protected Health Information (PHI).
-                        </p>
-                    </section>
+                        <section>
+                            <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">3. No Real Patient Data</h2>
+                            <p>
+                                All patient profiles are fictional and AI-generated. DO NOT enter real, sensitive, or identifiable health information into the Service. The Service is not HIPAA-compliant and is not designed to store or process real patient data or Protected Health Information (PHI).
+                            </p>
+                        </section>
 
-                    <section>
-                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">4. AI Limitations</h2>
-                        <p>
-                            The AI-powered patient simulations are generated by machine learning and may:
-                        </p>
-                        <ul className="list-disc list-inside space-y-2 ml-4">
-                            <li>Produce inaccurate or unrealistic responses.</li>
-                            <li>Miss subtle clinical nuances or patient concerns.</li>
-                            <li>Not reflect the full complexity of real patient interactions.</li>
-                            <li>Require human oversight and clinical judgment.</li>
-                        </ul>
-                    </section>
+                        <section>
+                            <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">4. AI Limitations</h2>
+                            <p>
+                                The AI-powered patient simulations are generated by machine learning and may:
+                            </p>
+                            <ul className="list-disc list-inside space-y-2 ml-4">
+                                <li>Produce inaccurate or unrealistic responses.</li>
+                                <li>Miss subtle clinical nuances or patient concerns.</li>
+                                <li>Not reflect the full complexity of real patient interactions.</li>
+                                <li>Require human oversight and clinical judgment.</li>
+                            </ul>
+                        </section>
 
-                    <section>
-                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">5. Use of Real Patient Scenarios</h2>
-                        <p>
-                            If you adapt real patient scenarios for practice, ensure all identifiable information is removed and the scenarios are used solely for training with appropriate consent from your institution's ethics board.
-                        </p>
-                    </section>
+                        <section>
+                            <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">5. Use of Real Patient Scenarios</h2>
+                            <p>
+                                If you adapt real patient scenarios for practice, ensure all identifiable information is removed and the scenarios are used solely for training with appropriate consent from your institution's ethics board.
+                            </p>
+                        </section>
 
-                    <section>
-                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">6. Feedback & Coaching Summaries</h2>
-                        <p>
-                            Feedback generated by the Service is AI-powered and intended as educational guidance only. It is not professional medical or therapeutic advice and should not be relied upon as a substitute for supervision by qualified educators or clinical supervisors.
-                        </p>
-                    </section>
+                        <section>
+                            <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">6. Feedback & Coaching Summaries</h2>
+                            <p>
+                                Feedback generated by the Service is AI-powered and intended as educational guidance only. It is not professional medical or therapeutic advice and should not be relied upon as a substitute for supervision by qualified educators or clinical supervisors.
+                            </p>
+                        </section>
 
-                    <section>
-                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">7. Liability Waiver</h2>
-                        <p>
-                            By using the Service, you assume full responsibility for how you use it. MI Mastery and its operators are not liable for:
-                        </p>
-                        <ul className="list-disc list-inside space-y-2 ml-4">
-                            <li>Any harm, injury, or adverse outcome resulting from use of the Service.</li>
-                            <li>Clinical errors or decisions made based on feedback from the Service.</li>
-                            <li>Loss or misuse of data entered into the Service.</li>
-                            <li>Any claims arising from your use of the Service in any manner.</li>
-                        </ul>
-                    </section>
+                        <section>
+                            <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">7. Liability Waiver</h2>
+                            <p>
+                                By using the Service, you assume full responsibility for how you use it. MI Mastery and its operators are not liable for:
+                            </p>
+                            <ul className="list-disc list-inside space-y-2 ml-4">
+                                <li>Any harm, injury, or adverse outcome resulting from use of the Service.</li>
+                                <li>Clinical errors or decisions made based on feedback from the Service.</li>
+                                <li>Loss or misuse of data entered into the Service.</li>
+                                <li>Any claims arising from your use of the Service in any manner.</li>
+                            </ul>
+                        </section>
 
-                    <section>
-                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">8. Professional License & Credentials</h2>
-                        <p>
-                            The Service does not verify, endorse, or grant any professional license or credentials. Use of the Service does not certify your competence in MI or healthcare. Any credential or certification claims must be supported by accredited training and formal credentialing bodies.
-                        </p>
-                    </section>
+                        <section>
+                            <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">8. Professional License & Credentials</h2>
+                            <p>
+                                The Service does not verify, endorse, or grant any professional license or credentials. Use of the Service does not certify your competence in MI or healthcare. Any credential or certification claims must be supported by accredited training and formal credentialing bodies.
+                            </p>
+                        </section>
 
-                    <section>
-                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">9. Emergency or Crisis Situations</h2>
-                        <p>
-                            If you or someone else is in crisis, experiencing a medical emergency, or at risk of harm, DO NOT rely on the Service. Contact your local emergency services (911 in the US) or a crisis hotline immediately.
-                        </p>
-                    </section>
+                        <section>
+                            <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">9. Emergency or Crisis Situations</h2>
+                            <p>
+                                If you or someone else is in crisis, experiencing a medical emergency, or at risk of harm, DO NOT rely on the Service. Contact your local emergency services (911 in the US) or a crisis hotline immediately.
+                            </p>
+                        </section>
 
-                    <section>
-                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">10. Regulatory Compliance</h2>
-                        <p>
-                            You are responsible for ensuring your use of the Service complies with all applicable laws, regulations, and professional licensing requirements in your jurisdiction.
-                        </p>
-                    </section>
+                        <section>
+                            <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">10. Regulatory Compliance</h2>
+                            <p>
+                                You are responsible for ensuring your use of the Service complies with all applicable laws, regulations, and professional licensing requirements in your jurisdiction.
+                            </p>
+                        </section>
 
-                    <section>
-                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">11. Changes to This Disclaimer</h2>
-                        <p>
-                            This disclaimer may be updated periodically. Your continued use of the Service indicates acceptance of any changes.
-                        </p>
-                    </section>
+                        <section>
+                            <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">11. Changes to This Disclaimer</h2>
+                            <p>
+                                This disclaimer may be updated periodically. Your continued use of the Service indicates acceptance of any changes.
+                            </p>
+                        </section>
 
-                    <section>
-                        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">12. Questions or Concerns</h2>
-                        <p>
-                            For questions about this disclaimer or appropriate use of the Service, please contact: <strong>support@mimastery.com</strong>
-                        </p>
-                    </section>
+                        <section>
+                            <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-3">12. Questions or Concerns</h2>
+                            <p>
+                                For questions about this disclaimer or appropriate use of the Service, please contact: <strong>support@mimastery.com</strong>
+                            </p>
+                        </section>
                     </div>
                 </Card>
             </div>

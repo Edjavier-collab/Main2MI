@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
-import { BackButton } from '../ui/BackButton';
 import { Card } from '../ui/Card';
 import { useToast } from '../ui/Toast';
 
@@ -51,7 +50,7 @@ const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({ onBack }) => {
             e.preventDefault();
         }
         setError(null);
-        
+
         if (!email) {
             setError('Please enter your email address.');
             return;
@@ -82,7 +81,14 @@ const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({ onBack }) => {
         <div className="min-h-screen bg-transparent flex flex-col p-4 pb-24">
             <ToastContainer toasts={toasts} onRemove={removeToast} />
             <header className="flex items-center w-full max-w-sm mx-auto pt-4">
-                <BackButton onClick={onBack} className="mr-3" />
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onBack}
+                    icon={<i className="fa-solid fa-arrow-left" />}
+                    aria-label="Go back"
+                    className="mr-3"
+                />
                 <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
                     Forgot Password
                 </h1>
@@ -126,7 +132,13 @@ const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({ onBack }) => {
                                 Resend Email
                             </Button>
                         )}
-                        <BackButton onClick={onBack} className="w-full justify-center" />
+                        <Button
+                            onClick={onBack}
+                            variant="ghost"
+                            fullWidth
+                        >
+                            Back to Login
+                        </Button>
                     </div>
                 ) : (
                     <Card variant="elevated" padding="lg" className="w-full">

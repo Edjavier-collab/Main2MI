@@ -1,7 +1,7 @@
 'use client';
 
 import React, { Suspense, lazy } from 'react';
-import { View, UserTier, Session, PatientProfile, CoachingSummary, PatientProfileFilters } from '../../types';
+import { View, UserTier, Session, PatientProfile, CoachingSummary } from '../../types';
 import { User } from '@supabase/supabase-js';
 import { PageLoader } from '../ui/LoadingSpinner';
 import ErrorBoundary from '../ui/ErrorBoundary';
@@ -48,7 +48,7 @@ interface ViewRendererProps {
   isTierVerifying: boolean; // Whether tier verification is in progress
   onNavigate: (view: View) => void;
   onStartPractice: () => void;
-  onStartFilteredPractice: (filters: PatientProfileFilters) => void;
+  onStartFilteredPractice: (patientProfile: PatientProfile) => void;
   onFinishPractice: (transcript: any[], feedback: any) => void;
   onDoneFromFeedback: () => void;
   onUpgrade: () => void;
@@ -87,9 +87,9 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
     switch (view) {
       case View.Login:
         return (
-          <LoginView 
-            onLogin={() => {}} 
-            onNavigate={onNavigate} 
+          <LoginView
+            onLogin={() => onNavigate(View.Dashboard)}
+            onNavigate={onNavigate}
             onEmailConfirmation={onEmailConfirmation}
             onContinueAsGuest={() => onNavigate(View.Dashboard)}
           />
@@ -98,19 +98,19 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
         return <ForgotPasswordView onBack={() => onNavigate(View.Login)} />;
       case View.EmailConfirmation:
         return (
-          <EmailConfirmationView 
+          <EmailConfirmationView
             email={confirmationEmail}
-            onBack={() => onNavigate(View.Login)} 
+            onBack={() => onNavigate(View.Login)}
             onNavigate={onNavigate}
           />
         );
       case View.ResetPassword:
         return (
-          <ResetPasswordView 
+          <ResetPasswordView
             onBack={() => {
               window.history.replaceState({}, '', window.location.pathname);
               onNavigate(View.Login);
-            }} 
+            }}
             onSuccess={() => {
               alert('Password reset successful! Please log in with your new password.');
               window.history.replaceState({}, '', window.location.pathname);
@@ -183,28 +183,28 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
               </div>
             }
           >
-          <FeedbackView 
-            session={currentSession} 
-            onDone={onDoneFromFeedback} 
-            onUpgrade={() => onNavigate(View.Paywall)} 
-            onStartPractice={onStartPractice} 
-          />
+            <FeedbackView
+              session={currentSession}
+              onDone={onDoneFromFeedback}
+              onUpgrade={() => onNavigate(View.Paywall)}
+              onStartPractice={onStartPractice}
+            />
           </ErrorBoundary>
         );
       case View.History:
         return (
-          <HistoryView 
-            sessions={sessions} 
-            onBack={() => onNavigate(View.Dashboard)} 
-            onNavigateToPaywall={() => onNavigate(View.Paywall)} 
-            userTier={userTier} 
+          <HistoryView
+            sessions={sessions}
+            onBack={() => onNavigate(View.Dashboard)}
+            onNavigateToPaywall={() => onNavigate(View.Paywall)}
+            userTier={userTier}
           />
         );
       case View.ResourceLibrary:
         return (
-          <ResourceLibrary 
+          <ResourceLibrary
             onBack={() => onNavigate(View.Dashboard)}
-            onUpgrade={() => onNavigate(View.Paywall)} 
+            onUpgrade={() => onNavigate(View.Paywall)}
             userTier={userTier}
           />
         );
@@ -221,17 +221,17 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
           );
         }
         return (
-          <PaywallView 
-            onBack={() => onNavigate(View.Dashboard)} 
-            onUpgrade={onUpgrade} 
+          <PaywallView
+            onBack={() => onNavigate(View.Dashboard)}
+            onUpgrade={onUpgrade}
             user={user}
             onNavigateToLogin={() => onNavigate(View.Login)}
           />
         );
       case View.Calendar:
         return (
-          <CalendarView 
-            sessions={sessions} 
+          <CalendarView
+            sessions={sessions}
             onBack={() => onNavigate(View.Dashboard)}
             userTier={userTier}
             onGenerateCoachingSummary={onGenerateCoachingSummary}
@@ -241,8 +241,8 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
         );
       case View.Settings:
         return (
-          <SettingsView 
-            userTier={userTier} 
+          <SettingsView
+            userTier={userTier}
             onNavigateToPaywall={() => onNavigate(View.Paywall)}
             onLogout={onLogout}
             onNavigate={onNavigate}
@@ -256,7 +256,7 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
           return null;
         }
         return (
-          <CancelSubscriptionView 
+          <CancelSubscriptionView
             user={user}
             userTier={userTier}
             onBack={() => onNavigate(View.Settings)}
@@ -288,12 +288,12 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
               </div>
             }
           >
-          <CoachingSummaryView
-            isLoading={isGeneratingSummary}
-            summary={coachingSummary}
-            error={coachingSummaryError}
-            onBack={() => onNavigate(View.Calendar)}
-          />
+            <CoachingSummaryView
+              isLoading={isGeneratingSummary}
+              summary={coachingSummary}
+              error={coachingSummaryError}
+              onBack={() => onNavigate(View.Calendar)}
+            />
           </ErrorBoundary>
         );
       case View.PrivacyPolicy:
@@ -333,26 +333,27 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
               </div>
             }
           >
-          <ReportsView
-            sessions={sessions}
-            userTier={userTier}
-            isPremiumVerified={isPremiumVerified}
-            onBack={() => onNavigate(View.Dashboard)}
-            onUpgrade={() => onNavigate(View.Paywall)}
-            onNavigate={onNavigate}
-          />
+            <ReportsView
+              sessions={sessions}
+              userTier={userTier}
+              isPremiumVerified={isPremiumVerified}
+              onBack={() => onNavigate(View.Dashboard)}
+              onUpgrade={() => onNavigate(View.Paywall)}
+              onNavigate={onNavigate}
+            />
           </ErrorBoundary>
         );
       case View.Dashboard:
       default:
         return (
-          <Dashboard 
-            onStartPractice={onStartPractice} 
-            userTier={userTier} 
+          <Dashboard
+            onStartPractice={onStartPractice}
+            userTier={userTier}
             sessions={sessions}
             remainingFreeSessions={remainingFreeSessions}
             onNavigateToPaywall={() => onNavigate(View.Paywall)}
             onNavigate={onNavigate}
+            isLoadingTier={isTierVerifying}
           />
         );
     }

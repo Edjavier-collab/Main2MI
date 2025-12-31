@@ -5,7 +5,6 @@ import { redirectToCheckout } from '../../services/stripeService';
 import { User } from '@supabase/supabase-js';
 import { View } from '../../types';
 import { Button } from '../ui/Button';
-import { BackButton } from '../ui/BackButton';
 import { Card } from '../ui/Card';
 import { useToast } from '../ui/Toast';
 
@@ -34,11 +33,22 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
         return (
             <div className="min-h-screen bg-transparent pb-24">
                 <ToastContainer toasts={toasts} onRemove={removeToast} />
-                
-            {/* Header */}
-            <div className="px-6 pt-4 pb-2">
-                <BackButton onClick={onBack} />
-            </div>
+
+                {/* Header */}
+                <div className="px-6 pt-4 pb-2">
+                    <div className="px-6 pt-4 pb-2">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={onBack}
+                            icon={<i className="fa-solid fa-arrow-left" />}
+                            aria-label="Go back"
+                            className="pl-0"
+                        >
+                            Back
+                        </Button>
+                    </div>
+                </div>
 
                 <div className="w-full max-w-md mx-auto px-6 text-center">
                     <div className="mb-6">
@@ -48,7 +58,7 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                         <h1 className="text-3xl sm:text-4xl font-extrabold text-[var(--color-text-primary)] mb-2">Create an Account to Upgrade</h1>
                         <p className="text-[var(--color-text-secondary)]">Sign up or log in to unlock unlimited practice sessions and premium features!</p>
                     </div>
-                    
+
                     <Card variant="elevated" padding="md" className="mb-6 text-left">
                         <p className="text-[var(--color-text-secondary)] mb-4">Creating an account gives you:</p>
                         <ul className="space-y-3">
@@ -80,11 +90,14 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                         >
                             Sign Up or Log In
                         </button>
-                        <BackButton
+                        <Button
                             onClick={onBack}
-                            label="Continue as Guest (3 free sessions/month)"
-                            className="w-full justify-center"
-                        />
+                            variant="ghost"
+                            fullWidth
+                            className="w-full justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+                        >
+                            Continue as Guest (3 free sessions/month)
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -114,21 +127,32 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
     return (
         <div className="min-h-screen bg-transparent pb-24">
             <ToastContainer toasts={toasts} onRemove={removeToast} />
-            
+
             {/* Header */}
             <div className="px-6 pt-4 pb-2">
-                <BackButton onClick={onBack} />
+                <div className="px-6 pt-4 pb-2">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onBack}
+                        icon={<i className="fa-solid fa-arrow-left" />}
+                        aria-label="Go back"
+                        className="pl-0"
+                    >
+                        Back
+                    </Button>
+                </div>
             </div>
 
             <div className="w-full max-w-md mx-auto px-6 text-center">
                 <div className="mb-6">
-                     <div className="mx-auto mb-4 bg-[var(--color-primary-lighter)] h-20 w-20 rounded-full flex items-center justify-center ring-8 ring-[var(--color-primary-lighter)]/50 shadow-md">
+                    <div className="mx-auto mb-4 bg-[var(--color-primary-lighter)] h-20 w-20 rounded-full flex items-center justify-center ring-8 ring-[var(--color-primary-lighter)]/50 shadow-md">
                         <i className="fa-solid fa-rocket text-4xl text-[var(--color-primary-dark)]" aria-hidden="true"></i>
                     </div>
                     <h1 className="text-3xl sm:text-4xl font-extrabold text-[var(--color-text-primary)] mb-2">Unlimited Practice for Real-World Success</h1>
                     <p className="text-[var(--color-text-secondary)]">You've used your 3 free practices for the month. Upgrade now for unlimited access!</p>
                 </div>
-                
+
                 <Card variant="elevated" padding="md" className="mb-6 text-left">
                     <ul className="space-y-4">
                         <FeatureItem icon="fa-infinity" text={<span><span className="font-semibold">Unlimited</span> Practice Sessions</span>} />
@@ -151,11 +175,10 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                                 handleSubscribe('annual');
                             }
                         }}
-                        className={`relative rounded-[var(--radius-lg)] border-[3px] border-[var(--color-primary)] bg-gradient-to-br from-[var(--color-bg-accent)] to-white p-7 text-left transition-all duration-300 ease-out shadow-lg ${
-                            loading !== null
-                                ? 'opacity-70 cursor-not-allowed'
-                                : 'cursor-pointer tile-hover active:scale-[0.98] hover:shadow-2xl hover:border-[var(--color-primary-dark)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2'
-                        }`}
+                        className={`relative rounded-[var(--radius-lg)] border-[3px] border-[var(--color-primary)] bg-gradient-to-br from-[var(--color-bg-accent)] to-white p-7 text-left transition-all duration-300 ease-out shadow-lg ${loading !== null
+                            ? 'opacity-70 cursor-not-allowed'
+                            : 'cursor-pointer tile-hover active:scale-[0.98] hover:shadow-2xl hover:border-[var(--color-primary-dark)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2'
+                            }`}
                         aria-label="Subscribe to Annual Plan for $99.99 per year"
                         aria-disabled={loading !== null}
                     >
@@ -180,11 +203,10 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                         <p className="text-xs text-[var(--color-text-muted)] mb-4 text-center">
                             That's just <span className="font-bold text-[var(--color-text-secondary)]">$8.33/month</span> • Cancel anytime
                         </p>
-                        <div className={`w-full py-4 rounded-xl font-extrabold text-lg text-center transition-all duration-300 shadow-md ${
-                            loading === 'annual'
-                                ? 'bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]'
-                                : 'bg-[var(--color-primary)] text-[var(--color-text-primary)]'
-                        }`} aria-hidden="true">
+                        <div className={`w-full py-4 rounded-xl font-extrabold text-lg text-center transition-all duration-300 shadow-md ${loading === 'annual'
+                            ? 'bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]'
+                            : 'bg-[var(--color-primary)] text-[var(--color-text-primary)]'
+                            }`} aria-hidden="true">
                             {loading === 'annual' ? (
                                 <span className="flex items-center justify-center gap-2">
                                     <i className="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
@@ -207,11 +229,10 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                                 handleSubscribe('monthly');
                             }
                         }}
-                        className={`relative rounded-[var(--radius-lg)] border-[3px] border-[var(--color-primary-light)] bg-gradient-to-br from-[var(--color-bg-accent)] to-white p-7 text-left shadow-lg transition-all duration-300 ease-out ${
-                            loading !== null
-                                ? 'opacity-70 cursor-not-allowed'
-                                : 'cursor-pointer tile-hover active:scale-[0.98] hover:shadow-2xl hover:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2'
-                        }`}
+                        className={`relative rounded-[var(--radius-lg)] border-[3px] border-[var(--color-primary-light)] bg-gradient-to-br from-[var(--color-bg-accent)] to-white p-7 text-left shadow-lg transition-all duration-300 ease-out ${loading !== null
+                            ? 'opacity-70 cursor-not-allowed'
+                            : 'cursor-pointer tile-hover active:scale-[0.98] hover:shadow-2xl hover:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2'
+                            }`}
                         aria-label="Subscribe to Monthly Plan for $9.99 per month"
                         aria-disabled={loading !== null}
                     >
@@ -228,11 +249,10 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                         <p className="text-xs text-[var(--color-text-muted)] mb-4 text-center">
                             No commitment • Cancel anytime
                         </p>
-                        <div className={`w-full py-4 rounded-xl font-extrabold text-lg text-center transition-all duration-300 shadow-md ${
-                            loading === 'monthly'
-                                ? 'bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]'
-                                : 'bg-[var(--color-primary)] text-[var(--color-text-primary)]'
-                        }`} aria-hidden="true">
+                        <div className={`w-full py-4 rounded-xl font-extrabold text-lg text-center transition-all duration-300 shadow-md ${loading === 'monthly'
+                            ? 'bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]'
+                            : 'bg-[var(--color-primary)] text-[var(--color-text-primary)]'
+                            }`} aria-hidden="true">
                             {loading === 'monthly' ? (
                                 <span className="flex items-center justify-center gap-2">
                                     <i className="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>

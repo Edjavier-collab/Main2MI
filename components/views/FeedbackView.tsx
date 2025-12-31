@@ -98,11 +98,11 @@ const EmpathyGauge: React.FC<{ score: number }> = ({ score }) => {
 };
 
 const MASTER_SKILL_LIST = [
-    'Open Questions', 
-    'Affirmations', 
-    'Reflections', 
-    'Summaries', 
-    'Developing Discrepancy', 
+    'Open Questions',
+    'Affirmations',
+    'Reflections',
+    'Summaries',
+    'Developing Discrepancy',
     'Eliciting Change Talk',
     'Rolling with Resistance',
     'Supporting Self-Efficacy'
@@ -141,7 +141,7 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
     const { feedback, tier } = session;
     const isInsufficientData = feedback.analysisStatus === 'insufficient-data';
     const insufficientMessage = feedback.analysisMessage ?? "We didn’t capture any clinician responses during this session, so there isn’t enough information to generate feedback. Try another session when you’re ready to practice.";
-    
+
     if (isInsufficientData) {
         return (
             <div className="min-h-screen bg-transparent flex flex-col items-center justify-center p-6 text-center pb-24">
@@ -171,7 +171,7 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                                 variant="primary"
                                 size="lg"
                                 fullWidth
-                                className="text-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] border-2 border-black"
+                                className="shadow-md"
                             >
                                 Start a New Practice
                             </Button>
@@ -181,7 +181,7 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                             variant="ghost"
                             size="lg"
                             fullWidth
-                            className="text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] border-2 border-black"
+                            className="border border-[var(--color-neutral-200)]"
                         >
                             Back to Dashboard
                         </Button>
@@ -190,7 +190,7 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
             </div>
         );
     }
-    
+
     if (tier === UserTier.Free) {
         const empathyScore = feedback.empathyScore ?? 0;
         // Use skillsDetected (new field) with fallback to keySkillsUsed (old field)
@@ -203,12 +203,12 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
         const areasForGrowthContent = feedback.areasForGrowth || feedback.constructiveFeedback || '';
         // Use nextFocus (new field) with fallback to nextPracticeFocus (old field)
         const nextFocusContent = feedback.nextFocus || feedback.nextPracticeFocus || '';
-        
+
         // Detect if feedback generation failed (error messages in whatWentRight)
-        const isFeedbackError = feedback.whatWentRight?.includes('encountered an issue') || 
-                                 feedback.whatWentRight?.includes('having trouble connecting') ||
-                                 feedback.whatWentRight?.includes('technical issues');
-        
+        const isFeedbackError = feedback.whatWentRight?.includes('encountered an issue') ||
+            feedback.whatWentRight?.includes('having trouble connecting') ||
+            feedback.whatWentRight?.includes('technical issues');
+
         return (
             <div className="bg-transparent min-h-screen pb-24">
                 <div className="p-4 sm:p-6 max-w-2xl mx-auto">
@@ -237,7 +237,7 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                                 </div>
                                 {/* Progress bar */}
                                 <div className="w-48 h-3 bg-[var(--color-neutral-200)] rounded-full overflow-hidden">
-                                    <div 
+                                    <div
                                         className="h-full bg-[var(--color-primary)] transition-all duration-500"
                                         style={{ width: `${(empathyScore / 5) * 100}%` }}
                                     ></div>
@@ -323,9 +323,9 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                     </Card>
 
                     {/* Issue 3: Next Practice Focus - Show as locked card (not blurred) */}
-                    <Card 
-                        variant="accent" 
-                        padding="md" 
+                    <Card
+                        variant="accent"
+                        padding="md"
                         hoverable
                         onClick={onUpgrade}
                         className="mb-6"
@@ -340,7 +340,7 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                     </Card>
 
                     <footer className="mt-6 space-y-3">
-                        <Button 
+                        <Button
                             onClick={onUpgrade}
                             variant="primary"
                             size="lg"
@@ -349,7 +349,7 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                         >
                             Upgrade to Premium
                         </Button>
-                        <Button 
+                        <Button
                             onClick={onDone}
                             variant="secondary"
                             size="lg"
@@ -369,16 +369,16 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
     // Always ensure we have content for Next Practice Focus - use fallback if empty
     const rawNextFocus = feedback.nextFocus || feedback.nextPracticeFocus || '';
     const premiumNextFocus = rawNextFocus.trim() || DEFAULT_NEXT_FOCUS;
-    
+
     // Detect if feedback generation failed (error messages in whatWentRight)
-    const isPremiumFeedbackError = feedback.whatWentRight?.includes('encountered an issue') || 
-                                    feedback.whatWentRight?.includes('having trouble connecting') ||
-                                    feedback.whatWentRight?.includes('technical issues');
-    
-    
+    const isPremiumFeedbackError = feedback.whatWentRight?.includes('encountered an issue') ||
+        feedback.whatWentRight?.includes('having trouble connecting') ||
+        feedback.whatWentRight?.includes('technical issues');
+
+
     return (
         <div className="bg-transparent pb-24">
-             <div className="p-4 sm:p-6 max-w-2xl mx-auto">
+            <div className="p-4 sm:p-6 max-w-2xl mx-auto">
                 <header className="flex items-center justify-between mb-6">
                     <div className="flex items-center">
                         <Button
@@ -392,7 +392,7 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                         <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Encounter Summary</h1>
                     </div>
                 </header>
-                
+
                 {/* At a Glance Section */}
                 <Card variant="elevated" padding="md" className="mb-6 animate-slide-fade-in">
                     <div className="flex justify-center text-center">
@@ -411,10 +411,10 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                     <FeedbackSectionCard title="What Went Right" icon="fa-thumbs-up">
                         {feedback.whatWentRight}
                     </FeedbackSectionCard>
-                    
+
                     {premiumAreasForGrowth && (
                         <FeedbackSectionCard title="Key Areas for Growth" icon="fa-seedling">
-                           {premiumAreasForGrowth}
+                            {premiumAreasForGrowth}
                         </FeedbackSectionCard>
                     )}
                 </main>
@@ -435,17 +435,17 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                 </Card>
 
                 <div className="mb-6">
-                    <Card variant="accent" padding="lg" className="text-center bg-white border-2 border-black text-[var(--color-text-primary)] min-h-[120px] flex flex-col justify-center">
-                        <i className="fa-solid fa-bullseye text-3xl mb-3 text-[var(--color-text-primary)]" aria-hidden="true"></i>
+                    <Card variant="soft-accent" padding="lg" className="text-center min-h-[120px] flex flex-col justify-center">
+                        <i className="fa-solid fa-bullseye text-3xl mb-3 text-[var(--color-primary)]" aria-hidden="true"></i>
                         <h3 className="text-xl font-bold mb-2 text-[var(--color-text-primary)]">Your Next Practice Focus</h3>
                         <p className="text-[var(--color-text-secondary)] text-lg">
-                           {premiumNextFocus || DEFAULT_NEXT_FOCUS}
+                            {premiumNextFocus || DEFAULT_NEXT_FOCUS}
                         </p>
                     </Card>
                 </div>
 
                 <footer className="mt-4 pb-4">
-                    <Button 
+                    <Button
                         onClick={onStartPractice}
                         variant="primary"
                         size="lg"

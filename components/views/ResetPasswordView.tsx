@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
 import { Button } from '../ui/Button';
-import { BackButton } from '../ui/BackButton';
 import { Card } from '../ui/Card';
 import { useToast } from '../ui/Toast';
 
@@ -33,12 +32,12 @@ const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({ onBack, onSuccess
 
             try {
                 const supabase = getSupabaseClient();
-                
+
                 // Check URL hash for recovery token first
                 const hashParams = new URLSearchParams(window.location.hash.substring(1));
                 const accessToken = hashParams.get('access_token');
                 const type = hashParams.get('type');
-                
+
                 // If we have a recovery token in the URL, Supabase will process it
                 // and create a session automatically via auth state change
                 if (accessToken && type === 'recovery') {
@@ -55,7 +54,7 @@ const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({ onBack, onSuccess
                 } else {
                     // Check if we already have a session (token was already processed)
                     const { data: { session } } = await supabase.auth.getSession();
-                    
+
                     if (session) {
                         setIsValidToken(true);
                     } else {
@@ -148,7 +147,14 @@ const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({ onBack, onSuccess
             <div className="min-h-screen bg-transparent flex flex-col p-4 pb-24">
                 <ToastContainer toasts={toasts} onRemove={removeToast} />
                 <header className="flex items-center w-full max-w-sm mx-auto pt-4">
-                    <BackButton onClick={onBack} className="mr-3" />
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onBack}
+                        icon={<i className="fa-solid fa-arrow-left" />}
+                        aria-label="Go back"
+                        className="mr-3"
+                    />
                     <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
                         Reset Password
                     </h1>
@@ -163,7 +169,14 @@ const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({ onBack, onSuccess
                         <p className="text-[var(--color-text-secondary)] mb-6">
                             This password reset link is invalid or has expired. Please request a new one.
                         </p>
-                        <BackButton onClick={onBack} className="w-full justify-center" />
+                        <Button
+                            onClick={onBack}
+                            variant="ghost"
+                            fullWidth
+                            className="mt-4"
+                        >
+                            Back to Login
+                        </Button>
                     </Card>
                 </div>
             </div>
@@ -174,7 +187,14 @@ const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({ onBack, onSuccess
         <div className="min-h-screen bg-transparent flex flex-col p-4 pb-24">
             <ToastContainer toasts={toasts} onRemove={removeToast} />
             <header className="flex items-center w-full max-w-sm mx-auto pt-4">
-                <BackButton onClick={onBack} className="mr-3" />
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onBack}
+                    icon={<i className="fa-solid fa-arrow-left" />}
+                    aria-label="Go back"
+                    className="mr-3"
+                />
                 <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
                     Reset Password
                 </h1>

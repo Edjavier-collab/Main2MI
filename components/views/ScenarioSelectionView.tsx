@@ -1,305 +1,292 @@
 'use client';
 
-import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { PatientProfileFilters, StageOfChange, DifficultyLevel } from '../../types';
-import { PATIENT_PROFILE_TEMPLATES, STAGE_DESCRIPTIONS } from '../../constants';
+import React, { useState, useMemo } from 'react';
+import { PatientProfile, DifficultyLevel, StageOfChange } from '../../types';
+import { PATIENT_TOPIC_TEMPLATES, PatientTopicTemplate } from '../../constants';
 import { Button } from '../ui/Button';
-import { BackButton } from '../ui/BackButton';
 import { Card } from '../ui/Card';
+import { CustomSelect, SelectOptionGroup, SelectOption } from '../ui/CustomSelect';
 
 interface ScenarioSelectionViewProps {
     onBack: () => void;
-    onStartPractice: (filters: PatientProfileFilters) => void;
+    onStartPractice: (patientProfile: PatientProfile) => void;
 }
 
-interface CustomSelectProps {
-    id: string;
-    label: string;
-    icon: string;
-    value: string;
-    onChange: (value: string) => void;
-    options: Array<{ value: string; label: string }>;
-    helperText?: string;
-}
-
-const CustomSelect: React.FC<CustomSelectProps> = ({ id, label, icon, value, onChange, options, helperText }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const containerRef = useRef<HTMLDivElement>(null);
-    
-    const selectedOption = options.find(opt => opt.value === value);
-    
-    // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        
-        if (isOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-            document.addEventListener('touchstart', handleClickOutside as EventListener);
-        }
-        
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-            document.removeEventListener('touchstart', handleClickOutside as EventListener);
-        };
-    }, [isOpen]);
-    
-    // Close on escape key
-    useEffect(() => {
-        const handleEscape = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                setIsOpen(false);
-            }
-        };
-        
-        if (isOpen) {
-            document.addEventListener('keydown', handleEscape);
-        }
-        
-        return () => {
-            document.removeEventListener('keydown', handleEscape);
-        };
-    }, [isOpen]);
-    
-    const handleSelect = (optionValue: string) => {
-        onChange(optionValue);
-        setIsOpen(false);
-    };
-    
-    return (
-        <div ref={containerRef} className="relative">
-            <label id={`${id}-label`} className="block text-lg font-bold text-[var(--color-text-primary)] mb-2">
-                <i className={`${icon} mr-2 text-[var(--color-primary)]`} aria-hidden="true"></i>
-                {label}
-            </label>
-            {helperText && (
-                <p className="text-sm text-[var(--color-text-muted)] mb-3">{helperText}</p>
-            )}
-            
-            {/* Trigger Button */}
-            <button
-                type="button"
-                id={id}
-                aria-haspopup="listbox"
-                aria-expanded={isOpen}
-                aria-labelledby={`${id}-label`}
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-full p-4 pr-12 text-left text-lg border-2 border-black bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] font-medium cursor-pointer transition-all text-[var(--color-text-primary)] hover:bg-[var(--color-bg-accent)]"
-                style={{ minHeight: '56px' }}
-            >
-                <span className={selectedOption?.value !== 'any' ? 'text-[var(--color-primary-dark)] font-semibold' : ''}>
-                    {selectedOption?.label || 'Select...'}
-                </span>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-                    <i className={`fa-solid fa-chevron-down text-[var(--color-text-muted)] text-lg transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true"></i>
-                </div>
-            </button>
-            
-            {/* Dropdown Menu */}
-            {isOpen && (
-                <>
-                    {/* Backdrop for mobile */}
-                    <div 
-                        className="fixed inset-0 z-40 bg-black/20 sm:hidden" 
-                        onClick={() => setIsOpen(false)}
-                        aria-hidden="true"
-                    />
-                    
-                    {/* Options List */}
-                    <ul
-                        role="listbox"
-                        aria-labelledby={`${id}-label`}
-                        className="absolute left-0 right-0 mt-1 bg-white border-2 border-black shadow-lg z-50 max-h-72 overflow-y-auto"
-                    >
-                        {options.map((option, index) => (
-                            <li
-                                key={option.value}
-                                role="option"
-                                aria-selected={option.value === value}
-                                onClick={() => handleSelect(option.value)}
-                                className={`
-                                    px-4 py-3 cursor-pointer transition-colors text-base
-                                    ${option.value === value 
-                                        ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)] font-bold' 
-                                        : 'text-[var(--color-text-primary)] hover:bg-[var(--color-bg-accent)]'
-                                    }
-                                    ${index !== options.length - 1 ? 'border-b border-[var(--color-neutral-200)]' : ''}
-                                `}
-                            >
-                                <span className="flex items-center">
-                                    {option.value === value && (
-                                        <i className="fa-solid fa-check mr-2 text-[var(--color-primary)]" aria-hidden="true"></i>
-                                    )}
-                                    {option.label}
-                                </span>
-                            </li>
-                        ))}
-                    </ul>
-                </>
-            )}
-        </div>
-    );
+// Get unique topics from templates
+const getTopicOptions = () => {
+    const topics = PATIENT_TOPIC_TEMPLATES.map(t => ({
+        value: t.topic,
+        label: t.topic,
+        category: t.category,
+    }));
+    return topics;
 };
 
-const DIFFICULTY_DESCRIPTIONS: Record<DifficultyLevel, string> = {
-    [DifficultyLevel.Beginner]: "Patient is collaborative and open to change (Preparation/Action stages).",
-    [DifficultyLevel.Intermediate]: "Patient is ambivalent about changing (Contemplation stage).",
-    [DifficultyLevel.Advanced]: "Patient is resistant and doesn't see behavior as a problem (Precontemplation stage).",
+// Get category color classes
+const getCategoryStyles = (category: PatientTopicTemplate['category']): string => {
+    switch (category) {
+        case 'Alcohol':
+            return 'bg-purple-100 text-purple-700';
+        case 'Nicotine':
+            return 'bg-gray-100 text-gray-700';
+        case 'Cannabis':
+            return 'bg-emerald-100 text-emerald-700';
+        case 'Opioids':
+            return 'bg-red-100 text-red-700';
+        case 'Stimulants':
+            return 'bg-orange-100 text-orange-700';
+        case 'Other Substances':
+            return 'bg-indigo-100 text-indigo-700';
+        case 'Behavioral':
+            return 'bg-pink-100 text-pink-700';
+        case 'Health':
+            return 'bg-teal-100 text-teal-700';
+        default:
+            return 'bg-gray-100 text-gray-700';
+    }
 };
 
 export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ onBack, onStartPractice }) => {
-    const [selectedTopic, setSelectedTopic] = useState('any');
-    const [selectedStage, setSelectedStage] = useState('any');
-    const [selectedDifficulty, setSelectedDifficulty] = useState('any');
+    const [selectedTopic, setSelectedTopic] = useState<string>('');
+    const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>(DifficultyLevel.Intermediate);
+    const [selectedStage, setSelectedStage] = useState<StageOfChange>(StageOfChange.Contemplation);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    // Memoize the list of unique topics from the constants file
-    const uniqueTopics = useMemo(() => {
-        const topics = new Set(PATIENT_PROFILE_TEMPLATES.map(t => t.topic));
-        return Array.from(topics).sort();
+    const topicOptions = useMemo(() => getTopicOptions(), []);
+
+    // Group topics by category for CustomSelect
+    const groupedTopicsForSelect = useMemo((): SelectOptionGroup[] => {
+        const groups: Record<string, SelectOption[]> = {};
+        topicOptions.forEach(topic => {
+            if (!groups[topic.category]) {
+                groups[topic.category] = [];
+            }
+            groups[topic.category].push({ value: topic.value, label: topic.label });
+        });
+        return Object.entries(groups).map(([label, options]) => ({ label, options }));
+    }, [topicOptions]);
+
+    // Stage of change options for CustomSelect
+    const stageOptions = useMemo((): SelectOption[] => {
+        return Object.values(StageOfChange).map(stage => ({
+            value: stage,
+            label: stage,
+        }));
     }, []);
-    
-    const allStages = Object.values(StageOfChange);
-    const allDifficulties = Object.values(DifficultyLevel);
 
-    const handleStart = () => {
-        const filters: PatientProfileFilters = {};
-        if (selectedTopic !== 'any') {
-            filters.topic = selectedTopic;
+    const selectedTopicData = useMemo(() => {
+        return topicOptions.find(t => t.value === selectedTopic);
+    }, [selectedTopic, topicOptions]);
+
+    const handleGenerate = async (topic?: string, difficulty?: DifficultyLevel, stage?: StageOfChange) => {
+        const topicToUse = topic || selectedTopic;
+        const difficultyToUse = difficulty || selectedDifficulty;
+        const stageToUse = stage || selectedStage;
+
+        if (!topicToUse) {
+            setError('Please select a topic');
+            return;
         }
-        if (selectedStage !== 'any') {
-            filters.stageOfChange = selectedStage as StageOfChange;
-        } else if (selectedDifficulty !== 'any') {
-            // Only apply difficulty if a specific stage isn't chosen
-            filters.difficulty = selectedDifficulty as DifficultyLevel;
+
+        setIsGenerating(true);
+        setError(null);
+
+        try {
+            const response = await fetch('/api/generate-scenario', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    topic: topicToUse,
+                    difficulty: difficultyToUse,
+                    stageOfChange: stageToUse,
+                }),
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Failed to generate scenario');
+            }
+
+            const data = await response.json();
+            onStartPractice(data.patientProfile);
+        } catch (err) {
+            console.error('[ScenarioSelectionView] Error generating scenario:', err);
+            setError(err instanceof Error ? err.message : 'Failed to generate scenario. Please try again.');
+            setIsGenerating(false);
         }
-        onStartPractice(filters);
     };
-    
-    const handleRandomStart = () => {
-        onStartPractice({});
+
+    const handleSurpriseMe = () => {
+        // Pick random values
+        const randomTopic = topicOptions[Math.floor(Math.random() * topicOptions.length)];
+        const stages = Object.values(StageOfChange);
+        const difficulties = Object.values(DifficultyLevel);
+        const randomStage = stages[Math.floor(Math.random() * stages.length)];
+        const randomDifficulty = difficulties[Math.floor(Math.random() * difficulties.length)];
+
+        // Update state for visual feedback
+        setSelectedTopic(randomTopic.value);
+        setSelectedStage(randomStage);
+        setSelectedDifficulty(randomDifficulty);
+
+        // Generate with the random values directly
+        handleGenerate(randomTopic.value, randomDifficulty, randomStage);
     };
 
     return (
         <div className="min-h-screen bg-transparent pb-24 p-4 sm:p-6">
             <header className="flex items-center mb-6 pt-2 max-w-2xl mx-auto">
-                <BackButton onClick={onBack} className="mr-3" />
-                <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Scenario Selection</h1>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onBack}
+                    icon={<i className="fa-solid fa-arrow-left" />}
+                    aria-label="Go back"
+                    className="mr-3"
+                    disabled={isGenerating}
+                />
+                <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Build Your Scenario</h1>
             </header>
 
             <main className="max-w-2xl mx-auto space-y-6">
-                {/* Form Card */}
-                <Card variant="elevated" padding="lg" className="border-2 border-black shadow-lg">
-                    <div className="space-y-6">
-                        {/* Section: Topic */}
-                        <div>
-                            <h2 className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-4">
-                                What would you like to practice?
-                            </h2>
-                            <CustomSelect
-                                id="topic-select"
-                                label="Topic of Conversation"
-                                icon="fa-solid fa-comments"
-                                value={selectedTopic}
-                                onChange={setSelectedTopic}
-                                helperText="Choose a specific behavioral health topic or leave as 'Any' for variety."
-                                options={[
-                                    { value: 'any', label: 'Any Topic' },
-                                    ...uniqueTopics.map(topic => ({ value: topic, label: topic }))
-                                ]}
-                            />
+                {/* Introduction */}
+                <Card variant="soft" padding="md">
+                    <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 bg-[var(--color-primary)] rounded-full flex items-center justify-center text-white flex-shrink-0">
+                            <i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
                         </div>
-
-                        <hr className="border-[var(--color-neutral-200)]" />
-
-                        {/* Section: Difficulty */}
                         <div>
-                            <h2 className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-4">
-                                Choose your challenge level
-                            </h2>
-                            <CustomSelect
-                                id="difficulty-select"
-                                label="Difficulty Level"
-                                icon="fa-solid fa-gauge-high"
-                                value={selectedDifficulty}
-                                onChange={setSelectedDifficulty}
-                                helperText="Higher difficulty means more resistant patients."
-                                options={[
-                                    { value: 'any', label: 'Any Difficulty' },
-                                    ...allDifficulties.map(level => ({ value: level, label: level }))
-                                ]}
-                            />
-                            {selectedDifficulty !== 'any' && (
-                                <div className="mt-3 p-3 bg-[var(--color-warning-light)] border border-[var(--color-warning)] text-[var(--color-warning-dark)] text-sm rounded-md">
-                                    <i className="fa-solid fa-circle-info mr-2" aria-hidden="true"></i>
-                                    {DIFFICULTY_DESCRIPTIONS[selectedDifficulty as DifficultyLevel]}
-                                </div>
-                            )}
-                        </div>
-
-                        <hr className="border-[var(--color-neutral-200)]" />
-
-                        {/* Section: Stage of Change (Advanced) */}
-                        <div>
-                            <h2 className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-4">
-                                Advanced: Target a specific stage
-                            </h2>
-                            <CustomSelect
-                                id="stage-select"
-                                label="Stage of Change"
-                                icon="fa-solid fa-stairs"
-                                value={selectedStage}
-                                onChange={setSelectedStage}
-                                helperText="Optional. Overrides difficulty setting if selected."
-                                options={[
-                                    { value: 'any', label: 'Any Stage' },
-                                    ...allStages.map(stage => ({ value: stage, label: stage }))
-                                ]}
-                            />
-                            {selectedStage !== 'any' && (
-                                <div className="mt-3 p-3 bg-[var(--color-info-light)] border border-[var(--color-info)] text-[var(--color-info-dark)] text-sm rounded-md">
-                                    <i className="fa-solid fa-circle-info mr-2" aria-hidden="true"></i>
-                                    {STAGE_DESCRIPTIONS[selectedStage as StageOfChange]}
-                                </div>
-                            )}
-                            {selectedStage !== 'any' && selectedDifficulty !== 'any' && (
-                                <div className="mt-2 p-2 bg-[var(--color-bg-accent)] border border-[var(--color-primary-light)] text-[var(--color-text-secondary)] text-xs">
-                                    <i className="fa-solid fa-triangle-exclamation mr-1 text-amber-500" aria-hidden="true"></i>
-                                    Stage selection will override your difficulty choice.
-                                </div>
-                            )}
+                            <h2 className="font-semibold text-[var(--color-text-primary)] mb-1">AI-Generated Patient</h2>
+                            <p className="text-sm text-[var(--color-text-secondary)]">
+                                Configure your scenario parameters and our AI will create a unique patient with a realistic backstory tailored to your selections.
+                            </p>
                         </div>
                     </div>
                 </Card>
 
-                {/* CTA Buttons */}
-                <div>
-                    <div className="text-center mb-6">
-                        <div className="inline-flex items-center justify-center w-16 h-16 bg-[var(--color-primary-lighter)] rounded-full mb-3">
-                            <i className="fa-solid fa-rocket text-3xl text-[var(--color-primary-dark)]" aria-hidden="true"></i>
-                        </div>
-                        <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Ready to Start?</h2>
-                        <p className="text-sm text-[var(--color-text-secondary)] mt-1">Choose how you'd like to begin your practice session</p>
-                    </div>
-
-                    <div className="shadow-lg rounded-lg overflow-hidden">
-                        <button
-                            onClick={handleStart}
-                            className="w-full min-h-[var(--touch-target-min)] py-3 px-4 bg-white border-2 border-b border-[var(--color-neutral-400)] text-[var(--color-text-primary)] font-semibold text-base hover:bg-[var(--color-bg-accent)] transition-colors"
-                        >
-                            Start Selected Scenario
-                        </button>
-                        <button
-                            onClick={handleRandomStart}
-                            className="w-full min-h-[var(--touch-target-min)] py-3 px-4 bg-white border-2 border-t-0 border-[var(--color-neutral-400)] text-[var(--color-text-primary)] font-semibold text-base hover:bg-[var(--color-bg-accent)] transition-colors"
-                        >
-                            Start a Random Scenario
-                        </button>
-                    </div>
-
+                {/* Topic Selection */}
+                <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-[var(--color-text-primary)]">
+                        Substance / Behavior
+                    </label>
+                    <CustomSelect
+                        value={selectedTopic}
+                        onChange={(value) => {
+                            setSelectedTopic(value);
+                            setError(null);
+                        }}
+                        groupedOptions={groupedTopicsForSelect}
+                        placeholder="Select a topic..."
+                        disabled={isGenerating}
+                    />
+                    {selectedTopicData && (
+                        <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium mt-2 ${getCategoryStyles(selectedTopicData.category)}`}>
+                            {selectedTopicData.category}
+                        </span>
+                    )}
                 </div>
+
+                {/* Difficulty Selection */}
+                <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-[var(--color-text-primary)]">
+                        Difficulty Level
+                    </label>
+                    <div className="grid grid-cols-3 gap-3">
+                        {Object.values(DifficultyLevel).map((level) => (
+                            <button
+                                key={level}
+                                type="button"
+                                onClick={() => setSelectedDifficulty(level)}
+                                disabled={isGenerating}
+                                className={`p-3 rounded-[var(--radius-md)] border-2 transition-all text-center disabled:opacity-50 disabled:cursor-not-allowed ${
+                                    selectedDifficulty === level
+                                        ? 'border-[var(--color-primary)] bg-[var(--color-primary-light)] text-[var(--color-primary-darker)]'
+                                        : 'border-[var(--color-neutral-200)] bg-white text-[var(--color-text-secondary)] hover:border-[var(--color-neutral-300)]'
+                                }`}
+                            >
+                                <span className="font-medium">{level}</span>
+                            </button>
+                        ))}
+                    </div>
+                    <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                        {selectedDifficulty === DifficultyLevel.Beginner && 'Cooperative patient, easier to build rapport'}
+                        {selectedDifficulty === DifficultyLevel.Intermediate && 'Moderately ambivalent, requires more skill'}
+                        {selectedDifficulty === DifficultyLevel.Advanced && 'Resistant or guarded, challenging dynamics'}
+                    </p>
+                </div>
+
+                {/* Stage of Change Selection */}
+                <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-[var(--color-text-primary)]">
+                        Stage of Change
+                    </label>
+                    <CustomSelect
+                        value={selectedStage}
+                        onChange={(value) => setSelectedStage(value as StageOfChange)}
+                        options={stageOptions}
+                        disabled={isGenerating}
+                    />
+                    <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                        {selectedStage === StageOfChange.Precontemplation && "Patient doesn't see their behavior as a problem"}
+                        {selectedStage === StageOfChange.Contemplation && 'Patient is aware but ambivalent about change'}
+                        {selectedStage === StageOfChange.Preparation && 'Patient is ready to make a change soon'}
+                        {selectedStage === StageOfChange.Action && 'Patient is actively working on changing'}
+                        {selectedStage === StageOfChange.Maintenance && 'Patient has changed and is maintaining progress'}
+                    </p>
+                </div>
+
+                {/* Error Message */}
+                {error && (
+                    <div className="p-4 rounded-[var(--radius-md)] bg-[var(--color-error-light)] border border-[var(--color-error)] text-[var(--color-error-dark)]">
+                        <div className="flex items-center gap-2">
+                            <i className="fa-solid fa-exclamation-circle" aria-hidden="true"></i>
+                            <span className="text-sm font-medium">{error}</span>
+                        </div>
+                    </div>
+                )}
+
+                {/* Generate Button */}
+                <Button
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                    onClick={() => handleGenerate()}
+                    loading={isGenerating}
+                    disabled={!selectedTopic || isGenerating}
+                    icon={!isGenerating ? <i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true" /> : undefined}
+                >
+                    {isGenerating ? 'Generating Patient...' : 'Generate Scenario'}
+                </Button>
+
+                {/* Divider */}
+                <div className="flex items-center gap-3 py-2">
+                    <div className="flex-1 h-px bg-[var(--color-neutral-200)]"></div>
+                    <span className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Or</span>
+                    <div className="flex-1 h-px bg-[var(--color-neutral-200)]"></div>
+                </div>
+
+                {/* Quick Start with Random */}
+                <Card
+                    variant="default"
+                    padding="md"
+                    hoverable={!isGenerating}
+                    onClick={isGenerating ? undefined : handleSurpriseMe}
+                    className={`bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] border-0 ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-white flex-shrink-0">
+                            <i className="fa-solid fa-shuffle text-xl" aria-hidden="true"></i>
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="font-bold text-white text-lg">Surprise Me</h3>
+                            <p className="text-white/80 text-sm mt-0.5">Generate a completely random scenario</p>
+                        </div>
+                        <i className="fa-solid fa-chevron-right text-white/60" aria-hidden="true"></i>
+                    </div>
+                </Card>
             </main>
         </div>
     );

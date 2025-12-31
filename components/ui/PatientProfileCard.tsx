@@ -1,6 +1,8 @@
+'use client';
 
 import React from 'react';
 import { PatientProfile, StageOfChange, UserTier, PersonalityTrait } from '../../types';
+import { Card } from './Card';
 
 interface PatientProfileCardProps {
     patient: PatientProfile;
@@ -58,12 +60,17 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
     };
 
     return (
-        <div className="bg-white border border-neutral-200 rounded-2xl w-full max-w-2xl mx-auto shadow-sm overflow-hidden tile-hover">
+        <Card
+            variant="soft"
+            padding="none"
+            hoverable
+            className="w-full max-w-2xl mx-auto overflow-hidden"
+        >
             {/* Header */}
-            <header className="flex items-center justify-between p-6 border-b border-neutral-200">
+            <header className="flex items-center justify-between p-6 border-b border-[var(--color-neutral-200)]">
                 <div>
-                    <h2 className="text-2xl font-bold text-neutral-900">{patient.name}</h2>
-                    <p className="text-neutral-500">{patient.age}, {patient.sex}</p>
+                    <h2 className="text-2xl font-bold text-[var(--color-neutral-900)]">{patient.name}</h2>
+                    <p className="text-[var(--color-neutral-500)]">{patient.age}, {patient.sex}</p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                     <div className={`px-3 py-1 text-sm font-bold rounded-full ${stageColors[patient.stageOfChange]}`}>
@@ -100,15 +107,15 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
                         <i className="fa-solid fa-quote-left w-6 text-center mr-2"></i>
                         Chief Complaint
                     </h3>
-                    <blockquote className="border-l-4 border-indigo-500 bg-indigo-50 p-4 rounded-r-lg ml-8">
-                        <p className="text-neutral-800 italic leading-relaxed">"{patient.chiefComplaint}"</p>
+                    <blockquote className="border-l-4 border-[var(--color-primary)] bg-[var(--color-bg-accent)] p-4 rounded-r-lg ml-8">
+                        <p className="text-[var(--color-neutral-800)] italic leading-relaxed">"{patient.chiefComplaint}"</p>
                     </blockquote>
                 </div>
             </main>
 
             {isFreeTier && (
-                <footer 
-                    className={`bg-neutral-50 border-t border-neutral-200 px-6 py-4 text-center ${onUpgrade ? 'cursor-pointer hover:bg-neutral-100 transition-colors' : ''}`}
+                <footer
+                    className={`bg-[var(--color-neutral-50)] border-t border-[var(--color-neutral-200)] px-6 py-4 text-center ${onUpgrade ? 'cursor-pointer hover:bg-[var(--color-neutral-100)] transition-colors' : ''}`}
                     onClick={onUpgrade}
                     role={onUpgrade ? 'button' : undefined}
                     tabIndex={onUpgrade ? 0 : undefined}
@@ -120,14 +127,14 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
                     } : undefined}
                 >
                     <div className="flex items-center justify-center">
-                        <i className="fa-solid fa-lock text-neutral-400 mr-3"></i>
-                        <p className="text-sm font-medium text-neutral-600">
+                        <i className="fa-solid fa-lock text-[var(--color-neutral-400)] mr-3" aria-hidden="true"></i>
+                        <p className="text-sm font-medium text-[var(--color-neutral-600)]">
                             Upgrade to Premium to view the patient's complete profile.
                         </p>
                     </div>
                 </footer>
             )}
-        </div>
+        </Card>
     );
 };
 

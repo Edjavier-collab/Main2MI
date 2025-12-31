@@ -5,7 +5,6 @@ import { User } from '@supabase/supabase-js';
 import { SubscriptionDetails, UserTier } from '../../types';
 import { getUserSubscription, cancelSubscription, restoreSubscription, createMockSubscription, upgradeToAnnual } from '../../services/stripeService';
 import { Button } from '../ui/Button';
-import { BackButton } from '../ui/BackButton';
 import { Card } from '../ui/Card';
 import { useToast } from '../ui/Toast';
 
@@ -42,7 +41,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                 setPremiumTierMismatch(true);
                 setError(sub.error);
                 setSubscription(null);
-                
+
                 // Backend's get-subscription endpoint now automatically recovers subscriptions
                 // using the stored plan from the database, so no need to auto-create here
                 // The subscription should be recovered on the next page load or refresh
@@ -62,7 +61,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
         } catch (err) {
             console.error('[CancelSubscriptionView] Error loading subscription:', err);
             const errorMessage = err instanceof Error ? err.message : 'Failed to load subscription details';
-            
+
             // Check if this is a network/server error with more details
             let displayError = errorMessage;
             if (errorMessage.includes('endpoint not found') || errorMessage.includes('Failed to fetch')) {
@@ -70,7 +69,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
             } else if (errorMessage.includes('Mock subscription')) {
                 displayError = errorMessage; // Use the detailed backend error
             }
-            
+
             setError(displayError);
         } finally {
             setLoading(false);
@@ -81,7 +80,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
         setActionLoading('accept');
         setError(null);
         setSuccess(null);
-        
+
         try {
             await cancelSubscription(user.id, true);
             showToast('Great! Your 30% discount has been applied. You\'ll continue to enjoy premium features at the discounted rate.', 'success');
@@ -107,7 +106,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
         setActionLoading('cancel');
         setError(null);
         setSuccess(null);
-        
+
         try {
             const result = await cancelSubscription(user.id, false);
             showToast(`Your subscription has been cancelled. You'll continue to have access until ${new Date(result.currentPeriodEnd).toLocaleDateString()}.`, 'info');
@@ -129,7 +128,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
         setActionLoading('restore');
         setError(null);
         setSuccess(null);
-        
+
         try {
             const result = await restoreSubscription(user.id);
             showToast('Your subscription has been restored! You\'ll continue to have access to premium features.', 'success');
@@ -152,7 +151,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
         setUpgradeLoading(true);
         setError(null);
         setSuccess(null);
-        
+
         try {
             console.log('[CancelSubscriptionView] Calling upgradeToAnnual for user:', user.id);
             const result = await upgradeToAnnual(user.id);
@@ -168,7 +167,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
         } catch (err) {
             console.error('[CancelSubscriptionView] Error upgrading:', err);
             const errorMessage = err instanceof Error ? err.message : 'Failed to upgrade subscription. Please try again.';
-            
+
             // Provide more helpful error messages
             let displayMessage = errorMessage;
             if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
@@ -178,7 +177,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
             } else if (errorMessage.includes('already on the annual plan')) {
                 displayMessage = 'Your subscription is already on the annual plan.';
             }
-            
+
             showToast(displayMessage, 'error');
             setError(displayMessage);
         } finally {
@@ -198,7 +197,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
     const handleCreateMockSubscription = async () => {
         setLoading(true);
         setError(null);
-        
+
         try {
             await createMockSubscription(user.id, 'monthly');
             await loadSubscription();
@@ -245,21 +244,21 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                     <div className="mb-6">
                         <div className="mx-auto mb-4 bg-[var(--color-error-light)] h-20 w-20 rounded-full flex items-center justify-center">
                             <i className="fa-solid fa-exclamation-triangle text-4xl text-[var(--color-error)]" aria-hidden="true"></i>
-                    </div>
+                        </div>
                         <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">Unable to Load Subscription</h1>
                         <p className="text-[var(--color-text-secondary)] mb-4">{error}</p>
-                    {error.includes('Edge Functions') && (
+                        {error.includes('Edge Functions') && (
                             <Card variant="accent" padding="md" className="mt-4 text-left">
                                 <p className="text-sm text-[var(--color-text-primary)] mb-2">
-                                <strong>Setup Required:</strong> Deploy your Supabase Edge Functions:
-                            </p>
+                                    <strong>Setup Required:</strong> Deploy your Supabase Edge Functions:
+                                </p>
                                 <code className="block mt-2 text-xs bg-white p-2 rounded font-mono">
                                     supabase functions deploy
                                 </code>
                             </Card>
                         )}
-                        </div>
-                    <BackButton onClick={onBack} className="w-full justify-center" label="Go Back" />
+                    </div>
+                    <Button onClick={onBack} variant="ghost" fullWidth className="justify-center">Go Back</Button>
                 </Card>
             </div>
         );
@@ -274,35 +273,35 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                         <div className="mb-6">
                             <div className="mx-auto mb-4 bg-[var(--color-warning-light)] h-20 w-20 rounded-full flex items-center justify-center">
                                 <i className="fa-solid fa-exclamation-triangle text-4xl text-[var(--color-warning)]" aria-hidden="true"></i>
-                        </div>
+                            </div>
                             <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">Subscription Not Found</h1>
                             <p className="text-[var(--color-text-secondary)] mb-4">
-                            Your account shows as premium, but no active Stripe subscription was found. 
-                            This may happen if your subscription was cancelled or there's a mismatch between 
-                            your account status and Stripe records.
-                        </p>
-                        {error && (
+                                Your account shows as premium, but no active Stripe subscription was found.
+                                This may happen if your subscription was cancelled or there's a mismatch between
+                                your account status and Stripe records.
+                            </p>
+                            {error && (
                                 <p className="text-sm text-[var(--color-text-muted)] mb-4">{error}</p>
-                        )}
+                            )}
                             <p className="text-[var(--color-text-secondary)] mb-4">
-                            Please contact support if you believe this is an error, or if you'd like to 
-                            reactivate your subscription.
-                        </p>
+                                Please contact support if you believe this is an error, or if you'd like to
+                                reactivate your subscription.
+                            </p>
                             <Button
-                            onClick={handleCreateMockSubscription}
+                                onClick={handleCreateMockSubscription}
                                 variant="ghost"
                                 size="sm"
                                 className="mb-4"
-                        >
-                            Fix Subscription (Dev)
+                            >
+                                Fix Subscription (Dev)
                             </Button>
                         </div>
-                        <BackButton onClick={onBack} className="w-full justify-center" label="Go Back to Settings" />
+                        <Button onClick={onBack} variant="ghost" fullWidth className="justify-center">Go Back to Settings</Button>
                     </Card>
                 </div>
             );
         }
-        
+
         // Regular "no subscription" message for free tier users
         return (
             <div className="min-h-screen bg-transparent flex flex-col items-center justify-center p-4">
@@ -314,14 +313,14 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                         <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">No Active Subscription</h1>
                         <p className="text-[var(--color-text-secondary)]">You don't have an active subscription to cancel.</p>
                     </div>
-                    <BackButton onClick={onBack} className="w-full justify-center" label="Go Back" />
+                    <Button onClick={onBack} variant="ghost" fullWidth className="justify-center">Go Back</Button>
                 </Card>
             </div>
         );
     }
 
     const discountedPrice = calculateDiscountedPrice();
-    
+
     // Determine plan type with fallback for 'unknown' plans
     let detectedPlan = subscription.plan;
     if (detectedPlan === 'unknown') {
@@ -335,10 +334,10 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
             console.warn('[CancelSubscriptionView] Plan was "unknown", inferred as "monthly" from price:', subscription.originalPrice);
         }
     }
-    
+
     const planName = detectedPlan === 'monthly' ? 'Monthly' : 'Annual';
     const periodLabel = detectedPlan === 'monthly' ? 'month' : 'year';
-    
+
     // Validate that pricing matches plan type
     // Annual subscriptions should be significantly higher than monthly
     const isLikelyAnnual = subscription.originalPrice > 50;
@@ -354,10 +353,21 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
     return (
         <div className="min-h-screen bg-transparent pb-24">
             <ToastContainer toasts={toasts} onRemove={removeToast} />
-            
+
             {/* Header */}
             <div className="px-6 py-4">
-                <BackButton onClick={onBack} />
+                <div className="px-6 py-4">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onBack}
+                        icon={<i className="fa-solid fa-arrow-left" />}
+                        aria-label="Go back"
+                        className="pl-0"
+                    >
+                        Back
+                    </Button>
+                </div>
             </div>
 
             <div className="w-full max-w-md mx-auto px-6">
@@ -409,76 +419,76 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                 {showCancellationFlow && !subscription.hasRetentionDiscount && !subscription.cancelAtPeriodEnd && (
                     <>
                         {/* 30% Discount Offer */}
-                    <Card variant="accent" padding="lg" className="mb-6 border-2 border-[var(--color-primary-light)]">
-                        <div className="text-center mb-4">
-                            <div className="inline-block bg-[var(--color-primary)] text-white text-xs font-bold px-3 py-1 rounded-full uppercase mb-2">
-                                Special Offer
+                        <Card variant="accent" padding="lg" className="mb-6 border-2 border-[var(--color-primary-light)]">
+                            <div className="text-center mb-4">
+                                <div className="inline-block bg-[var(--color-primary)] text-white text-xs font-bold px-3 py-1 rounded-full uppercase mb-2">
+                                    Special Offer
+                                </div>
+                                <h3 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">Stay with us for 30% off!</h3>
+                                <p className="text-[var(--color-text-secondary)] mb-4">
+                                    We'd love to keep you as a member. Accept this offer and pay only{' '}
+                                    <span className="font-bold text-[var(--color-primary-dark)]">{formatPrice(discountedPrice!)}</span> per {periodLabel} instead of{' '}
+                                    <span className="line-through text-[var(--color-text-muted)]">{formatPrice(subscription.originalPrice)}</span>.
+                                </p>
+                                <Card variant="default" padding="md" className="mb-4">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-[var(--color-text-secondary)]">Original Price</span>
+                                        <span className="text-lg font-bold text-[var(--color-text-primary)]">{formatPrice(subscription.originalPrice)}/{periodLabel}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center mt-2">
+                                        <span className="text-[var(--color-text-secondary)]">Your New Price</span>
+                                        <span className="text-2xl font-extrabold text-[var(--color-primary-dark)]">{formatPrice(discountedPrice!)}/{periodLabel}</span>
+                                    </div>
+                                    <div className="text-center mt-3 text-sm text-[var(--color-text-muted)]">
+                                        Save {formatPrice(subscription.originalPrice - discountedPrice!)} per {periodLabel}
+                                    </div>
+                                </Card>
                             </div>
-                            <h3 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">Stay with us for 30% off!</h3>
-                            <p className="text-[var(--color-text-secondary)] mb-4">
-                                We'd love to keep you as a member. Accept this offer and pay only{' '}
-                                <span className="font-bold text-[var(--color-primary-dark)]">{formatPrice(discountedPrice!)}</span> per {periodLabel} instead of{' '}
-                                <span className="line-through text-[var(--color-text-muted)]">{formatPrice(subscription.originalPrice)}</span>.
-                            </p>
-                            <Card variant="default" padding="md" className="mb-4">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-[var(--color-text-secondary)]">Original Price</span>
-                                    <span className="text-lg font-bold text-[var(--color-text-primary)]">{formatPrice(subscription.originalPrice)}/{periodLabel}</span>
-                                </div>
-                                <div className="flex justify-between items-center mt-2">
-                                    <span className="text-[var(--color-text-secondary)]">Your New Price</span>
-                                    <span className="text-2xl font-extrabold text-[var(--color-primary-dark)]">{formatPrice(discountedPrice!)}/{periodLabel}</span>
-                                </div>
-                                <div className="text-center mt-3 text-sm text-[var(--color-text-muted)]">
-                                    Save {formatPrice(subscription.originalPrice - discountedPrice!)} per {periodLabel}
-                                </div>
-                            </Card>
-                        </div>
-                    </Card>
+                        </Card>
 
                         {/* Annual Upgrade Offer - Only for monthly subscribers */}
-                                {detectedPlan === 'monthly' && (
+                        {detectedPlan === 'monthly' && (
                             <Card variant="accent" padding="lg" className="mb-6 border-2 border-[var(--color-success-light)]">
-                                        <div className="text-center mb-4">
+                                <div className="text-center mb-4">
                                     <div className="inline-block bg-[var(--color-success)] text-white text-xs font-bold px-3 py-1 rounded-full uppercase mb-2">
                                         Save More
                                     </div>
-                                            <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">Switch to Annual Billing</h3>
-                                            <p className="text-[var(--color-text-secondary)] text-sm mb-3">
-                                                Change to annual billing to save <span className="font-bold text-[var(--color-success)]">${(subscription.originalPrice * 12 - 99.99).toFixed(2)}/year</span>.
-                                                <br />
-                                                The change takes effect at the end of your current month.
-                                            </p>
-                                            
-                                            <Button
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                            console.log('[CancelSubscriptionView] Annual upgrade clicked in cancellation flow');
-                                                    handleUpgradeToAnnual();
-                                                }}
-                                                disabled={upgradeLoading || actionLoading !== null}
-                                                variant="success"
-                                                fullWidth
-                                                loading={upgradeLoading}
-                                                className="mb-4 !text-black !border-2 !border-black"
-                                            >
-                                                Switch to Annual & Save
-                                            </Button>
+                                    <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">Switch to Annual Billing</h3>
+                                    <p className="text-[var(--color-text-secondary)] text-sm mb-3">
+                                        Change to annual billing to save <span className="font-bold text-[var(--color-success)]">${(subscription.originalPrice * 12 - 99.99).toFixed(2)}/year</span>.
+                                        <br />
+                                        The change takes effect at the end of your current month.
+                                    </p>
 
-                                            <Card variant="default" padding="sm" className="mb-3">
-                                                <div className="flex justify-between items-center text-sm">
-                                                    <span className="text-[var(--color-text-secondary)]">Monthly (current)</span>
-                                                    <span className="font-semibold text-[var(--color-text-primary)]">{formatPrice(subscription.originalPrice)}/month</span>
-                                                </div>
-                                                <div className="flex justify-between items-center mt-2 text-sm">
-                                                    <span className="text-[var(--color-text-secondary)]">Annual (upgrade)</span>
-                                                    <span className="font-semibold text-[var(--color-success)]">$99.99/year</span>
-                                                </div>
-                                            </Card>
+                                    <Button
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            console.log('[CancelSubscriptionView] Annual upgrade clicked in cancellation flow');
+                                            handleUpgradeToAnnual();
+                                        }}
+                                        disabled={upgradeLoading || actionLoading !== null}
+                                        variant="success"
+                                        fullWidth
+                                        loading={upgradeLoading}
+                                        className="mb-4 !text-black !border-2 !border-black"
+                                    >
+                                        Switch to Annual & Save
+                                    </Button>
+
+                                    <Card variant="default" padding="sm" className="mb-3">
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-[var(--color-text-secondary)]">Monthly (current)</span>
+                                            <span className="font-semibold text-[var(--color-text-primary)]">{formatPrice(subscription.originalPrice)}/month</span>
+                                        </div>
+                                        <div className="flex justify-between items-center mt-2 text-sm">
+                                            <span className="text-[var(--color-text-secondary)]">Annual (upgrade)</span>
+                                            <span className="font-semibold text-[var(--color-success)]">$99.99/year</span>
                                         </div>
                                     </Card>
-                                )}
+                                </div>
+                            </Card>
+                        )}
                     </>
                 )}
 
@@ -487,16 +497,16 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                     <div className="space-y-4">
                         {!showCancellationFlow ? (
                             // Initial view - Show Cancel button only
-                                <div className="space-y-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowCancellationFlow(true)}
-                                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-[var(--color-neutral-300)] rounded-lg shadow-md hover:bg-[var(--color-bg-accent)] hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 text-[var(--color-text-primary)] font-semibold text-sm"
-                                    >
-                                        Cancel Subscription
-                                    </button>
-                                    <BackButton onClick={onBack} label="Go Back to Settings" className="w-full justify-center" />
-                                </div>
+                            <div className="space-y-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCancellationFlow(true)}
+                                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-[var(--color-neutral-300)] rounded-lg shadow-md hover:bg-[var(--color-bg-accent)] hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 text-[var(--color-text-primary)] font-semibold text-sm"
+                                >
+                                    Cancel Subscription
+                                </button>
+                                <Button onClick={onBack} variant="ghost" fullWidth className="justify-center">Go Back to Settings</Button>
+                            </div>
                         ) : (
                             // Cancellation flow - Show retention offer buttons
                             <div className="space-y-3">
@@ -549,7 +559,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                                     </>
                                 )}
                             </button>
-                            <BackButton onClick={onBack} label="Go Back to Settings" className="w-full justify-center" />
+                            <Button onClick={onBack} variant="ghost" fullWidth className="justify-center">Go Back to Settings</Button>
                         </div>
                     </div>
                 )}
@@ -577,7 +587,7 @@ const CancelSubscriptionView: React.FC<CancelSubscriptionViewProps> = ({ user, u
                                     <span>Cancel Subscription</span>
                                 )}
                             </button>
-                            <BackButton onClick={onBack} label="Go Back to Settings" className="w-full justify-center" />
+                            <Button onClick={onBack} variant="ghost" fullWidth className="justify-center">Go Back to Settings</Button>
                         </div>
                     </div>
                 )}

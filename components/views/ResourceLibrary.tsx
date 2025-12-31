@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { UserTier } from '../../types';
-import { BackButton } from '../ui/BackButton';
+import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 
 interface ResourceLibraryProps {
@@ -61,13 +61,15 @@ const RESOURCE_CONTENT: { [key: number]: any } = {
     2: {
         title: 'The Spirit of Motivational Interviewing',
         content: [
-             { type: 'heading', text: 'The Four Pillars of MI' },
-            { type: 'list', items: [
-                'Partnership: Work collaboratively and avoid the "expert" role. MI is done "with" and "for" a person, not "on" or "to" them.',
-                'Acceptance: Respect the patient\'s autonomy, potential, and perspective. This includes absolute worth, accurate empathy, autonomy support, and affirmation.',
-                'Compassion: Actively promote the other’s welfare, to give priority to the other’s needs.',
-                'Evocation: The motivation for change resides within the patient and is not imposed from outside. Your job is to "draw it out".',
-            ]},
+            { type: 'heading', text: 'The Four Pillars of MI' },
+            {
+                type: 'list', items: [
+                    'Partnership: Work collaboratively and avoid the "expert" role. MI is done "with" and "for" a person, not "on" or "to" them.',
+                    'Acceptance: Respect the patient\'s autonomy, potential, and perspective. This includes absolute worth, accurate empathy, autonomy support, and affirmation.',
+                    'Compassion: Actively promote the other’s welfare, to give priority to the other’s needs.',
+                    'Evocation: The motivation for change resides within the patient and is not imposed from outside. Your job is to "draw it out".',
+                ]
+            },
         ]
     },
     3: {
@@ -108,14 +110,18 @@ const RESOURCE_CONTENT: { [key: number]: any } = {
             { type: 'heading', text: 'Inviting the Story' },
             { type: 'paragraph', text: 'Open-ended questions invite the patient to tell their story and explore their thoughts and feelings. They avoid simple "yes" or "no" answers and encourage deeper conversation.' },
             { type: 'subheading', text: 'Example: Closed vs. Open' },
-            { type: 'dialogue', lines: [
-                { speaker: 'Clinician (Closed)', text: "So, you're not exercising?" },
-                { speaker: 'Patient', text: "No." },
-            ]},
-            { type: 'dialogue', lines: [
-                { speaker: 'Clinician (Open)', text: "What's gotten in the way of you being more active lately?" },
-                { speaker: 'Patient', text: "Well, with my new work schedule, by the time I get home I'm just exhausted. And the kids need my attention right away..." },
-            ]},
+            {
+                type: 'dialogue', lines: [
+                    { speaker: 'Clinician (Closed)', text: "So, you're not exercising?" },
+                    { speaker: 'Patient', text: "No." },
+                ]
+            },
+            {
+                type: 'dialogue', lines: [
+                    { speaker: 'Clinician (Open)', text: "What's gotten in the way of you being more active lately?" },
+                    { speaker: 'Patient', text: "Well, with my new work schedule, by the time I get home I'm just exhausted. And the kids need my attention right away..." },
+                ]
+            },
         ],
     },
     11: {
@@ -124,10 +130,12 @@ const RESOURCE_CONTENT: { [key: number]: any } = {
             { type: 'heading', text: 'Building Confidence' },
             { type: 'paragraph', text: "Affirmations recognize and acknowledge the patient's strengths, efforts, and past successes. This builds self-efficacy and reinforces their ability to change. It's not cheerleading, but a genuine acknowledgment." },
             { type: 'subheading', text: 'Example in Context' },
-            { type: 'dialogue', lines: [
-                { speaker: 'Patient', text: "I tried to cut back last month, but it only lasted a few days. It was just so hard." },
-                { speaker: 'Clinician', text: "That's a significant step to even try. It shows how much you're thinking about this and that you have the determination to make a change, even if it didn't stick the first time." },
-            ]},
+            {
+                type: 'dialogue', lines: [
+                    { speaker: 'Patient', text: "I tried to cut back last month, but it only lasted a few days. It was just so hard." },
+                    { speaker: 'Clinician', text: "That's a significant step to even try. It shows how much you're thinking about this and that you have the determination to make a change, even if it didn't stick the first time." },
+                ]
+            },
         ],
     },
     12: {
@@ -137,16 +145,20 @@ const RESOURCE_CONTENT: { [key: number]: any } = {
             { type: 'paragraph', text: "Reflective listening is the cornerstone of MI. It involves carefully listening to the patient and reflecting back what they are saying in the form of a statement. This shows you are listening, helps the patient hear themselves, and can guide the conversation." },
             { type: 'subheading', text: 'Example: Simple Reflection' },
             { type: 'paragraph', text: 'A simple reflection repeats or slightly rephrases what the patient said.' },
-            { type: 'dialogue', lines: [
-                { speaker: 'Patient', text: "I'm just not happy with how much I've been drinking." },
-                { speaker: 'Clinician', text: "You're feeling unhappy about your drinking." },
-            ]},
+            {
+                type: 'dialogue', lines: [
+                    { speaker: 'Patient', text: "I'm just not happy with how much I've been drinking." },
+                    { speaker: 'Clinician', text: "You're feeling unhappy about your drinking." },
+                ]
+            },
             { type: 'subheading', text: 'Example: Complex Reflection' },
             { type: 'paragraph', text: 'A complex reflection makes a guess at the underlying feeling or meaning.' },
-            { type: 'dialogue', lines: [
-                { speaker: 'Patient', text: "I know I should quit smoking for my kids, but it's the only thing that calms me down when I'm stressed." },
-                { speaker: 'Clinician', text: "You're feeling torn between your role as a parent and your need for a coping tool that works for you right now." },
-            ]},
+            {
+                type: 'dialogue', lines: [
+                    { speaker: 'Patient', text: "I know I should quit smoking for my kids, but it's the only thing that calms me down when I'm stressed." },
+                    { speaker: 'Clinician', text: "You're feeling torn between your role as a parent and your need for a coping tool that works for you right now." },
+                ]
+            },
         ],
     },
     13: {
@@ -155,10 +167,12 @@ const RESOURCE_CONTENT: { [key: number]: any } = {
             { type: 'heading', text: 'Connecting the Dots' },
             { type: 'paragraph', text: "Summaries pull together several of the patient's own statements about change. A well-timed summary can reinforce their motivation, highlight their ambivalence, and prepare them to take the next step. It's often followed by an open question." },
             { type: 'subheading', text: 'Example: Highlighting Ambivalence' },
-            { type: 'dialogue', lines: [
-                { speaker: 'Clinician', text: "So, let me see if I've got this right. On the one hand, you've said that fast food is quick and easy, and it's what you're used to. On the other hand, you're starting to worry about your pre-diabetes diagnosis and you're feeling tired all the time. Did I get that right?" },
-                { speaker: 'Patient', text: "Yeah, that's pretty much it. When you put it like that, it sounds... not great." },
-            ]},
+            {
+                type: 'dialogue', lines: [
+                    { speaker: 'Clinician', text: "So, let me see if I've got this right. On the one hand, you've said that fast food is quick and easy, and it's what you're used to. On the other hand, you're starting to worry about your pre-diabetes diagnosis and you're feeling tired all the time. Did I get that right?" },
+                    { speaker: 'Patient', text: "Yeah, that's pretty much it. When you put it like that, it sounds... not great." },
+                ]
+            },
         ],
     },
     14: {
@@ -167,12 +181,14 @@ const RESOURCE_CONTENT: { [key: number]: any } = {
             { type: "heading", text: "Beyond Simple Restatements" },
             { type: "paragraph", text: "While simple reflections are foundational, complex reflections can deepen the conversation and accelerate change by adding meaning or emphasis." },
             { type: "subheading", text: "Types of Complex Reflections" },
-            { type: "list", items: [
-                "Reflection of Feeling: 'You're feeling hopeless about this situation.'",
-                "Amplified Reflection: Gently exaggerating what the patient said to encourage them to argue less for sustain talk. 'So there are no downsides to your current behavior at all.'",
-                "Double-Sided Reflection: Captures both sides of ambivalence. 'On the one hand, [sustain talk], and on the other hand, [change talk].'",
-                "Metaphor: Using an image or analogy. 'It's like you're stuck in a tug-of-war with this habit.'"
-            ]}
+            {
+                type: "list", items: [
+                    "Reflection of Feeling: 'You're feeling hopeless about this situation.'",
+                    "Amplified Reflection: Gently exaggerating what the patient said to encourage them to argue less for sustain talk. 'So there are no downsides to your current behavior at all.'",
+                    "Double-Sided Reflection: Captures both sides of ambivalence. 'On the one hand, [sustain talk], and on the other hand, [change talk].'",
+                    "Metaphor: Using an image or analogy. 'It's like you're stuck in a tug-of-war with this habit.'"
+                ]
+            }
         ]
     },
     15: {
@@ -181,11 +197,13 @@ const RESOURCE_CONTENT: { [key: number]: any } = {
             { type: "heading", text: "The Engine of Change" },
             { type: "paragraph", text: "Motivation for change is created when a person perceives a discrepancy between their present behavior and their important personal goals or values. Your role is not to create this discrepancy, but to help the patient become aware of it themselves." },
             { type: "subheading", text: "Techniques for Highlighting Discrepancy" },
-            { type: "list", items: [
-                "Exploring Values: 'What are the most important things to you in your life? ... How does your [behavior] fit in with that?'",
-                "A Typical Day: Ask the patient to walk you through a typical day, which can naturally highlight the impact of their behavior on their routine and goals.",
-                "Information Exchange: Use the 'Elicit-Provide-Elicit' model. Ask permission, provide neutral information, and then ask for the patient's interpretation. 'Would it be okay if I shared some information about...? ... What do you make of that?'"
-            ]}
+            {
+                type: "list", items: [
+                    "Exploring Values: 'What are the most important things to you in your life? ... How does your [behavior] fit in with that?'",
+                    "A Typical Day: Ask the patient to walk you through a typical day, which can naturally highlight the impact of their behavior on their routine and goals.",
+                    "Information Exchange: Use the 'Elicit-Provide-Elicit' model. Ask permission, provide neutral information, and then ask for the patient's interpretation. 'Would it be okay if I shared some information about...? ... What do you make of that?'"
+                ]
+            }
         ]
     },
     20: {
@@ -194,17 +212,21 @@ const RESOURCE_CONTENT: { [key: number]: any } = {
             { type: "heading", text: "The Heart of MI" },
             { type: "paragraph", text: "Change talk is any speech by the patient that favors movement toward change. Your primary goal in MI is to elicit and reinforce it. People are more likely to be persuaded by what they hear themselves say." },
             { type: "subheading", text: "Recognizing DARN CATs (The Types of Change Talk)" },
-            { type: "list", items: [
-                "Preparatory Change Talk (DARN): Desire, Ability, Reasons, Need.",
-                "Mobilizing Change Talk (CAT): Commitment, Activation, Taking Steps."
-            ]},
+            {
+                type: "list", items: [
+                    "Preparatory Change Talk (DARN): Desire, Ability, Reasons, Need.",
+                    "Mobilizing Change Talk (CAT): Commitment, Activation, Taking Steps."
+                ]
+            },
             { type: "subheading", text: "Evocative Questions to Ask" },
-            { type: "list", items: [
-                "Ask for Elaboration: 'Tell me more about that.'",
-                "Looking Forward: 'If you did decide to make a change, what would the benefits be?'",
-                "Querying Extremes: 'What's the worst thing that could happen if you don't change?'",
-                "Using Rulers: 'On a scale of 0 to 10, how important is it for you to change?' Then, 'Why did you pick a 4 and not a 2?'"
-            ]}
+            {
+                type: "list", items: [
+                    "Ask for Elaboration: 'Tell me more about that.'",
+                    "Looking Forward: 'If you did decide to make a change, what would the benefits be?'",
+                    "Querying Extremes: 'What's the worst thing that could happen if you don't change?'",
+                    "Using Rulers: 'On a scale of 0 to 10, how important is it for you to change?' Then, 'Why did you pick a 4 and not a 2?'"
+                ]
+            }
         ]
     },
     21: {
@@ -212,12 +234,14 @@ const RESOURCE_CONTENT: { [key: number]: any } = {
         content: [
             { type: "heading", text: "Rolling with 'Resistance'" },
             { type: "paragraph", text: "Sustain talk is the patient's argument for not changing. It's natural and not 'bad'. Instead of challenging it, roll with it." },
-            { type: "list", items: [
-                "Simple Reflection: 'You feel that now isn't the right time to quit.'",
-                "Amplified Reflection: 'So you see absolutely no reason to change at all.' (Use with care)",
-                "Double-Sided Reflection: 'On the one hand, you enjoy smoking, and on the other, you're worried about your cough.'",
-                "Shifting Focus: Move the conversation away from the roadblock. 'I hear that you're not ready to talk about quitting. Can we talk about what makes this habit important to you?'"
-            ]}
+            {
+                type: "list", items: [
+                    "Simple Reflection: 'You feel that now isn't the right time to quit.'",
+                    "Amplified Reflection: 'So you see absolutely no reason to change at all.' (Use with care)",
+                    "Double-Sided Reflection: 'On the one hand, you enjoy smoking, and on the other, you're worried about your cough.'",
+                    "Shifting Focus: Move the conversation away from the roadblock. 'I hear that you're not ready to talk about quitting. Can we talk about what makes this habit important to you?'"
+                ]
+            }
         ]
     },
     22: {
@@ -258,11 +282,13 @@ const RESOURCE_CONTENT: { [key: number]: any } = {
             { type: "heading", text: "From 'Maybe' to 'I Will'" },
             { type: "paragraph", text: "The goal of evoking is to not just hear change talk, but to guide the patient from preparatory language (Desire, Ability, Reasons, Need) to mobilizing language (Commitment, Activation, Taking Steps). This section covers techniques to bridge that gap." },
             { type: "subheading", text: "Key Questions" },
-            { type: "list", items: [
-                "After hearing preparatory talk, ask: 'So what do you think you'll do?'",
-                "Use a summary: 'So you've said you want to change for your health, you believe you can do it, and you need to for your family. The next step seems to be deciding on a plan. What does that look like to you?'",
-                "Directly ask for commitment: 'What are you prepared to do this week?'"
-            ]}
+            {
+                type: "list", items: [
+                    "After hearing preparatory talk, ask: 'So what do you think you'll do?'",
+                    "Use a summary: 'So you've said you want to change for your health, you believe you can do it, and you need to for your family. The next step seems to be deciding on a plan. What does that look like to you?'",
+                    "Directly ask for commitment: 'What are you prepared to do this week?'"
+                ]
+            }
         ]
     },
     27: {
@@ -289,12 +315,14 @@ const RESOURCE_CONTENT: { [key: number]: any } = {
             { type: "heading", text: "De-escalation and Engagement" },
             { type: "paragraph", text: "Anger and defensiveness are often signs of a patient feeling unheard or judged. Instead of confronting it, MI principles offer a way to 'roll with' this energy and maintain the therapeutic alliance." },
             { type: "subheading", text: "Techniques" },
-            { type: "list", items: [
-                "Reflect the feeling: 'You're feeling very angry about being here.'",
-                "Apologize if appropriate: 'I can see I've overstepped. I apologize. Let's back up.'",
-                "Shift focus: Move away from the sensitive topic temporarily. 'Let's put that aside for a moment. Can we talk about what's been going well for you this week?'",
-                "Affirm autonomy: 'Ultimately, you're in control here, and I can't make you do anything you don't want to do.'"
-            ]}
+            {
+                type: "list", items: [
+                    "Reflect the feeling: 'You're feeling very angry about being here.'",
+                    "Apologize if appropriate: 'I can see I've overstepped. I apologize. Let's back up.'",
+                    "Shift focus: Move away from the sensitive topic temporarily. 'Let's put that aside for a moment. Can we talk about what's been going well for you this week?'",
+                    "Affirm autonomy: 'Ultimately, you're in control here, and I can't make you do anything you don't want to do.'"
+                ]
+            }
         ]
     },
     30: {
@@ -303,11 +331,13 @@ const RESOURCE_CONTENT: { [key: number]: any } = {
             { type: "heading", text: "Respectful and Relevant Conversations" },
             { type: "paragraph", text: "While MI principles are broadly applicable, their expression must be culturally sensitive. What works as an affirmation in one culture might be inappropriate in another. It's crucial to adapt your approach to be respectful of the patient's cultural background, values, and communication style." },
             { type: "subheading", text: "Key Considerations" },
-            { type: "list", items: [
-                "Family and Community: In collectivist cultures, decisions are often made with family or community input. Explore these influences: 'How does your family feel about this?'",
-                "Communication Styles: Be mindful of directness vs. indirectness, eye contact, and personal space.",
-                "Values: Frame the discrepancy between behavior and values that are culturally relevant to the patient."
-            ]}
+            {
+                type: "list", items: [
+                    "Family and Community: In collectivist cultures, decisions are often made with family or community input. Explore these influences: 'How does your family feel about this?'",
+                    "Communication Styles: Be mindful of directness vs. indirectness, eye contact, and personal space.",
+                    "Values: Frame the discrepancy between behavior and values that are culturally relevant to the patient."
+                ]
+            }
         ]
     },
 };
@@ -337,7 +367,7 @@ const ResourceDetailView: React.FC<{ resourceId: number; onBack: () => void; }> 
                 case 'dialogue':
                     return (
                         <Card key={index} variant="accent" padding="sm" className="border-l-4 border-[var(--color-primary)] my-4">
-                            {item.lines.map((line: {speaker: string, text: string}, i: number) => (
+                            {item.lines.map((line: { speaker: string, text: string }, i: number) => (
                                 <p key={i} className="mb-1">
                                     <span className={`font-bold ${line.speaker.includes('Patient') ? 'text-[var(--color-error)]' : 'text-[var(--color-primary)]'}`}>{line.speaker}: </span>
                                     <span className="text-[var(--color-text-secondary)] italic">"{line.text}"</span>
@@ -354,7 +384,14 @@ const ResourceDetailView: React.FC<{ resourceId: number; onBack: () => void; }> 
     return (
         <div className="min-h-screen bg-transparent pb-24 px-6">
             <header className="flex items-center mb-6 pt-4">
-                <BackButton onClick={onBack} className="mr-3" />
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onBack}
+                    icon={<i className="fa-solid fa-arrow-left" />}
+                    aria-label="Go back"
+                    className="mr-3"
+                />
                 <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">{resource.title}</h1>
             </header>
             <main className="pb-8">
@@ -399,7 +436,14 @@ const ResourceLibrary: React.FC<ResourceLibraryProps> = ({ onUpgrade, userTier, 
     return (
         <div className="min-h-screen bg-transparent pb-24 flex flex-col">
             <header className="flex items-center mb-4 pt-4 px-6">
-                <BackButton onClick={onBack} className="mr-3" />
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onBack}
+                    icon={<i className="fa-solid fa-arrow-left" />}
+                    aria-label="Go back"
+                    className="mr-3"
+                />
                 <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Resource Library</h1>
             </header>
 
@@ -420,7 +464,7 @@ const ResourceLibrary: React.FC<ResourceLibraryProps> = ({ onUpgrade, userTier, 
                     const isCategoryOpen = openCategory === category.category;
                     const premiumItems = category.items.filter(i => i.premiumOnly);
                     const freeItems = category.items.filter(i => !i.premiumOnly);
-                    
+
                     return (
                         <div key={category.category}>
                             <Card
@@ -444,7 +488,7 @@ const ResourceLibrary: React.FC<ResourceLibraryProps> = ({ onUpgrade, userTier, 
                                     )}
                                 </div>
                             </Card>
-                            
+
                             {(isPremium ? isCategoryOpen : true) && (
                                 <div className="mt-1 space-y-1">
                                     {freeItems.map(item => (
