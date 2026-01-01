@@ -157,10 +157,10 @@ Create a unique, realistic patient with:
 1. A diverse name (consider various ethnicities and backgrounds)
 2. Age appropriate for the presenting issue (typically 18-75)
 3. Sex (Male, Female, or Non-binary)
-4. A rich background story that explains their situation
-5. A specific presenting problem related to "${topic}"
-6. Relevant history that adds depth
-7. A chief complaint in the patient's own words (first person, showing their ${stageOfChange} stage)
+4. A concise background (max 2 sentences) that explains their situation
+5. A brief presenting problem (max 2 sentences) related to "${topic}"
+6. Relevant history (max 2 sentences) that adds depth
+7. A chief complaint in the patient's own words (first person, max 1-2 sentences, showing their ${stageOfChange} stage)
 8. One personality trait from: ${suggestedTraits.join(', ')}
 
 The patient should authentically reflect the ${stageOfChange} stage of change:
@@ -175,11 +175,11 @@ Respond with ONLY this JSON structure (no markdown, no code blocks):
   "name": "Full Name",
   "age": number,
   "sex": "Male" | "Female" | "Non-binary",
-  "background": "Detailed background paragraph",
-  "presentingProblem": "Clinical description of the presenting issue",
+  "background": "Concise background (max 2 sentences)",
+  "presentingProblem": "Brief clinical description (max 2 sentences)",
   "topic": "${topic}",
-  "history": "Relevant history related to the issue",
-  "chiefComplaint": "What the patient says in their own words",
+  "history": "Relevant history (max 2 sentences)",
+  "chiefComplaint": "Patient's own words (max 1-2 sentences)",
   "stageOfChange": "${stageOfChange}",
   "personalityTrait": "one of: ${suggestedTraits.join(', ')}"
 }`;

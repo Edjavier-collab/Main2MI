@@ -6,8 +6,6 @@ import { useReportData } from '../../hooks/useReportData';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import ExecutiveSummary from '../reports/ExecutiveSummary';
-import SkillRadarChart from '../reports/SkillRadarChart';
-import TrendAnalysis from '../reports/TrendAnalysis';
 import DetailedInsights from '../reports/DetailedInsights';
 import ActionPlan from '../reports/ActionPlan';
 
@@ -97,61 +95,6 @@ const ReportsView: React.FC<ReportsViewProps> = ({
           <Card variant="elevated" padding="lg" className="mb-6">
             <ExecutiveSummary
               data={reportData}
-              isLoading={reportData.isLoading}
-            />
-          </Card>
-        )}
-
-        {/* Premium Skill Radar - current vs previous period */}
-        {isPremium && (
-          <Card variant="default" padding="lg" className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3
-                className="text-sm font-bold uppercase tracking-wide"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
-                Skill Radar
-              </h3>
-              <span
-                className="text-xs px-2 py-1 rounded-full"
-                style={{
-                  backgroundColor: 'var(--color-primary-50)',
-                  color: 'var(--color-primary-700)',
-                }}
-              >
-                Current vs Previous
-              </span>
-            </div>
-            <SkillRadarChart
-              currentSkills={reportData.currentSkillScores}
-              previousSkills={reportData.previousSkillScores}
-              isLoading={reportData.isLoading}
-            />
-          </Card>
-        )}
-
-        {/* Premium Trend Analysis - score over last 30 days */}
-        {isPremium && (
-          <Card variant="default" padding="lg" className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3
-                className="text-sm font-bold uppercase tracking-wide"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
-                Progress Trend
-              </h3>
-              <span
-                className="text-xs px-2 py-1 rounded-full"
-                style={{
-                  backgroundColor: 'var(--color-primary-50)',
-                  color: 'var(--color-primary-700)',
-                }}
-              >
-                Last 30 Days
-              </span>
-            </div>
-            <TrendAnalysis
-              sessionData={reportData.dailyScores}
               isLoading={reportData.isLoading}
             />
           </Card>
@@ -299,30 +242,6 @@ const ReportsView: React.FC<ReportsViewProps> = ({
               isLoading={reportData.isLoading}
             />
           </Card>
-        )}
-
-        {/* Quick Actions */}
-        {reportData.sessionCount > 0 && (
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={() => onNavigate(View.Calendar)}
-              className="justify-center"
-            >
-              <i className="fa-solid fa-calendar mr-2" aria-hidden="true" />
-              View Sessions
-            </Button>
-            <Button
-              variant="primary"
-              size="md"
-              onClick={() => onNavigate(View.ScenarioSelection)}
-              className="justify-center"
-            >
-              <i className="fa-solid fa-play mr-2" aria-hidden="true" />
-              Practice Now
-            </Button>
-          </div>
         )}
 
         {/* Empty state CTA */}
