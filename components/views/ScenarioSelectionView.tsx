@@ -169,7 +169,7 @@ export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ on
 
                 {/* Topic Selection */}
                 <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-[var(--color-text-primary)]">
+                    <label className="block text-xs font-semibold uppercase tracking-wide text-[var(--color-text-muted)] px-1">
                         Substance / Behavior
                     </label>
                     <CustomSelect
@@ -191,7 +191,7 @@ export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ on
 
                 {/* Difficulty Selection */}
                 <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-[var(--color-text-primary)]">
+                    <label className="block text-xs font-semibold uppercase tracking-wide text-[var(--color-text-muted)] px-1">
                         Difficulty Level
                     </label>
                     <div className="grid grid-cols-3 gap-3">
@@ -201,17 +201,17 @@ export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ on
                                 type="button"
                                 onClick={() => setSelectedDifficulty(level)}
                                 disabled={isGenerating}
-                                className={`p-3 rounded-[var(--radius-md)] border-2 transition-all text-center disabled:opacity-50 disabled:cursor-not-allowed ${
+                                className={`p-3 rounded-[var(--grouped-card-radius)] border transition-all text-center disabled:opacity-50 disabled:cursor-not-allowed ${
                                     selectedDifficulty === level
-                                        ? 'border-[var(--color-primary)] bg-[var(--color-primary-light)] text-[var(--color-primary-darker)]'
-                                        : 'border-[var(--color-neutral-200)] bg-white text-[var(--color-text-secondary)] hover:border-[var(--color-neutral-300)]'
+                                        ? 'border-[var(--color-primary)] bg-[var(--color-primary-light)] text-[var(--color-primary-darker)] shadow-sm'
+                                        : 'border-[var(--grouped-card-border)] bg-white text-[var(--color-text-secondary)] hover:border-[var(--color-neutral-300)] shadow-[var(--grouped-card-shadow)]'
                                 }`}
                             >
                                 <span className="font-medium">{level}</span>
                             </button>
                         ))}
                     </div>
-                    <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                    <p className="text-xs text-[var(--color-text-muted)] mt-1 px-1">
                         {selectedDifficulty === DifficultyLevel.Beginner && 'Cooperative patient, easier to build rapport'}
                         {selectedDifficulty === DifficultyLevel.Intermediate && 'Moderately ambivalent, requires more skill'}
                         {selectedDifficulty === DifficultyLevel.Advanced && 'Resistant or guarded, challenging dynamics'}
@@ -220,7 +220,7 @@ export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ on
 
                 {/* Stage of Change Selection */}
                 <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-[var(--color-text-primary)]">
+                    <label className="block text-xs font-semibold uppercase tracking-wide text-[var(--color-text-muted)] px-1">
                         Stage of Change
                     </label>
                     <CustomSelect
@@ -270,7 +270,7 @@ export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ on
 
                 {/* Quick Start with Random */}
                 <Card
-                    variant="default"
+                    variant="grouped"
                     padding="md"
                     hoverable={!isGenerating}
                     onClick={isGenerating ? undefined : handleSurpriseMe}

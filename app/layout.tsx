@@ -54,10 +54,10 @@ export default function RootLayout({
             <OfflineIndicator />
 
             {/* Header / Top Navigation */}
-            <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-white/70 pt-safe-top shadow-sm transition-all border-b border-neutral-100/50">
+            <header className="sticky top-0 z-50 w-full backdrop-blur-xl bg-white/80 pt-safe-top shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all border-b border-neutral-200/50">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-lg shadow-sm">
                     M
                   </div>
                   <span className="font-display font-bold text-lg tracking-tight text-text-primary">
@@ -68,7 +68,7 @@ export default function RootLayout({
             </header>
 
             {/* Main Content Area */}
-            <main className="flex-grow w-full max-w-7xl mx-auto flex flex-col pb-safe-bottom relative">
+            <main className="flex-grow w-full max-w-7xl mx-auto flex flex-col pb-safe-bottom relative px-[var(--inset-x-mobile)] sm:px-[var(--inset-x-tablet)]">
               {children}
             </main>
 

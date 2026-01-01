@@ -4,7 +4,7 @@ import React from 'react';
 
 interface CardProps {
   children: React.ReactNode;
-  variant?: 'default' | 'elevated' | 'outlined' | 'accent' | 'glass' | 'soft' | 'flat' | 'soft-accent' | 'soft-elevated';
+  variant?: 'default' | 'elevated' | 'outlined' | 'accent' | 'glass' | 'soft' | 'flat' | 'soft-accent' | 'soft-elevated' | 'grouped' | 'grouped-row';
   padding?: 'none' | 'sm' | 'md' | 'lg';
   hoverable?: boolean;
   onClick?: () => void;
@@ -37,6 +37,9 @@ export const Card: React.FC<CardProps> = ({
     // Soft variants
     'soft-accent': 'bg-[var(--color-bg-accent)] shadow-[var(--shadow-xs)] border border-[var(--color-primary-light)]',
     'soft-elevated': 'shadow-[var(--shadow-md)] border border-[var(--color-primary-lighter)]',
+    // Grouped Inset variants (iOS Settings style)
+    'grouped': 'rounded-[var(--grouped-card-radius)] shadow-[var(--grouped-card-shadow)] border border-[var(--grouped-card-border)]',
+    'grouped-row': 'rounded-none border-b border-[var(--grouped-card-border)] last:border-b-0 first:rounded-t-[var(--grouped-card-radius)] last:rounded-b-[var(--grouped-card-radius)]',
   };
 
   const paddingClasses = {

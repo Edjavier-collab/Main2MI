@@ -83,5 +83,16 @@
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Grouped Card / Inset Style */
+  --grouped-card-radius: 16px;
+  --grouped-card-border: rgba(229, 231, 235, 0.5);
+  --grouped-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --grouped-row-height: 56px;
+  --grouped-icon-size: 32px;
+
+  /* Content Inset Spacing */
+  --inset-x-mobile: 16px;
+  --inset-x-tablet: 24px;
 }
 
