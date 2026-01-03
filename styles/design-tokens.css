@@ -91,6 +91,12 @@
   --grouped-row-height: 56px;
   --grouped-icon-size: 32px;
 
+  /* Inset Group Container */
+  --inset-group-radius: var(--radius-lg);
+  --inset-group-border-color: var(--color-neutral-200);
+  --inset-group-shadow: inset 0 1px 3px 0 rgba(0,0,0,0.04);
+  --inset-group-bg: var(--color-bg-main);
+
   /* Content Inset Spacing */
   --inset-x-mobile: 16px;
   --inset-x-tablet: 24px;

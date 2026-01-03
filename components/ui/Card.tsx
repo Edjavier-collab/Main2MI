@@ -38,8 +38,8 @@ export const Card: React.FC<CardProps> = ({
     'soft-accent': 'bg-[var(--color-bg-accent)] shadow-[var(--shadow-xs)] border border-[var(--color-primary-light)]',
     'soft-elevated': 'shadow-[var(--shadow-md)] border border-[var(--color-primary-lighter)]',
     // Grouped Inset variants (iOS Settings style)
-    'grouped': 'rounded-[var(--grouped-card-radius)] shadow-[var(--grouped-card-shadow)] border border-[var(--grouped-card-border)]',
-    'grouped-row': 'rounded-none border-b border-[var(--grouped-card-border)] last:border-b-0 first:rounded-t-[var(--grouped-card-radius)] last:rounded-b-[var(--grouped-card-radius)]',
+    'grouped': 'bg-[var(--color-bg-card)] rounded-[var(--grouped-card-radius)] shadow-[var(--grouped-card-shadow)] border border-[var(--grouped-card-border)]',
+    'grouped-row': 'bg-[var(--color-bg-card)] rounded-none border-b border-[var(--grouped-card-border)] last:border-b-0',
   };
 
   const paddingClasses = {
@@ -75,6 +75,53 @@ export const Card: React.FC<CardProps> = ({
     >
       {children}
     </div>
+  );
+};
+
+export const InsetGroup = ({ children, className }: { children: React.ReactNode, className?: string }) => {
+  return (
+    <div
+      className={`
+        rounded-[var(--inset-group-radius)]
+        border
+        border-[var(--inset-group-border-color)]
+        shadow-[var(--inset-group-shadow)]
+        bg-[var(--inset-group-bg)]
+        overflow-hidden
+        ${className || ''}
+      `}
+    >
+      {children}
+    </div>
+  );
+};
+
+interface GroupedListItemProps {
+  icon?: React.ReactNode;
+  label: string;
+  children?: React.ReactNode; // For content on the right side
+  onClick?: () => void;
+  hoverable?: boolean;
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+}
+
+export const GroupedListItem = ({ icon, label, children, onClick, hoverable = true, padding = 'md' }: GroupedListItemProps) => {
+  return (
+    <Card 
+      variant="grouped-row" 
+      padding={padding}
+      onClick={onClick}
+      hoverable={hoverable && !!onClick}
+      className="flex items-center justify-between w-full"
+    >
+      <div className="flex items-center gap-4">
+        {icon && <div className="w-[var(--grouped-icon-size)] h-[var(--grouped-icon-size)] flex items-center justify-center">{icon}</div>}
+        <span className="text-text-primary font-medium">{label}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        {children}
+      </div>
+    </Card>
   );
 };
 
