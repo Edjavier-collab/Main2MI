@@ -226,11 +226,13 @@ Based on your analysis, provide a detailed report in the requested JSON format w
 - empathyScore: A number from 1-5 rating the clinician's overall empathy level
 - empathyBreakdown: Explain WHY you gave that score, referencing 2-3 specific examples from the transcript
 - whatWentRight: What the clinician did well, with direct quotes from the transcript
-- constructiveFeedback: A key area for growth with a specific "Missed Opportunity". Quote the clinician's words and provide a concrete example of what they could have said instead
-- areasForGrowth: Specific, actionable suggestions for improvement (2-3 sentences)
+- constructiveFeedback: Coaching-style feedback using the pattern: "Instead of saying '[exact quote from clinician]', you could have said '[your suggested alternative]'." Provide 1-2 concrete coaching suggestions in this format.
+- areasForGrowth: Coaching-style growth suggestions. For each suggestion, use the pattern: "Instead of '[quote from clinician]', try '[improved version]'." Focus on actionable rewrites the clinician can practice.
 - skillsDetected: An array of ALL MI skills you detected in the transcript (from: Open Questions, Affirmations, Reflections, Summaries, Developing Discrepancy, Eliciting Change Talk, Rolling with Resistance, Supporting Self-Efficacy)
 - skillCounts: A JSON string representation of an object counting how many times each skill was used. Count all instances in the transcript. Format as a JSON string: "{\"Reflections\": 4, \"Open Questions\": 2, \"Affirmations\": 1}"
 - nextFocus: A concise, actionable recommendation for the next practice session (1-2 sentences)
+
+COACHING STYLE REQUIREMENT: For constructiveFeedback and areasForGrowth, you MUST use the "Instead of [quote], you could have said [suggestion]" pattern. This makes feedback actionable and concrete. Always quote the clinician's exact words, then provide a specific alternative they could practice.
 
 IMPORTANT: Count every instance of each skill in the transcript. For example, if the clinician used 4 reflections, 2 open questions, and 1 affirmation, skillCounts should be: {"Reflections": 4, "Open Questions": 2, "Affirmations": 1}`;
 
@@ -256,11 +258,11 @@ IMPORTANT: Count every instance of each skill in the transcript. For example, if
         },
         constructiveFeedback: {
           type: 'string',
-          description: "A paragraph (2-3 sentences) identifying a key area for growth and a specific 'Missed Opportunity'. MUST quote the clinician and then provide a concrete example of what they could have said instead. e.g., 'A key area is deepening reflections. For instance, when you said [quote], a missed opportunity was to reflect the underlying emotion. You could have tried: [example reflection].'",
+          description: "Coaching-style feedback using the 'Instead of [quote], you could have said [suggestion]' pattern. Provide 1-2 specific examples where you quote the clinician's exact words, then offer an improved alternative. Example: 'Instead of saying \"Why don't you just stop drinking?\", you could have said \"What would be different in your life if you decided to cut back on drinking?\"'",
         },
         areasForGrowth: {
           type: 'string',
-          description: "Specific suggestions for growth with actionable recommendations. Should be 2-3 sentences with concrete examples of what to practice next.",
+          description: "Coaching-style growth suggestions using the 'Instead of [quote], try [improved version]' pattern. Focus on 1-2 actionable rewrites the clinician can practice. Always quote the clinician's actual words and provide a specific MI-aligned alternative.",
         },
         keySkillsUsed: {
           type: 'array',

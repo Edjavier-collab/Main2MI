@@ -127,15 +127,35 @@ const SkillsChecklist: React.FC<{ skillsUsed: string[] }> = ({ skillsUsed }) => 
     </div>
 );
 
-const FeedbackSectionCard: React.FC<{ title: string; icon: string; children: React.ReactNode }> = ({ title, icon, children }) => (
-    <Card variant="elevated" padding="md">
+const FeedbackSectionCard: React.FC<{ title: string; icon: string; children: React.ReactNode; premium?: boolean }> = ({ title, icon, children, premium }) => (
+    <Card variant="elevated" padding="md" className={premium ? 'border-l-4 border-l-[var(--color-primary)]' : ''}>
         <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-3 flex items-center">
             <i className={`fa-solid ${icon} mr-3 text-[var(--color-primary)]`} aria-hidden="true"></i>
             {title}
+            {premium && (
+                <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)] rounded-full">
+                    Coaching
+                </span>
+            )}
         </h3>
-        <p className="text-[var(--color-text-secondary)] leading-relaxed pl-8 whitespace-pre-wrap">{children}</p>
+        <div className="text-[var(--color-text-secondary)] leading-relaxed pl-8 whitespace-pre-wrap">{children}</div>
     </Card>
 );
+
+// Helper to combine and deduplicate coaching feedback for premium users
+const combineCoachingFeedback = (areasForGrowth: string, constructiveFeedback: string): string => {
+    // If they're identical or one is empty, return the non-empty one
+    if (!areasForGrowth || areasForGrowth === constructiveFeedback) return constructiveFeedback;
+    if (!constructiveFeedback) return areasForGrowth;
+
+    // Check if one contains the other (to avoid duplication)
+    if (areasForGrowth.includes(constructiveFeedback) || constructiveFeedback.includes(areasForGrowth)) {
+        return areasForGrowth.length > constructiveFeedback.length ? areasForGrowth : constructiveFeedback;
+    }
+
+    // Combine both with a separator for comprehensive coaching feedback
+    return `${constructiveFeedback}\n\n${areasForGrowth}`;
+};
 
 const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade, onStartPractice }) => {
     const { feedback, tier } = session;
@@ -365,7 +385,10 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
 
     // Premium View - Show everything unlocked
     const premiumSkills = feedback.skillsDetected || feedback.keySkillsUsed || [];
-    const premiumAreasForGrowth = feedback.areasForGrowth || feedback.constructiveFeedback || '';
+    // Combine areasForGrowth and constructiveFeedback for comprehensive coaching
+    const areasForGrowth = feedback.areasForGrowth || '';
+    const constructiveFeedback = feedback.constructiveFeedback || '';
+    const premiumCoachingFeedback = combineCoachingFeedback(areasForGrowth, constructiveFeedback);
     // Always ensure we have content for Next Practice Focus - use fallback if empty
     const rawNextFocus = feedback.nextFocus || feedback.nextPracticeFocus || '';
     const premiumNextFocus = rawNextFocus.trim() || DEFAULT_NEXT_FOCUS;
@@ -412,9 +435,9 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                         {feedback.whatWentRight}
                     </FeedbackSectionCard>
 
-                    {premiumAreasForGrowth && (
-                        <FeedbackSectionCard title="Key Areas for Growth" icon="fa-seedling">
-                            {premiumAreasForGrowth}
+                    {premiumCoachingFeedback && (
+                        <FeedbackSectionCard title="Key Areas for Growth" icon="fa-seedling" premium>
+                            {premiumCoachingFeedback}
                         </FeedbackSectionCard>
                     )}
                 </main>
