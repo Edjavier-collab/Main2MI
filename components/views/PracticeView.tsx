@@ -334,9 +334,10 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
                 timestamp: Date.now(),
             });
         } finally {
+            setSpeechTranscript(''); // Clear input after sending
             setIsPatientTyping(false);
         }
-    }, [getPatientResponse, isPatientTyping, transcript, patient]);
+    }, [getPatientResponse, isPatientTyping, transcript, patient, setSpeechTranscript]);
 
     const handleRetryLastMessage = useCallback(() => {
         if (lastFailedMessage) {
