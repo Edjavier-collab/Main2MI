@@ -3,7 +3,8 @@
 import React from 'react';
 import { InsetGroup, GroupedListItem } from '../ui/Card';
 import { SearchBar } from '../ui/SearchBar';
-import { PlayCircle, FileText, Users, ChevronRight } from 'lucide-react';
+import { FeaturedResourceCard } from '../ui/FeaturedResourceCard';
+import { PlayCircle, FileText, Users, ChevronRight, Brain } from 'lucide-react';
 
 interface LibraryItem {
   id: string;
@@ -59,12 +60,34 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
     }))
     .filter(category => category.items.length > 0);
 
+    const handleFeaturedClick = () => {
+        const fundamentalsCategory = categories.find(c => c.title === 'PDFs/Guides');
+        const fundamentalsItem = fundamentalsCategory?.items.find(i => i.title.includes('MI Fundamentals'));
+        if (fundamentalsCategory && fundamentalsItem) {
+            onItemClick(fundamentalsCategory.id, fundamentalsItem.id);
+        }
+    };
+
   return (
     <div className="min-h-screen bg-transparent pb-24">
       {/* Header */}
       <div className="px-4 pt-6 pb-4">
         <h1 className="text-3xl font-bold text-text-primary">Resource Library</h1>
         <p className="text-text-secondary mt-1">Learn MI fundamentals and techniques</p>
+      </div>
+
+      {/* Featured Section */}
+      <div className="px-4 mb-4">
+        <div className="max-w-2xl mx-auto">
+            <SectionHeader title="Featured" />
+            <FeaturedResourceCard
+                title="MI Fundamentals Guide"
+                description="Master the core concepts of Motivational Interviewing."
+                icon={<IconBox icon={<Brain size={28} />} className="bg-primary/10 text-primary" />}
+                buttonText="Start Learning"
+                onClick={handleFeaturedClick}
+            />
+        </div>
       </div>
 
       {/* Search */}
