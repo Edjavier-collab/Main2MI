@@ -1,15 +1,21 @@
-import React from 'react';
+'use client';
 
-import { Card } from '../ui/Card';
-import { LeafDecoration } from '../ui/GrowthDecorations';
-import './LibraryView.css';
+import React from 'react';
+import { InsetGroup, GroupedListItem } from '../ui/Card';
+import { SearchBar } from '../ui/SearchBar';
+import { PlayCircle, FileText, Users, ChevronRight } from 'lucide-react';
+
+interface LibraryItem {
+  id: string;
+  title: string;
+  description: string;
+  progress: number;
+}
 
 interface Category {
   id: string;
   title: string;
-  icon: string;
-  itemCount: number;
-  items: { id: string; title: string }[];
+  items: LibraryItem[];
 }
 
 interface LibraryViewProps {
@@ -17,86 +23,89 @@ interface LibraryViewProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onItemClick: (categoryId: string, itemId: string) => void;
-  expandedCategory: string | null;
-  onCategoryClick: (categoryId: string) => void;
 }
+
+const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
+    <h2 className="px-1 pt-6 pb-2 text-sm font-semibold text-text-secondary uppercase tracking-wider">
+        {title}
+    </h2>
+);
+
+const IconBox = ({ icon, className }: { icon: React.ReactNode; className?: string }) => (
+    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${className}`}>
+        {icon}
+    </div>
+);
+
+const categoryIconMap: { [key: string]: React.ReactNode } = {
+    'Videos': <IconBox icon={<PlayCircle size={24} />} className="bg-blue-500/10 text-blue-500" />,
+    'PDFs/Guides': <IconBox icon={<FileText size={24} />} className="bg-orange-500/10 text-orange-500" />,
+    'Case Studies': <IconBox icon={<Users size={24} />} className="bg-purple-500/10 text-purple-500" />,
+};
 
 export const LibraryView: React.FC<LibraryViewProps> = ({
   categories,
   searchQuery,
   onSearchChange,
   onItemClick,
-  expandedCategory,
-  onCategoryClick,
 }) => {
+  const filteredCategories = categories
+    .map(category => ({
+      ...category,
+      items: category.items.filter(item =>
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchQuery.toLowerCase())
+      ),
+    }))
+    .filter(category => category.items.length > 0);
+
   return (
-    <div className="library-view">
+    <div className="min-h-screen bg-transparent pb-24">
       {/* Header */}
-      <div className="library-view__header">
-        <div className="library-view__header-content">
-          <h1>Resource Library</h1>
-          <p>Learn MI fundamentals and techniques</p>
-        </div>
+      <div className="px-4 pt-6 pb-4">
+        <h1 className="text-3xl font-bold text-text-primary">Resource Library</h1>
+        <p className="text-text-secondary mt-1">Learn MI fundamentals and techniques</p>
       </div>
 
       {/* Search */}
-      <div className="library-view__search px-6">
-        <div className="relative">
-          <i className="fa fa-search absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" aria-hidden="true"></i>
-          <input
-            type="text"
-            placeholder="Search resources..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-white border border-[var(--color-neutral-300)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-[var(--color-text-primary)]"
-          />
+      <div className="px-4 sticky top-0 py-2 z-10 bg-bg-main/80 backdrop-blur-sm -mx-4">
+         <div className="max-w-2xl mx-auto">
+            <SearchBar
+                placeholder="Search resources..."
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+            />
         </div>
       </div>
 
       {/* Categories */}
-      <div className="library-view__content px-6 pb-24">
-        {categories.map((category) => (
-          <div key={category.id} className="library-view__category">
-            <Card
-              variant="elevated"
-              padding="md"
-              hoverable
-              onClick={() => onCategoryClick(category.id)}
-              className="library-view__category-card"
-            >
-              <div className="library-view__category-header">
-                <span className="library-view__category-icon">{category.icon}</span>
-                <div className="library-view__category-info">
-                  <h3 className="text-[var(--color-text-primary)]">{category.title}</h3>
-                  <span className="library-view__category-count text-[var(--color-text-muted)]">
-                    {category.itemCount} {category.itemCount === 1 ? 'resource' : 'resources'}
-                  </span>
-                </div>
-                <span className={`library-view__category-arrow text-[var(--color-text-muted)] ${expandedCategory === category.id ? 'expanded' : ''}`}>
-                  ›
-                </span>
-              </div>
-            </Card>
-
-            {/* Expanded Items */}
-            {expandedCategory === category.id && (
-              <div className="library-view__items">
+      <div className="max-w-2xl mx-auto px-4">
+        {filteredCategories.length > 0 ? (
+            filteredCategories.map((category) => (
+            <div key={category.id}>
+              <SectionHeader title={category.title} />
+              <InsetGroup>
                 {category.items.map((item) => (
-                  <div
+                  <GroupedListItem
                     key={item.id}
-                    className="library-view__item"
                     onClick={() => onItemClick(category.id, item.id)}
+                    label={item.title}
+                    subtitle={item.description}
+                    icon={categoryIconMap[category.title] || <IconBox icon={<FileText size={24} />} className="bg-gray-500/10 text-gray-500" />}
+                    progress={item.progress}
                   >
-                    <LeafDecoration size={20} />
-                    <span>{item.title}</span>
-                  </div>
+                    <ChevronRight className="h-5 w-5 text-text-muted" />
+                  </GroupedListItem>
                 ))}
-              </div>
-            )}
-          </div>
-        ))}
+              </InsetGroup>
+            </div>
+            ))
+        ) : (
+            <div className="text-center py-20">
+                <p className="text-text-muted">No resources found for your search.</p>
+            </div>
+        )}
       </div>
     </div>
   );
 };
-

@@ -99,27 +99,45 @@ export const InsetGroup = ({ children, className }: { children: React.ReactNode,
 interface GroupedListItemProps {
   icon?: React.ReactNode;
   label: string;
+  subtitle?: string;
+  progress?: number;
   children?: React.ReactNode; // For content on the right side
   onClick?: () => void;
   hoverable?: boolean;
   padding?: 'none' | 'sm' | 'md' | 'lg';
 }
 
-export const GroupedListItem = ({ icon, label, children, onClick, hoverable = true, padding = 'md' }: GroupedListItemProps) => {
+export const GroupedListItem = ({ icon, label, subtitle, progress, children, onClick, hoverable = true, padding = 'md' }: GroupedListItemProps) => {
   return (
     <Card 
       variant="grouped-row" 
       padding={padding}
       onClick={onClick}
       hoverable={hoverable && !!onClick}
-      className="flex items-center justify-between w-full"
+      className="w-full"
     >
-      <div className="flex items-center gap-4">
-        {icon && <div className="w-[var(--grouped-icon-size)] h-[var(--grouped-icon-size)] flex items-center justify-center">{icon}</div>}
-        <span className="text-text-primary font-medium">{label}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        {children}
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {icon && <div className="w-[var(--grouped-icon-size)] h-[var(--grouped-icon-size)] flex items-center justify-center">{icon}</div>}
+            <span className="text-text-primary font-medium">{label}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {children}
+          </div>
+        </div>
+        {(subtitle || progress !== undefined) && (
+          <div className="pl-12 flex flex-col gap-2">
+            {subtitle && <p className="text-sm text-text-muted">{subtitle}</p>}
+            {progress !== undefined && (
+              <div className="w-full">
+                <div className="w-full bg-neutral-200 rounded-full h-[2px]">
+                  <div className="bg-info h-[2px] rounded-full" style={{ width: `${progress}%` }}></div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </Card>
   );
