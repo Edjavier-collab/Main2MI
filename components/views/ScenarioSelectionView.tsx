@@ -4,47 +4,30 @@ import React, { useState, useMemo } from 'react';
 import { PatientProfile, DifficultyLevel, StageOfChange } from '../../types';
 import { PATIENT_TOPIC_TEMPLATES, PatientTopicTemplate } from '../../constants';
 import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
-import { CustomSelect, SelectOptionGroup, SelectOption } from '../ui/CustomSelect';
+import { InsetGroup, GroupedListItem } from '../ui/Card';
+import { FeaturedResourceCard } from '../ui/FeaturedResourceCard';
+import { CustomSelect, SelectOption } from '../ui/CustomSelect';
+import { FlaskConical, ChevronRight, Shuffle } from 'lucide-react';
 
 interface ScenarioSelectionViewProps {
     onBack: () => void;
     onStartPractice: (patientProfile: PatientProfile) => void;
 }
 
-// Get unique topics from templates
-const getTopicOptions = () => {
-    const topics = PATIENT_TOPIC_TEMPLATES.map(t => ({
-        value: t.topic,
-        label: t.topic,
-        category: t.category,
-    }));
-    return topics;
-};
+const SectionHeader: React.FC<{ title: string, children?: React.ReactNode }> = ({ title, children }) => (
+    <div className="flex justify-between items-center">
+        <h2 className="px-1 pt-6 pb-2 text-sm font-semibold text-text-secondary uppercase tracking-wider">
+            {title}
+        </h2>
+        {children}
+    </div>
+);
 
-// Get category color classes
-const getCategoryStyles = (category: PatientTopicTemplate['category']): string => {
-    switch (category) {
-        case 'Alcohol':
-            return 'bg-purple-100 text-purple-700';
-        case 'Nicotine':
-            return 'bg-gray-100 text-gray-700';
-        case 'Cannabis':
-            return 'bg-emerald-100 text-emerald-700';
-        case 'Opioids':
-            return 'bg-red-100 text-red-700';
-        case 'Stimulants':
-            return 'bg-orange-100 text-orange-700';
-        case 'Other Substances':
-            return 'bg-indigo-100 text-indigo-700';
-        case 'Behavioral':
-            return 'bg-pink-100 text-pink-700';
-        case 'Health':
-            return 'bg-teal-100 text-teal-700';
-        default:
-            return 'bg-gray-100 text-gray-700';
-    }
-};
+const IconBox = ({ icon, className }: { icon: React.ReactNode; className?: string }) => (
+    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${className}`}>
+        {icon}
+    </div>
+);
 
 export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ onBack, onStartPractice }) => {
     const [selectedTopic, setSelectedTopic] = useState<string>('');
@@ -53,21 +36,25 @@ export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ on
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const topicOptions = useMemo(() => getTopicOptions(), []);
+    const topicOptions = useMemo(() => {
+        return PATIENT_TOPIC_TEMPLATES.map(t => ({
+            value: t.topic,
+            label: t.topic,
+            category: t.category,
+        }));
+    }, []);
 
-    // Group topics by category for CustomSelect
-    const groupedTopicsForSelect = useMemo((): SelectOptionGroup[] => {
-        const groups: Record<string, SelectOption[]> = {};
-        topicOptions.forEach(topic => {
-            if (!groups[topic.category]) {
-                groups[topic.category] = [];
+    const groupedScenarios = useMemo(() => {
+        return PATIENT_TOPIC_TEMPLATES.reduce((acc, scenario) => {
+            const category = scenario.category || 'General';
+            if (!acc[category]) {
+                acc[category] = [];
             }
-            groups[topic.category].push({ value: topic.value, label: topic.label });
-        });
-        return Object.entries(groups).map(([label, options]) => ({ label, options }));
-    }, [topicOptions]);
+            acc[category].push(scenario);
+            return acc;
+        }, {} as Record<string, PatientTopicTemplate[]>);
+    }, []);
 
-    // Stage of change options for CustomSelect
     const stageOptions = useMemo((): SelectOption[] => {
         return Object.values(StageOfChange).map(stage => ({
             value: stage,
@@ -75,41 +62,31 @@ export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ on
         }));
     }, []);
 
-    const selectedTopicData = useMemo(() => {
-        return topicOptions.find(t => t.value === selectedTopic);
-    }, [selectedTopic, topicOptions]);
-
     const handleGenerate = async (topic?: string, difficulty?: DifficultyLevel, stage?: StageOfChange) => {
         const topicToUse = topic || selectedTopic;
         const difficultyToUse = difficulty || selectedDifficulty;
         const stageToUse = stage || selectedStage;
 
         if (!topicToUse) {
-            setError('Please select a topic');
+            setError('Please select a scenario');
             return;
         }
-
         setIsGenerating(true);
         setError(null);
-
         try {
             const response = await fetch('/api/generate-scenario', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     topic: topicToUse,
                     difficulty: difficultyToUse,
                     stageOfChange: stageToUse,
                 }),
             });
-
             if (!response.ok) {
                 const data = await response.json();
                 throw new Error(data.error || 'Failed to generate scenario');
             }
-
             const data = await response.json();
             onStartPractice(data.patientProfile);
         } catch (err) {
@@ -120,173 +97,112 @@ export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ on
     };
 
     const handleSurpriseMe = () => {
-        // Pick random values
         const randomTopic = topicOptions[Math.floor(Math.random() * topicOptions.length)];
         const stages = Object.values(StageOfChange);
         const difficulties = Object.values(DifficultyLevel);
         const randomStage = stages[Math.floor(Math.random() * stages.length)];
         const randomDifficulty = difficulties[Math.floor(Math.random() * difficulties.length)];
 
-        // Update state for visual feedback
         setSelectedTopic(randomTopic.value);
         setSelectedStage(randomStage);
         setSelectedDifficulty(randomDifficulty);
 
-        // Generate with the random values directly
         handleGenerate(randomTopic.value, randomDifficulty, randomStage);
     };
 
+    const featuredScenario = PATIENT_TOPIC_TEMPLATES.find(t => t.topic.includes('Tobacco'));
+
     return (
         <div className="min-h-screen bg-transparent pb-24 p-4 sm:p-6">
-            <header className="flex items-center mb-6 pt-2 max-w-2xl mx-auto">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onBack}
-                    icon={<i className="fa-solid fa-arrow-left" />}
-                    aria-label="Go back"
-                    className="mr-3"
-                    disabled={isGenerating}
-                />
-                <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Build Your Scenario</h1>
+            <header className="flex items-center mb-6 pt-2 max-w-3xl mx-auto">
+                <Button variant="ghost" size="sm" onClick={onBack} icon={<i className="fa-solid fa-arrow-left" />} aria-label="Go back" className="mr-3" disabled={isGenerating} />
+                <h1 className="text-2xl font-bold text-text-primary">Select a Scenario</h1>
             </header>
 
-            <main className="max-w-2xl mx-auto space-y-6">
-                {/* Introduction */}
-                <Card variant="soft" padding="md">
-                    <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-[var(--color-primary)] rounded-full flex items-center justify-center text-white flex-shrink-0">
-                            <i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
-                        </div>
-                        <div>
-                            <h2 className="font-semibold text-[var(--color-text-primary)] mb-1">AI-Generated Patient</h2>
-                            <p className="text-sm text-[var(--color-text-secondary)]">
-                                Configure your scenario parameters and our AI will create a unique patient with a realistic backstory tailored to your selections.
-                            </p>
-                        </div>
+            <main className="max-w-3xl mx-auto space-y-6">
+
+                {featuredScenario && (
+                    <>
+                        <SectionHeader title="Featured" />
+                        <FeaturedResourceCard
+                            title={featuredScenario.topic}
+                            description={featuredScenario.description}
+                            icon={<IconBox icon={<FlaskConical size={28} />} className="bg-primary/10 text-primary" />}
+                            buttonText="Start Practice"
+                            onClick={() => {
+                                setSelectedTopic(featuredScenario.topic);
+                                handleGenerate(featuredScenario.topic);
+                            }}
+                        />
+                    </>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                    <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wide text-text-muted px-1 mb-2">Difficulty</label>
+                        <CustomSelect value={selectedDifficulty} onChange={(v) => setSelectedDifficulty(v as DifficultyLevel)} options={Object.values(DifficultyLevel).map(d => ({ label: d, value: d }))} disabled={isGenerating} />
                     </div>
-                </Card>
-
-                {/* Topic Selection */}
-                <div className="space-y-2">
-                    <label className="block text-xs font-semibold uppercase tracking-wide text-[var(--color-text-muted)] px-1">
-                        Substance / Behavior
-                    </label>
-                    <CustomSelect
-                        value={selectedTopic}
-                        onChange={(value) => {
-                            setSelectedTopic(value);
-                            setError(null);
-                        }}
-                        groupedOptions={groupedTopicsForSelect}
-                        placeholder="Select a topic..."
-                        disabled={isGenerating}
-                    />
-                    {selectedTopicData && (
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium mt-2 ${getCategoryStyles(selectedTopicData.category)}`}>
-                            {selectedTopicData.category}
-                        </span>
-                    )}
-                </div>
-
-                {/* Difficulty Selection */}
-                <div className="space-y-2">
-                    <label className="block text-xs font-semibold uppercase tracking-wide text-[var(--color-text-muted)] px-1">
-                        Difficulty Level
-                    </label>
-                    <div className="grid grid-cols-3 gap-3">
-                        {Object.values(DifficultyLevel).map((level) => (
-                            <button
-                                key={level}
-                                type="button"
-                                onClick={() => setSelectedDifficulty(level)}
-                                disabled={isGenerating}
-                                className={`p-3 rounded-[var(--grouped-card-radius)] border transition-all text-center disabled:opacity-50 disabled:cursor-not-allowed ${
-                                    selectedDifficulty === level
-                                        ? 'border-[var(--color-primary)] bg-[var(--color-primary-light)] text-[var(--color-primary-darker)] shadow-sm'
-                                        : 'border-[var(--grouped-card-border)] bg-white text-[var(--color-text-secondary)] hover:border-[var(--color-neutral-300)] shadow-[var(--grouped-card-shadow)]'
-                                }`}
-                            >
-                                <span className="font-medium">{level}</span>
-                            </button>
-                        ))}
+                    <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wide text-text-muted px-1 mb-2">Stage of Change</label>
+                        <CustomSelect value={selectedStage} onChange={(v) => setSelectedStage(v as StageOfChange)} options={stageOptions} disabled={isGenerating} />
                     </div>
-                    <p className="text-xs text-[var(--color-text-muted)] mt-1 px-1">
-                        {selectedDifficulty === DifficultyLevel.Beginner && 'Cooperative patient, easier to build rapport'}
-                        {selectedDifficulty === DifficultyLevel.Intermediate && 'Moderately ambivalent, requires more skill'}
-                        {selectedDifficulty === DifficultyLevel.Advanced && 'Resistant or guarded, challenging dynamics'}
-                    </p>
                 </div>
 
-                {/* Stage of Change Selection */}
-                <div className="space-y-2">
-                    <label className="block text-xs font-semibold uppercase tracking-wide text-[var(--color-text-muted)] px-1">
-                        Stage of Change
-                    </label>
-                    <CustomSelect
-                        value={selectedStage}
-                        onChange={(value) => setSelectedStage(value as StageOfChange)}
-                        options={stageOptions}
-                        disabled={isGenerating}
-                    />
-                    <p className="text-xs text-[var(--color-text-muted)] mt-1">
-                        {selectedStage === StageOfChange.Precontemplation && "Patient doesn't see their behavior as a problem"}
-                        {selectedStage === StageOfChange.Contemplation && 'Patient is aware but ambivalent about change'}
-                        {selectedStage === StageOfChange.Preparation && 'Patient is ready to make a change soon'}
-                        {selectedStage === StageOfChange.Action && 'Patient is actively working on changing'}
-                        {selectedStage === StageOfChange.Maintenance && 'Patient has changed and is maintaining progress'}
-                    </p>
-                </div>
+                {Object.entries(groupedScenarios).map(([category, scenarios], index) => (
+                    <div key={category}>
+                        <SectionHeader title={category}>
+                            {index === 0 && (
+                                <Button variant="ghost" onClick={handleSurpriseMe} disabled={isGenerating} className="text-info">
+                                    <Shuffle size={16} className="mr-2" />
+                                    Surprise Me
+                                </Button>
+                            )}
+                        </SectionHeader>
+                        <InsetGroup>
+                            {scenarios.map(scenario => (
+                                <GroupedListItem
+                                    key={scenario.topic}
+                                    onClick={() => setSelectedTopic(scenario.topic)}
+                                    label={scenario.topic}
+                                    subtitle={scenario.description}
+                                    icon={<IconBox icon={<FlaskConical size={24} />} className="bg-info/10 text-info" />}
+                                    className={selectedTopic === scenario.topic ? 'border-l-4 border-info' : ''}
+                                >
+                                    {selectedTopic === scenario.topic && <ChevronRight className="h-5 w-5 text-info" />}
+                                </GroupedListItem>
+                            ))}
+                        </InsetGroup>
+                    </div>
+                ))}
 
-                {/* Error Message */}
                 {error && (
-                    <div className="p-4 rounded-[var(--radius-md)] bg-[var(--color-error-light)] border border-[var(--color-error)] text-[var(--color-error-dark)]">
-                        <div className="flex items-center gap-2">
-                            <i className="fa-solid fa-exclamation-circle" aria-hidden="true"></i>
-                            <span className="text-sm font-medium">{error}</span>
-                        </div>
+                    <div className="p-4 rounded-[var(--radius-md)] bg-error-light border border-error text-error-dark">
+                        <p>{error}</p>
                     </div>
                 )}
 
-                {/* Generate Button */}
-                <Button
-                    variant="primary"
-                    size="lg"
-                    fullWidth
-                    onClick={() => handleGenerate()}
-                    loading={isGenerating}
-                    disabled={!selectedTopic || isGenerating}
-                    icon={!isGenerating ? <i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true" /> : undefined}
-                >
-                    {isGenerating ? 'Generating Patient...' : 'Generate Scenario'}
-                </Button>
-
-                {/* Divider */}
-                <div className="flex items-center gap-3 py-2">
-                    <div className="flex-1 h-px bg-[var(--color-neutral-200)]"></div>
-                    <span className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Or</span>
-                    <div className="flex-1 h-px bg-[var(--color-neutral-200)]"></div>
+                <div className="sticky bottom-4 z-10 pt-4 space-y-3">
+                    <Button
+                        variant="primary"
+                        size="lg"
+                        fullWidth
+                        onClick={() => handleGenerate()}
+                        loading={isGenerating}
+                        disabled={!selectedTopic || isGenerating}
+                    >
+                        {isGenerating ? 'Generating Patient...' : 'Start Practice'}
+                    </Button>
+                    <Button
+                        variant="soft"
+                        size="lg"
+                        fullWidth
+                        onClick={handleSurpriseMe}
+                        icon={<Shuffle size={20} />}
+                        disabled={isGenerating}
+                    >
+                        Surprise Me
+                    </Button>
                 </div>
-
-                {/* Quick Start with Random */}
-                <Card
-                    variant="grouped"
-                    padding="md"
-                    hoverable={!isGenerating}
-                    onClick={isGenerating ? undefined : handleSurpriseMe}
-                    className={`bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] border-0 ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-white flex-shrink-0">
-                            <i className="fa-solid fa-shuffle text-xl" aria-hidden="true"></i>
-                        </div>
-                        <div className="flex-1">
-                            <h3 className="font-bold text-white text-lg">Surprise Me</h3>
-                            <p className="text-white/80 text-sm mt-0.5">Generate a completely random scenario</p>
-                        </div>
-                        <i className="fa-solid fa-chevron-right text-white/60" aria-hidden="true"></i>
-                    </div>
-                </Card>
             </main>
         </div>
     );
