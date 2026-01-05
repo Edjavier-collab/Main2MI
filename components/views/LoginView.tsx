@@ -275,11 +275,11 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin, onNavigate, onEmailConfi
             <ToastContainer toasts={toasts} onRemove={removeToast} />
             <div className="w-full max-w-sm">
                 <div className="text-center mb-10">
-                    <div className="mx-auto h-12 w-12 text-[var(--color-primary)]">
-                        <i className="fa-solid fa-house-medical text-4xl" aria-hidden="true"></i>
+                    <div className="mx-auto h-20 w-20 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center text-white shadow-xl rotate-3 hover:rotate-0 transition-transform duration-300">
+                        <i className="fa-solid fa-brain text-4xl" aria-hidden="true"></i>
                     </div>
-                    <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mt-4">Welcome to MI Mastery</h1>
-                    <p className="text-[var(--color-text-secondary)]">Sign in to continue your training.</p>
+                    <h1 className="text-3xl font-extrabold text-[var(--color-text-primary)] mt-6 tracking-tight">MI Mastery</h1>
+                    <p className="text-[var(--color-text-secondary)] mt-2">Elevate your practice with clinical AI.</p>
                 </div>
 
                 {/* Google Sign-In Button */}

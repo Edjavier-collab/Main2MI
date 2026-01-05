@@ -21,8 +21,8 @@ const mulish = Mulish({
 });
 
 export const metadata: Metadata = {
-  title: 'MI Mastery',
-  description: 'Motivational Interviewing training with AI-powered patient simulations',
+  title: 'MI Mastery - Professional AI Training',
+  description: 'Master Motivational Interviewing with realistic AI-powered patient simulations. Build confidence through practice.',
 };
 
 export const viewport: Viewport = {
@@ -57,13 +57,18 @@ export default function RootLayout({
             {/* Header / Top Navigation */}
             <header className="sticky top-0 z-50 w-full backdrop-blur-xl bg-white/80 pt-safe-top shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all border-b border-neutral-200/50">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-dark text-white flex items-center justify-center font-bold text-xl shadow-md border border-white/10">
                     M
                   </div>
-                  <span className="font-display font-bold text-lg tracking-tight text-text-primary">
-                    MI Mastery
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="font-display font-extrabold text-lg tracking-tight text-text-primary leading-tight">
+                      MI Mastery
+                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-text-muted leading-tight">
+                      Training Portal
+                    </span>
+                  </div>
                 </div>
               </div>
             </header>

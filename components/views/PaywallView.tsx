@@ -14,6 +14,7 @@ interface PaywallViewProps {
     user: User | null;
     onNavigateToLogin?: () => void;
     onNavigate?: (view: View) => void;
+    onRestorePurchase?: () => Promise<boolean>;
 }
 
 const FeatureItem: React.FC<{ icon: string; text: React.ReactNode }> = ({ icon, text }) => (
@@ -23,9 +24,10 @@ const FeatureItem: React.FC<{ icon: string; text: React.ReactNode }> = ({ icon, 
     </li>
 );
 
-const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNavigateToLogin, onNavigate }) => {
+const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNavigateToLogin, onNavigate, onRestorePurchase }) => {
     const [loading, setLoading] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
     const { toasts, showToast, removeToast, ToastContainer } = useToast();
 
     // If no user (anonymous), show login prompt instead of checkout
@@ -104,6 +106,25 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
         );
     }
 
+    const handleRestore = async () => {
+        if (!onRestorePurchase) return;
+
+        setLoading('restore');
+        try {
+            showToast('Checking for active subscriptions...', 'info');
+            const success = await onRestorePurchase();
+            if (success) {
+                showToast('Subscription restored successfully!', 'success');
+            } else {
+                showToast('No active subscription found.', 'warning');
+            }
+        } catch (err) {
+            showToast('Failed to restore purchase. Please try again.', 'error');
+        } finally {
+            setLoading(null);
+        }
+    };
+
     const handleSubscribe = async (plan: 'monthly' | 'annual') => {
         if (!user) {
             showToast('Please log in to subscribe', 'warning');
@@ -163,104 +184,70 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                     </ul>
                 </Card>
 
-                <div className="space-y-5">
-                    {/* Annual Plan - Fully Clickable Tile */}
-                    <div
-                        role="button"
-                        tabIndex={loading !== null ? -1 : 0}
-                        onClick={() => loading === null && handleSubscribe('annual')}
-                        onKeyDown={(e) => {
-                            if ((e.key === 'Enter' || e.key === ' ') && loading === null) {
-                                e.preventDefault();
-                                handleSubscribe('annual');
-                            }
-                        }}
-                        className={`relative rounded-[var(--radius-lg)] border-[3px] border-[var(--color-primary)] bg-gradient-to-br from-[var(--color-bg-accent)] to-white p-7 text-left transition-all duration-300 ease-out shadow-lg ${loading !== null
-                            ? 'opacity-70 cursor-not-allowed'
-                            : 'cursor-pointer tile-hover active:scale-[0.98] hover:shadow-2xl hover:border-[var(--color-primary-dark)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2'
-                            }`}
-                        aria-label="Subscribe to Annual Plan for $99.99 per year"
-                        aria-disabled={loading !== null}
+                {/* Billing Toggle */}
+                <div className="flex items-center justify-center gap-4 mb-8">
+                    <span className={`text-sm font-bold ${billingCycle === 'monthly' ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-muted)]'}`}>Monthly</span>
+                    <button
+                        onClick={() => setBillingCycle(prev => prev === 'monthly' ? 'annual' : 'monthly')}
+                        className="relative w-14 h-8 bg-[var(--color-neutral-200)] rounded-full p-1 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
                     >
-                        <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2 bg-warning border-4 border-white text-[var(--color-text-primary)] text-base font-extrabold px-6 py-2 rounded-full uppercase shadow-xl flex items-center gap-2 whitespace-nowrap z-10">
-                            <i className="fa-solid fa-star text-sm"></i>
-                            Best Value
-                        </div>
-                        <div className="flex justify-between items-center mb-3">
-                            <div>
-                                <h3 className="font-extrabold text-xl text-[var(--color-text-primary)]">Annual Plan</h3>
-                                <p className="font-bold text-[var(--color-success)] text-base mt-1">
-                                    <i className="fa-solid fa-tag mr-1" aria-hidden="true"></i>
-                                    Save $19.89/year
-                                </p>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-[var(--color-text-muted)] text-sm line-through">$119.88</p>
-                                <p className="font-extrabold text-3xl text-[var(--color-text-primary)]">$99.99</p>
-                                <p className="text-[var(--color-text-muted)] text-sm font-semibold">/year</p>
-                            </div>
-                        </div>
-                        <p className="text-xs text-[var(--color-text-muted)] mb-4 text-center">
-                            That's just <span className="font-bold text-[var(--color-text-secondary)]">$8.33/month</span> • Cancel anytime
-                        </p>
-                        <div className={`w-full py-4 rounded-xl font-extrabold text-lg text-center transition-all duration-300 shadow-md ${loading === 'annual'
-                            ? 'bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]'
-                            : 'bg-[var(--color-primary)] text-[var(--color-text-primary)]'
-                            }`} aria-hidden="true">
-                            {loading === 'annual' ? (
-                                <span className="flex items-center justify-center gap-2">
-                                    <i className="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
-                                    Processing...
-                                </span>
-                            ) : (
-                                'Subscribe Annually'
-                            )}
-                        </div>
+                        <div className={`w-6 h-6 bg-white rounded-full shadow-sm transition-transform duration-300 ${billingCycle === 'annual' ? 'translate-x-6 bg-[var(--color-primary)]' : 'translate-x-0'}`}></div>
+                    </button>
+                    <div className="flex items-center gap-2">
+                        <span className={`text-sm font-bold ${billingCycle === 'annual' ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-muted)]'}`}>Annual</span>
+                        <span className="bg-warning/20 text-warning-dark text-[10px] font-black px-2 py-0.5 rounded-full uppercase border border-warning/30">Save 30%</span>
                     </div>
+                </div>
 
-                    {/* Monthly Plan - Fully Clickable Tile */}
+                <div className="space-y-6">
+                    {/* Dynamic Pricing Card */}
                     <div
-                        role="button"
-                        tabIndex={loading !== null ? -1 : 0}
-                        onClick={() => loading === null && handleSubscribe('monthly')}
-                        onKeyDown={(e) => {
-                            if ((e.key === 'Enter' || e.key === ' ') && loading === null) {
-                                e.preventDefault();
-                                handleSubscribe('monthly');
-                            }
-                        }}
-                        className={`relative rounded-[var(--radius-lg)] border-[3px] border-[var(--color-primary-light)] bg-gradient-to-br from-[var(--color-bg-accent)] to-white p-7 text-left shadow-lg transition-all duration-300 ease-out ${loading !== null
-                            ? 'opacity-70 cursor-not-allowed'
-                            : 'cursor-pointer tile-hover active:scale-[0.98] hover:shadow-2xl hover:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2'
+                        className={`relative rounded-3xl border-2 transition-all duration-300 overflow-hidden bg-white shadow-xl ${billingCycle === 'annual' ? 'border-[var(--color-primary)]' : 'border-[var(--color-neutral-200)]'
                             }`}
-                        aria-label="Subscribe to Monthly Plan for $9.99 per month"
-                        aria-disabled={loading !== null}
                     >
-                        <div className="flex justify-between items-center mb-3">
-                            <div>
-                                <h3 className="font-extrabold text-xl text-[var(--color-text-primary)]">Monthly Plan</h3>
-                                <p className="text-[var(--color-text-secondary)] text-base font-semibold mt-1">Flexible billing</p>
+                        {billingCycle === 'annual' && (
+                            <div className="bg-[var(--color-primary)] text-white text-[10px] font-black py-1.5 uppercase tracking-widest text-center shadow-inner">
+                                Best Value • Save $36 Yearly
                             </div>
-                            <div className="text-right">
-                                <p className="font-extrabold text-3xl text-[var(--color-text-primary)]">$9.99</p>
-                                <p className="text-[var(--color-text-muted)] text-sm font-semibold">/month</p>
+                        )}
+
+                        <div className="p-8 text-center">
+                            <div className="mb-4">
+                                <h3 className="text-xl font-bold text-[var(--color-text-primary)] mb-1">
+                                    {billingCycle === 'annual' ? 'Annual Pro' : 'Monthly Pro'}
+                                </h3>
+                                <p className="text-sm text-[var(--color-text-muted)]">Full access to MI Mastery</p>
                             </div>
-                        </div>
-                        <p className="text-xs text-[var(--color-text-muted)] mb-4 text-center">
-                            No commitment • Cancel anytime
-                        </p>
-                        <div className={`w-full py-4 rounded-xl font-extrabold text-lg text-center transition-all duration-300 shadow-md ${loading === 'monthly'
-                            ? 'bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]'
-                            : 'bg-[var(--color-primary)] text-[var(--color-text-primary)]'
-                            }`} aria-hidden="true">
-                            {loading === 'monthly' ? (
-                                <span className="flex items-center justify-center gap-2">
-                                    <i className="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
-                                    Processing...
+
+                            <div className="flex items-baseline justify-center gap-1 mb-6">
+                                <span className="text-4xl font-black text-[var(--color-text-primary)]">
+                                    {billingCycle === 'annual' ? '$6.99' : '$9.99'}
                                 </span>
-                            ) : (
-                                'Subscribe Monthly'
+                                <span className="text-sm font-bold text-[var(--color-text-muted)]">/month</span>
+                            </div>
+
+                            {billingCycle === 'annual' && (
+                                <p className="text-xs font-bold text-[var(--color-success)] mb-6 bg-success/5 py-2 px-3 rounded-lg inline-block">
+                                    Billed as $83.88 annually
+                                </p>
                             )}
+                            {billingCycle === 'monthly' && (
+                                <p className="text-xs font-bold text-[var(--color-text-muted)] mb-6 py-2 px-3 rounded-lg inline-block">
+                                    Billed monthly • Cancel anytime
+                                </p>
+                            )}
+
+                            <Button
+                                variant="primary"
+                                size="lg"
+                                fullWidth
+                                onClick={() => handleSubscribe(billingCycle)}
+                                loading={loading === billingCycle}
+                                disabled={loading !== null}
+                                className="shadow-lg shadow-primary/20 h-14 text-lg font-bold"
+                            >
+                                {loading === billingCycle ? 'Processing...' : `Upgrade to ${billingCycle === 'annual' ? 'Annual' : 'Monthly'}`}
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -268,8 +255,9 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                 <div className="mt-8 text-xs text-[var(--color-text-muted)]">
                     <div className="flex justify-center space-x-4">
                         <button
-                            onClick={() => onNavigate?.(View.Settings)}
-                            className="hover:text-[var(--color-text-primary)] hover:underline transition-colors"
+                            onClick={handleRestore}
+                            disabled={loading !== null}
+                            className="hover:text-[var(--color-text-primary)] hover:underline transition-colors font-medium cursor-pointer"
                         >
                             Restore Purchase
                         </button>

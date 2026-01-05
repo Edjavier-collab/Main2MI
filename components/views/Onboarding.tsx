@@ -13,11 +13,12 @@ const onboardingSteps = [
         // Step 1: Welcome
         content: (
             <>
-                <div className={'bg-[var(--color-primary-lighter)] rounded-full h-40 w-40 flex items-center justify-center mb-8'}>
-                    <i className="fa-solid fa-user-doctor text-5xl text-[var(--color-primary)]" aria-hidden="true"></i>
+                <div className="bg-gradient-to-br from-primary to-primary-dark rounded-3xl h-40 w-40 flex items-center justify-center mb-10 shadow-2xl relative overflow-hidden">
+                    <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px]"></div>
+                    <i className="fa-solid fa-brain text-6xl text-white relative z-10" aria-hidden="true"></i>
                 </div>
-                <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-4">Welcome to MI Mastery!</h1>
-                <p className="text-[var(--color-text-secondary)] max-w-sm">The safe way to build confidence and master Motivational Interviewing with realistic AI-powered patients.</p>
+                <h1 className="text-4xl font-extrabold text-[var(--color-text-primary)] mb-4 tracking-tight">MI Mastery</h1>
+                <p className="text-lg text-[var(--color-text-secondary)] max-w-sm font-medium">Professional Motivational Interviewing training with realistic AI-powered simulations.</p>
             </>
         ),
     },
@@ -149,7 +150,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onFinish }) => {
                             </div>
                             <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-4">Before You Start</h1>
                             <p className="text-[var(--color-text-secondary)] max-w-sm mb-6">Please confirm you meet our requirements:</p>
-                            
+
                             <div className="max-w-sm w-full space-y-4 text-left">
                                 <Card
                                     variant={ageConfirmed ? "accent" : "elevated"}
@@ -162,7 +163,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onFinish }) => {
                                         <input
                                             type="checkbox"
                                             checked={ageConfirmed}
-                                            onChange={() => {}} // Handled by Card onClick
+                                            onChange={() => { }} // Handled by Card onClick
                                             onClick={(e) => e.stopPropagation()} // Prevent double-toggle
                                             className="w-5 h-5 text-[var(--color-primary)] rounded mt-1 mr-4 flex-shrink-0 pointer-events-none"
                                             aria-label="I confirm I am 18 years of age or older"
@@ -185,7 +186,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onFinish }) => {
                                         <input
                                             type="checkbox"
                                             checked={termsAccepted}
-                                            onChange={() => {}} // Handled by Card onClick
+                                            onChange={() => { }} // Handled by Card onClick
                                             onClick={(e) => e.stopPropagation()} // Prevent double-toggle
                                             className="w-5 h-5 text-[var(--color-primary)] rounded mt-1 mr-4 flex-shrink-0 pointer-events-none"
                                             aria-label="I agree to the Terms of Service and Medical & Education Disclaimer"
@@ -208,7 +209,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onFinish }) => {
                                         <input
                                             type="checkbox"
                                             checked={privacyAccepted}
-                                            onChange={() => {}} // Handled by Card onClick
+                                            onChange={() => { }} // Handled by Card onClick
                                             onClick={(e) => e.stopPropagation()} // Prevent double-toggle
                                             className="w-5 h-5 text-[var(--color-primary)] rounded mt-1 mr-4 flex-shrink-0 pointer-events-none"
                                             aria-label="I agree to the Privacy Policy"

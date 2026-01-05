@@ -56,6 +56,7 @@ interface ViewRendererProps {
   onGenerateCoachingSummary: () => void;
   onEmailConfirmation: (email: string) => void;
   onTierUpdated: () => Promise<void>;
+  onRestorePurchase: () => Promise<boolean>;
 }
 
 export const ViewRenderer: React.FC<ViewRendererProps> = ({
@@ -82,6 +83,7 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
   onGenerateCoachingSummary,
   onEmailConfirmation,
   onTierUpdated,
+  onRestorePurchase,
 }) => {
   const renderView = () => {
     switch (view) {
@@ -226,6 +228,7 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
             onUpgrade={onUpgrade}
             user={user}
             onNavigateToLogin={() => onNavigate(View.Login)}
+            onRestorePurchase={onRestorePurchase}
           />
         );
       case View.Calendar:
@@ -247,6 +250,7 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
             onLogout={onLogout}
             onNavigate={onNavigate}
             user={user}
+            onBack={() => onNavigate(View.Dashboard)}
           />
         );
       case View.CancelSubscription:

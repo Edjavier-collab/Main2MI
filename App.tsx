@@ -421,6 +421,27 @@ const AppContent: React.FC = () => {
     }
   }, [user, refreshTier, setUserTier]);
 
+  const handleRestorePurchase = useCallback(async () => {
+    if (!user) {
+      setView(View.Login);
+      return;
+    }
+
+    try {
+      // refreshTier already calls the get-subscription edge function
+      const updatedTier = await refreshTier();
+      if (updatedTier === UserTier.Premium) {
+        setUserTier(UserTier.Premium);
+        setView(View.Dashboard);
+        return true; // Success
+      }
+      return false; // No premium found
+    } catch (error) {
+      console.error('[App] Restore purchase failed:', error);
+      throw error;
+    }
+  }, [user, refreshTier, setUserTier, setView]);
+
   // Show loading state while auth is initializing
   if (authLoading || showOnboarding === null) {
     return <PageLoader message="Initializing..." />;
@@ -475,6 +496,7 @@ const AppContent: React.FC = () => {
               onGenerateCoachingSummary={handleGenerateCoachingSummary}
               onEmailConfirmation={handleEmailConfirmation}
               onTierUpdated={handleTierUpdated}
+              onRestorePurchase={handleRestorePurchase}
             />
           </main>
           <BottomNavBar currentView={view} onNavigate={handleNavigate} userTier={userTier} />
@@ -506,6 +528,7 @@ const AppContent: React.FC = () => {
           onGenerateCoachingSummary={handleGenerateCoachingSummary}
           onEmailConfirmation={handleEmailConfirmation}
           onTierUpdated={handleTierUpdated}
+          onRestorePurchase={handleRestorePurchase}
         />
       )}
       {showReviewPrompt && (

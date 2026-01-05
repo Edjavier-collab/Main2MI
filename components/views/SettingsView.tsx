@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { UserTier, View } from '../../types';
 import { User } from '@supabase/supabase-js';
-import { 
-    getUserSubscription, 
+import {
+    getUserSubscription,
     createBillingPortalSession,
     cancelSubscription,
-    applyRetentionDiscount 
+    applyRetentionDiscount
 } from '../../services/stripeService';
 import { submitFeedback } from '../../services/feedbackService';
 import { Button } from '../ui/Button';
@@ -36,9 +36,10 @@ interface SettingsViewProps {
     onLogout: () => Promise<void>;
     onNavigate: (view: View) => void;
     user: User | null;
+    onBack: () => void;
 }
 
-const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywall, onLogout, onNavigate, user }) => {
+const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywall, onLogout, onNavigate, user, onBack }) => {
     const [logoutLoading, setLogoutLoading] = useState(false);
     const [subscriptionPlan, setSubscriptionPlan] = useState<'monthly' | 'annual' | 'unknown' | null>(null);
     const [subscriptionLoading, setSubscriptionLoading] = useState(true);
@@ -114,7 +115,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
             setBillingPortalLoading(false);
         }
     };
-    
+
     const handleAcceptOffer = async () => {
         if (!user) return;
         setRetentionLoading(true);
@@ -129,7 +130,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
             setShowRetentionModal(false);
         }
     };
-    
+
     const handleProceedToCancel = async () => {
         if (!user) return;
         setRetentionLoading(true);
@@ -152,7 +153,17 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
         <div className="min-h-screen bg-transparent pb-24">
             <ToastContainer toasts={toasts} onRemove={removeToast} />
 
-            <div className="flex items-center px-6 py-4">
+            <div className="flex items-center px-4 pt-4 pb-2">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onBack}
+                    icon={<i className="fa-solid fa-arrow-left" />}
+                    aria-label="Go back"
+                    className="mr-2"
+                >
+                    Back
+                </Button>
                 <h1 className="text-2xl font-bold text-text-primary">Settings</h1>
             </div>
 
@@ -160,15 +171,15 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
 
                 <SettingsHeader title="Subscription" />
                 <InsetGroup>
-                    <GroupedListItem 
-                        label="Current Plan" 
+                    <GroupedListItem
+                        label="Current Plan"
                         icon={<IconBox icon={<Star size={20} />} className={isPremium ? "text-yellow-500 bg-yellow-500/[.15]" : "text-primary bg-primary/[.10]"} />}
                     >
                         <span className={`font-semibold ${isPremium ? 'text-yellow-600' : 'text-text-primary'}`}>
                             {subscriptionLoading ? 'Loading...' : isPremium ? `${subscriptionPlan ? subscriptionPlan.charAt(0).toUpperCase() + subscriptionPlan.slice(1) : ''} Pro` : 'Free'}
                         </span>
                     </GroupedListItem>
-                    
+
                     {isPremium && !cancelAtPeriodEnd && (
                         <GroupedListItem label="Manage Billing" icon={<IconBox icon={<Receipt size={20} />} className="bg-success/[.10] text-success" />} onClick={handleManageBilling}>
                             <ExternalLink className="h-5 w-5 text-text-muted" />
@@ -176,7 +187,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                     )}
 
                     {isPremium && !cancelAtPeriodEnd && (
-                         <GroupedListItem label="Cancel Subscription" icon={<IconBox icon={<AlertTriangle size={20} />} className="bg-error/[.10] text-error" />} onClick={() => setShowRetentionModal(true)}>
+                        <GroupedListItem label="Cancel Subscription" icon={<IconBox icon={<AlertTriangle size={20} />} className="bg-error/[.10] text-error" />} onClick={() => setShowRetentionModal(true)}>
                             <ChevronRight className="h-5 w-5 text-text-muted" />
                         </GroupedListItem>
                     )}
@@ -194,7 +205,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                         <ChevronRight className="h-5 w-5 text-text-muted" />
                     </GroupedListItem>
                     <GroupedListItem label="Feedback Detail" icon={<IconBox icon={<BarChart size={20} />} className="bg-success/[.10] text-success" />} onClick={() => handlePlaceholderClick('Feedback Detail')}>
-                         <ChevronRight className="h-5 w-5 text-text-muted" />
+                        <ChevronRight className="h-5 w-5 text-text-muted" />
                     </GroupedListItem>
                 </InsetGroup>
 
@@ -205,12 +216,12 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                             <ChevronRight className="h-5 w-5 text-text-muted" />
                         </GroupedListItem>
                     ) : (
-                         <GroupedListItem label="Log Out" onClick={handleLogoutClick} hoverable={false}>
+                        <GroupedListItem label="Log Out" onClick={handleLogoutClick} hoverable={false}>
                             <Button
                                 type="button"
                                 onClick={handleLogoutClick}
                                 disabled={logoutLoading}
-                                variant="destructive"
+                                variant="danger"
                                 size="sm"
                                 loading={logoutLoading}
                             >
@@ -236,10 +247,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                         <ChevronRight className="h-5 w-5 text-text-muted" />
                     </GroupedListItem>
                     <GroupedListItem label="Terms of Service" icon={<IconBox icon={<FileText size={20} />} className="bg-info/[.10] text-info" />} onClick={() => onNavigate(View.TermsOfService)}>
-                         <ChevronRight className="h-5 w-5 text-text-muted" />
+                        <ChevronRight className="h-5 w-5 text-text-muted" />
                     </GroupedListItem>
                     <GroupedListItem label="Documentation" icon={<IconBox icon={<BookOpen size={20} />} className="bg-info/[.10] text-info" />} onClick={() => handlePlaceholderClick('Documentation')}>
-                         <ChevronRight className="h-5 w-5 text-text-muted" />
+                        <ChevronRight className="h-5 w-5 text-text-muted" />
                     </GroupedListItem>
                 </InsetGroup>
             </main>
@@ -249,7 +260,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                 onClose={() => setFeedbackModalOpen(false)}
                 onSubmit={handleFeedbackSubmit}
             />
-            <RetentionPromoModal 
+            <RetentionPromoModal
                 isOpen={showRetentionModal}
                 onClose={() => setShowRetentionModal(false)}
                 onAcceptOffer={handleAcceptOffer}
