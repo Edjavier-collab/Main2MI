@@ -1,4 +1,6 @@
 {
+  "id": "/",
+  "lang": "en",
   "name": "MI Mastery",
   "short_name": "MI Mastery",
   "description": "Motivational Interviewing training with AI-powered patient simulations. Practice MI techniques with realistic scenarios and receive instant feedback.",

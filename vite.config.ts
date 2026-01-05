@@ -96,9 +96,33 @@ export default defineConfig(({ mode }) => {
             ]
           },
           workbox: {
+            // SPA fallback for offline navigation
+            navigateFallback: '/index.html',
+            navigateFallbackDenylist: [
+              /^\/api/,
+              /^\/functions/,
+              /stripe\.com/,
+              /js\.stripe\.com/,
+              /m\.stripe\.network/
+            ],
+            // Clean up old caches
+            cleanupOutdatedCaches: true,
             // Cache strategies
             globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
             runtimeCaching: [
+              {
+                // Never cache Stripe - critical for payments
+                urlPattern: /^https:\/\/.*stripe\.(com|network)/i,
+                handler: 'NetworkOnly'
+              },
+              {
+                // Handle Gemini API - network only with graceful offline error
+                urlPattern: /^https:\/\/generativelanguage\.googleapis\.com/i,
+                handler: 'NetworkOnly',
+                options: {
+                  networkTimeoutSeconds: 15
+                }
+              },
               {
                 // Cache Supabase API responses
                 urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,

@@ -2,12 +2,11 @@
 
 import React, { useState, useMemo } from 'react';
 import { PatientProfile, DifficultyLevel, StageOfChange } from '../../types';
-import { PATIENT_TOPIC_TEMPLATES, PatientTopicTemplate } from '../../constants';
+import { PATIENT_TOPIC_TEMPLATES } from '../../constants';
 import { Button } from '../ui/Button';
-import { InsetGroup, GroupedListItem } from '../ui/Card';
 import { FeaturedResourceCard } from '../ui/FeaturedResourceCard';
-import { CustomSelect, SelectOption } from '../ui/CustomSelect';
-import { FlaskConical, ChevronRight, Shuffle } from 'lucide-react';
+import { CustomSelect, SelectOption, SelectOptionGroup } from '../ui/CustomSelect';
+import { FlaskConical, Shuffle } from 'lucide-react';
 
 interface ScenarioSelectionViewProps {
     onBack: () => void;
@@ -36,29 +35,45 @@ export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ on
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const topicOptions = useMemo(() => {
-        return PATIENT_TOPIC_TEMPLATES.map(t => ({
-            value: t.topic,
-            label: t.topic,
-            category: t.category,
-        }));
-    }, []);
-
-    const groupedScenarios = useMemo(() => {
-        return PATIENT_TOPIC_TEMPLATES.reduce((acc, scenario) => {
-            const category = scenario.category || 'General';
+    // Create grouped options for the topic dropdown
+    const groupedTopicOptions = useMemo((): SelectOptionGroup[] => {
+        const grouped = PATIENT_TOPIC_TEMPLATES.reduce((acc, template) => {
+            const category = template.category || 'General';
             if (!acc[category]) {
                 acc[category] = [];
             }
-            acc[category].push(scenario);
+            acc[category].push({
+                value: template.topic,
+                label: template.topic,
+            });
             return acc;
-        }, {} as Record<string, PatientTopicTemplate[]>);
+        }, {} as Record<string, SelectOption[]>);
+
+        return Object.entries(grouped).map(([label, options]) => ({
+            label,
+            options,
+        }));
+    }, []);
+
+    // Flat list for random selection
+    const allTopicOptions = useMemo(() => {
+        return PATIENT_TOPIC_TEMPLATES.map(t => ({
+            value: t.topic,
+            label: t.topic,
+        }));
     }, []);
 
     const stageOptions = useMemo((): SelectOption[] => {
         return Object.values(StageOfChange).map(stage => ({
             value: stage,
             label: stage,
+        }));
+    }, []);
+
+    const difficultyOptions = useMemo((): SelectOption[] => {
+        return Object.values(DifficultyLevel).map(d => ({
+            value: d,
+            label: d,
         }));
     }, []);
 
@@ -97,7 +112,7 @@ export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ on
     };
 
     const handleSurpriseMe = () => {
-        const randomTopic = topicOptions[Math.floor(Math.random() * topicOptions.length)];
+        const randomTopic = allTopicOptions[Math.floor(Math.random() * allTopicOptions.length)];
         const stages = Object.values(StageOfChange);
         const difficulties = Object.values(DifficultyLevel);
         const randomStage = stages[Math.floor(Math.random() * stages.length)];
@@ -126,7 +141,7 @@ export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ on
                         <SectionHeader title="Featured" />
                         <FeaturedResourceCard
                             title={featuredScenario.topic}
-                            description={featuredScenario.description}
+                            description={featuredScenario.variants[0]?.presentingProblem || 'Practice with this common scenario'}
                             icon={<IconBox icon={<FlaskConical size={28} />} className="bg-primary/10 text-primary" />}
                             buttonText="Start Practice"
                             onClick={() => {
@@ -137,43 +152,38 @@ export const ScenarioSelectionView: React.FC<ScenarioSelectionViewProps> = ({ on
                     </>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                <SectionHeader title="Customize Your Scenario" />
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wide text-text-muted px-1 mb-2">Topic</label>
+                        <CustomSelect
+                            value={selectedTopic}
+                            onChange={setSelectedTopic}
+                            groupedOptions={groupedTopicOptions}
+                            placeholder="Select a topic..."
+                            disabled={isGenerating}
+                        />
+                    </div>
                     <div>
                         <label className="block text-xs font-semibold uppercase tracking-wide text-text-muted px-1 mb-2">Difficulty</label>
-                        <CustomSelect value={selectedDifficulty} onChange={(v) => setSelectedDifficulty(v as DifficultyLevel)} options={Object.values(DifficultyLevel).map(d => ({ label: d, value: d }))} disabled={isGenerating} />
+                        <CustomSelect
+                            value={selectedDifficulty}
+                            onChange={(v) => setSelectedDifficulty(v as DifficultyLevel)}
+                            options={difficultyOptions}
+                            disabled={isGenerating}
+                        />
                     </div>
                     <div>
                         <label className="block text-xs font-semibold uppercase tracking-wide text-text-muted px-1 mb-2">Stage of Change</label>
-                        <CustomSelect value={selectedStage} onChange={(v) => setSelectedStage(v as StageOfChange)} options={stageOptions} disabled={isGenerating} />
+                        <CustomSelect
+                            value={selectedStage}
+                            onChange={(v) => setSelectedStage(v as StageOfChange)}
+                            options={stageOptions}
+                            disabled={isGenerating}
+                        />
                     </div>
                 </div>
-
-                {Object.entries(groupedScenarios).map(([category, scenarios], index) => (
-                    <div key={category}>
-                        <SectionHeader title={category}>
-                            {index === 0 && (
-                                <Button variant="ghost" onClick={handleSurpriseMe} disabled={isGenerating} className="text-info">
-                                    <Shuffle size={16} className="mr-2" />
-                                    Surprise Me
-                                </Button>
-                            )}
-                        </SectionHeader>
-                        <InsetGroup>
-                            {scenarios.map(scenario => (
-                                <GroupedListItem
-                                    key={scenario.topic}
-                                    onClick={() => setSelectedTopic(scenario.topic)}
-                                    label={scenario.topic}
-                                    subtitle={scenario.description}
-                                    icon={<IconBox icon={<FlaskConical size={24} />} className="bg-info/10 text-info" />}
-                                    className={selectedTopic === scenario.topic ? 'border-l-4 border-info' : ''}
-                                >
-                                    {selectedTopic === scenario.topic && <ChevronRight className="h-5 w-5 text-info" />}
-                                </GroupedListItem>
-                            ))}
-                        </InsetGroup>
-                    </div>
-                ))}
 
                 {error && (
                     <div className="p-4 rounded-[var(--radius-md)] bg-error-light border border-error text-error-dark">
