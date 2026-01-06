@@ -1,7 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 import { corsHeaders, handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
-import { getSupabaseAdmin } from '../_shared/supabase.ts';
+import { getSupabaseAdmin, verifyJWT } from '../_shared/supabase.ts';
 
 /**
  * Dual-Run Coaching Summary Edge Function
@@ -201,31 +200,16 @@ serve(async (req: Request) => {
 
     const token = authHeader.replace('Bearer ', '');
 
-    // Get Supabase configuration
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      console.error('[dual-run-coaching-summary] Missing Supabase environment variables');
-      return errorResponse('Server configuration error', 500, req);
-    }
-
     // Verify JWT token and get user
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
-
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
-
-    if (authError || !user) {
+    let authenticatedUser;
+    try {
+      authenticatedUser = await verifyJWT(token);
+    } catch (authError) {
       console.error('[dual-run-coaching-summary] Auth error:', authError);
       return errorResponse('Invalid or expired token. Please log in and try again.', 401, req);
     }
 
-    const userId = user.id;
+    const userId = authenticatedUser.id;
     console.log('[dual-run-coaching-summary] Verified authenticated user:', userId.substring(0, 8) + '...');
 
     // Parse request body

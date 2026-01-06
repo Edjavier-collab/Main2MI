@@ -29,3 +29,12 @@ verify_jwt = false
 
 [functions.update-tier-from-session]
 verify_jwt = false
+
+[functions.dual-run-coaching-summary]
+verify_jwt = false
+
+[functions.coaching-summary]
+verify_jwt = false
+
+[functions.coaching-summary-v2]
+verify_jwt = false
