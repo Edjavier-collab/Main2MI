@@ -3,6 +3,9 @@ import { corsHeaders, handleCors, jsonResponse, errorResponse } from '../_shared
 import { getStripe, getPriceIds } from '../_shared/stripe.ts';
 import { getUserEmail, updateUserPlan, verifyJWT } from '../_shared/supabase.ts';
 
+// Coupon ID for 30% annual upgrade discount
+const UPGRADE_COUPON_ID = 'UPGRADE_ANNUAL_30';
+
 serve(async (req: Request) => {
   // Handle CORS preflight
   const corsResponse = handleCors(req);
@@ -81,7 +84,23 @@ serve(async (req: Request) => {
       return errorResponse('Can only upgrade from monthly to annual plan', 400, req);
     }
 
-    // Update subscription to annual
+    // Get or create the 30% upgrade discount coupon
+    let coupon;
+    try {
+      coupon = await stripe.coupons.retrieve(UPGRADE_COUPON_ID);
+      console.log('[upgrade-subscription] Retrieved existing coupon:', UPGRADE_COUPON_ID);
+    } catch {
+      // Coupon doesn't exist, create it
+      coupon = await stripe.coupons.create({
+        id: UPGRADE_COUPON_ID,
+        percent_off: 30,
+        duration: 'forever',
+        name: 'Annual Upgrade Discount - 30% Off',
+      });
+      console.log('[upgrade-subscription] Created new coupon:', UPGRADE_COUPON_ID);
+    }
+
+    // Update subscription to annual with 30% discount
     const updatedSubscription = await stripe.subscriptions.update(subscription.id, {
       items: [
         {
@@ -89,10 +108,13 @@ serve(async (req: Request) => {
           price: priceIds.annual,
         },
       ],
-      proration_behavior: 'none', // Don't prorate - change at period end
+      coupon: UPGRADE_COUPON_ID,
+      proration_behavior: 'create_prorations', // Credit remaining monthly time
       metadata: {
         ...subscription.metadata,
         plan: 'annual',
+        upgradedFromMonthly: 'true',
+        upgradeDiscount: '30',
       },
     });
 
@@ -104,11 +126,14 @@ serve(async (req: Request) => {
       console.warn('[upgrade-subscription] Failed to save plan:', planError);
     }
 
-    console.log('[upgrade-subscription] Upgraded subscription to annual');
+    console.log('[upgrade-subscription] Upgraded subscription to annual with 30% discount');
     return jsonResponse({
       success: true,
       subscriptionId: updatedSubscription.id,
-      message: `Your subscription will be upgraded to Annual at the end of your current billing period (${new Date(updatedSubscription.current_period_end * 1000).toLocaleDateString()}).`,
+      originalPrice: 99.99,
+      discountedPrice: 69.99,
+      discountPercent: 30,
+      message: `Your subscription has been upgraded to Annual Pro with a 30% discount! You'll be charged $69.99/year (normally $99.99).`,
     }, 200, req);
   } catch (error) {
     console.error('[upgrade-subscription] Error:', error);

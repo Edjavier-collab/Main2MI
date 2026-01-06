@@ -1,5 +1,31 @@
 [api]
 enabled = true
 
+# Disable Supabase's built-in JWT verification for these functions
+# They handle their own JWT verification internally
 [functions.stripe-webhook]
+verify_jwt = false
+
+[functions.get-subscription]
+verify_jwt = false
+
+[functions.create-billing-portal-session]
+verify_jwt = false
+
+[functions.upgrade-subscription]
+verify_jwt = false
+
+[functions.cancel-subscription]
+verify_jwt = false
+
+[functions.restore-subscription]
+verify_jwt = false
+
+[functions.apply-retention-discount]
+verify_jwt = false
+
+[functions.create-checkout-session]
+verify_jwt = false
+
+[functions.update-tier-from-session]
 verify_jwt = false

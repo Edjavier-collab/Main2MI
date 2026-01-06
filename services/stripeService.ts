@@ -44,15 +44,31 @@ const getFunctionsUrl = (): string => {
 /**
  * Get user's JWT token from Supabase session
  * Throws error if no session exists (user must be logged in)
+ * @param forceRefresh - Force a token refresh even if current token seems valid
  */
-const getAuthToken = async (): Promise<string> => {
+const getAuthToken = async (forceRefresh = false): Promise<string> => {
     if (!isSupabaseConfigured()) {
         throw new Error('Supabase is not configured. Please check your environment variables.');
     }
 
+    // If forcing refresh, try to refresh the session first
+    if (forceRefresh) {
+        try {
+            const { getSupabaseClient } = await import('@/lib/supabase');
+            const supabase = getSupabaseClient();
+            const { data: { session }, error } = await supabase.auth.refreshSession();
+            if (!error && session?.access_token) {
+                console.log('[stripeService] Token refreshed successfully');
+                return session.access_token;
+            }
+        } catch (refreshError) {
+            console.warn('[stripeService] Force refresh failed:', refreshError);
+        }
+    }
+
     // Use sessionManager utility which handles token refresh automatically
     const token = await getValidAuthToken();
-    
+
     if (!token) {
         throw new Error('You must be logged in to perform this action. Please log in and try again.');
     }
@@ -63,6 +79,7 @@ const getAuthToken = async (): Promise<string> => {
 /**
  * Make a request to a Supabase Edge Function
  * Requires user authentication (JWT token)
+ * Automatically retries with refreshed token on 401 errors
  */
 const callEdgeFunction = async (
     functionName: string,
@@ -70,15 +87,17 @@ const callEdgeFunction = async (
         method?: 'GET' | 'POST';
         body?: Record<string, unknown>;
         params?: Record<string, string>;
-    } = {}
+    } = {},
+    retryCount = 0
 ): Promise<Response> => {
     const { method = 'POST', body, params } = options;
     const functionsUrl = getFunctionsUrl();
 
     // Get user's JWT token (requires authentication)
+    // Force refresh on retry
     let authToken: string;
     try {
-        authToken = await getAuthToken();
+        authToken = await getAuthToken(retryCount > 0);
     } catch (error) {
         // Re-throw with clear error message
         if (error instanceof Error) {
@@ -88,7 +107,7 @@ const callEdgeFunction = async (
     }
 
     let url = `${functionsUrl}/${functionName}`;
-    
+
     // Add query params for GET requests
     if (params && Object.keys(params).length > 0) {
         const searchParams = new URLSearchParams(params);
@@ -107,7 +126,15 @@ const callEdgeFunction = async (
         fetchOptions.body = JSON.stringify(body);
     }
 
-    return fetch(url, fetchOptions);
+    const response = await fetch(url, fetchOptions);
+
+    // If 401 and haven't retried yet, refresh token and retry once
+    if (response.status === 401 && retryCount < 1) {
+        console.log('[stripeService] Got 401, refreshing token and retrying...');
+        return callEdgeFunction(functionName, options, retryCount + 1);
+    }
+
+    return response;
 };
 
 /**
@@ -307,7 +334,12 @@ export const createBillingPortalSession = async (userId: string, returnUrl?: str
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ error: 'Failed to create billing portal session' }));
-            const errorMessage = errorData.error || errorData.message || 'Failed to create billing portal session';
+            let errorMessage = errorData.error || errorData.message || 'Failed to create billing portal session';
+
+            // Provide clearer guidance for auth errors
+            if (response.status === 401 || errorMessage.toLowerCase().includes('jwt') || errorMessage.toLowerCase().includes('unauthorized')) {
+                errorMessage = 'Session expired. Please log out and log back in to continue.';
+            }
             throw new Error(errorMessage);
         }
 

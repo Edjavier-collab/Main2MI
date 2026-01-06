@@ -3,11 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { UserTier, View } from '../../types';
 import { User } from '@supabase/supabase-js';
-import { 
-    getUserSubscription, 
+import {
+    getUserSubscription,
     createBillingPortalSession,
     cancelSubscription,
-    applyRetentionDiscount 
+    applyRetentionDiscount,
+    upgradeToAnnual
 } from '../../services/stripeService';
 import { submitFeedback } from '../../services/feedbackService';
 import { Button } from '../ui/Button';
@@ -15,7 +16,8 @@ import { InsetGroup, GroupedListItem } from '../ui/Card';
 import { useToast } from '../ui/Toast';
 import { FeedbackModal } from '../ui/FeedbackModal';
 import { RetentionPromoModal } from '../ui/RetentionPromoModal';
-import { Brain, BarChart, Clock, Bell, ChevronRight, Star, Receipt, AlertTriangle, ExternalLink, Shield, FileText, BookOpen } from 'lucide-react';
+import { UpgradeModal } from '../ui/UpgradeModal';
+import { Brain, BarChart, ChevronRight, Star, Receipt, AlertTriangle, ExternalLink, Shield, FileText, BookOpen, Sparkles } from 'lucide-react';
 
 // Helper component for styled icon boxes
 const IconBox = ({ icon, className }: { icon: React.ReactNode; className?: string }) => (
@@ -47,6 +49,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
     const [billingPortalLoading, setBillingPortalLoading] = useState(false);
     const [showRetentionModal, setShowRetentionModal] = useState(false);
     const [retentionLoading, setRetentionLoading] = useState(false);
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    const [upgradeLoading, setUpgradeLoading] = useState(false);
 
     const { toasts, showToast, removeToast, ToastContainer } = useToast();
 
@@ -145,6 +149,22 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
         }
     };
 
+    const handleUpgradeToAnnual = async () => {
+        if (!user) return;
+        setUpgradeLoading(true);
+        try {
+            const result = await upgradeToAnnual(user.id);
+            showToast(result.message || 'Successfully upgraded to Annual Pro with 30% off!', 'success');
+            setSubscriptionPlan('annual');
+            await fetchSubscription(); // Refresh subscription details
+        } catch (error) {
+            showToast(error instanceof Error ? error.message : 'Failed to upgrade subscription.', 'error');
+        } finally {
+            setUpgradeLoading(false);
+            setShowUpgradeModal(false);
+        }
+    };
+
     const isPremium = userTier === UserTier.Premium;
     const isAnonymous = !user;
 
@@ -169,6 +189,17 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                         </span>
                     </GroupedListItem>
                     
+                    {isPremium && subscriptionPlan === 'monthly' && !cancelAtPeriodEnd && (
+                        <GroupedListItem
+                            label="Upgrade to Annual"
+                            icon={<IconBox icon={<Sparkles size={20} />} className="bg-warning/[.10] text-warning" />}
+                            onClick={() => setShowUpgradeModal(true)}
+                        >
+                            <span className="text-sm text-success font-medium mr-2">Save 30%</span>
+                            <ChevronRight className="h-5 w-5 text-text-muted" />
+                        </GroupedListItem>
+                    )}
+
                     {isPremium && !cancelAtPeriodEnd && (
                         <GroupedListItem label="Manage Billing" icon={<IconBox icon={<Receipt size={20} />} className="bg-success/[.10] text-success" />} onClick={handleManageBilling}>
                             <ExternalLink className="h-5 w-5 text-text-muted" />
@@ -210,7 +241,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                                 type="button"
                                 onClick={handleLogoutClick}
                                 disabled={logoutLoading}
-                                variant="destructive"
+                                variant="danger"
                                 size="sm"
                                 loading={logoutLoading}
                             >
@@ -249,12 +280,18 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                 onClose={() => setFeedbackModalOpen(false)}
                 onSubmit={handleFeedbackSubmit}
             />
-            <RetentionPromoModal 
+            <RetentionPromoModal
                 isOpen={showRetentionModal}
                 onClose={() => setShowRetentionModal(false)}
                 onAcceptOffer={handleAcceptOffer}
                 onProceedToCancel={handleProceedToCancel}
                 loading={retentionLoading}
+            />
+            <UpgradeModal
+                isOpen={showUpgradeModal}
+                onClose={() => setShowUpgradeModal(false)}
+                onUpgrade={handleUpgradeToAnnual}
+                loading={upgradeLoading}
             />
         </div>
     );
