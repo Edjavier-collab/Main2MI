@@ -96,33 +96,16 @@ export const useTierManager = () => {
 
     try {
       const supabase = getSupabaseClient();
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData?.session?.access_token;
-
-      if (!accessToken) {
-        console.warn('[useTierManager] No access token available for verification');
-        // Fallback to database tier if available
-        if (databaseTier === UserTier.Premium) {
-          console.log('[useTierManager] Falling back to database tier (premium)');
-          setIsPremiumVerified(true);
-          return true;
-        }
-        setIsPremiumVerified(false);
-        return false;
-      }
-
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const response = await fetch(`${supabaseUrl}/functions/v1/verify-premium-status`, {
+      const { data, error } = await supabase.functions.invoke('verify-premium-status', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        }
       });
 
-      if (!response.ok) {
+      if (error) {
         // Edge Function unavailable (404, 500, etc.) - fallback to database tier
-        console.warn('[useTierManager] Edge Function unavailable (status:', response.status, '), falling back to database tier');
+        console.warn('[useTierManager] Edge Function error:', error, ', falling back to database tier');
         if (databaseTier === UserTier.Premium) {
           console.log('[useTierManager] Database tier is premium, trusting it as fallback');
           setIsPremiumVerified(true);
@@ -138,7 +121,6 @@ export const useTierManager = () => {
         return false;
       }
 
-      const data = await response.json();
       const isPremium = data.isPremium === true;
 
       console.log('[useTierManager] Server verified premium status:', isPremium);
@@ -151,7 +133,7 @@ export const useTierManager = () => {
       });
 
       setIsPremiumVerified(isPremium);
-      
+
       // Also update the tier state to match server
       if (isPremium) {
         setUserTier(UserTier.Premium);
@@ -208,11 +190,11 @@ export const useTierManager = () => {
 
     const loadAndVerifyTier = async () => {
       let databaseTier: UserTier = UserTier.Free;
-      
+
       try {
         console.log('[useTierManager] Loading tier from Supabase for user:', user.id);
         const profile = await getUserProfile(user.id);
-        
+
         if (profile && profile.tier) {
           console.log('[useTierManager] Loaded tier from Supabase:', profile.tier);
           databaseTier = profile.tier as UserTier;

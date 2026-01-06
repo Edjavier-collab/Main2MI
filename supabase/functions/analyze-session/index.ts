@@ -135,7 +135,7 @@ serve(async (req: Request) => {
 
     // Require authenticated user - verify JWT token (no anonymous access)
     console.log(`[analyze-session] Verifying token (length: ${token.length})`);
-    
+
     // Create Supabase client for Edge Function
     const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
@@ -165,14 +165,64 @@ serve(async (req: Request) => {
     console.log('[analyze-session] Verified authenticated user:', userId.substring(0, 8) + '...');
 
     // Parse request body
-    const { transcript, patient } = await req.json();
+    const { sessionId, transcript: bodyTranscript, patient: bodyPatient } = await req.json();
+
+    let transcript = bodyTranscript;
+    let patient = bodyPatient;
+
+    // If sessionId is provided, fetch from database (preferred)
+    if (sessionId) {
+      console.log(`[analyze-session] Fetching data for sessionId: ${sessionId}`);
+
+      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+      if (!supabaseServiceKey) {
+        console.error('[analyze-session] Missing service role key');
+        return errorResponse('Server configuration error', 500, req);
+      }
+
+      const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      });
+
+      const { data: dbSession, error: dbError } = await supabaseAdmin
+        .from('sessions')
+        .select('*')
+        .eq('id', sessionId)
+        .single();
+
+      if (dbError) {
+        console.warn(`[analyze-session] Database error fetching sessionId ${sessionId}, falling back to body data if available:`, dbError);
+      } else if (!dbSession) {
+        console.warn(`[analyze-session] Session ${sessionId} not found in database, falling back to body data if available.`);
+      } else {
+        // Verify ownership
+        if (dbSession.user_id !== userId) {
+          console.error(`[analyze-session] User mismatch: ${userId} != ${dbSession.user_id}`);
+          return errorResponse('Unauthorized access to session', 403, req);
+        }
+
+        // Extract transcript and patient from session_data
+        const sessionData = dbSession.session_data || {};
+        transcript = dbSession.transcript || sessionData.transcript || (Array.isArray(sessionData) ? sessionData : transcript);
+        patient = sessionData.patient || patient;
+
+        console.log(`[analyze-session] Successfully retrieved session data from DB for: ${sessionId}. Transcript length: ${Array.isArray(transcript) ? transcript.length : 'N/A'}`);
+      }
+    }
+
+
 
     // Validate required fields
     if (!transcript || !Array.isArray(transcript)) {
+      console.error('[analyze-session] Invalid transcript:', { hasTranscript: !!transcript, isArray: Array.isArray(transcript) });
       return errorResponse('Missing or invalid transcript', 400, req);
     }
 
     if (!patient) {
+      console.error('[analyze-session] Missing patient profile');
       return errorResponse('Missing patient profile', 400, req);
     }
 
@@ -315,7 +365,7 @@ IMPORTANT: Count every instance of each skill in the transcript. For example, if
 
     // Call Gemini API with timeout
     const geminiUrl = `${GEMINI_API_URL}?key=${geminiApiKey}`;
-    
+
     let geminiResponse: Response;
     try {
       geminiResponse = await Promise.race([
@@ -346,14 +396,14 @@ IMPORTANT: Count every instance of each skill in the transcript. For example, if
     if (!geminiResponse.ok) {
       const errorText = await geminiResponse.text();
       console.error('[analyze-session] Gemini API error:', geminiResponse.status, errorText);
-      
+
       if (geminiResponse.status === 400) {
         return errorResponse('Invalid request to AI service', 400, req);
       }
       if (geminiResponse.status === 401 || geminiResponse.status === 403) {
         return errorResponse('AI service authentication failed', 500, req);
       }
-      
+
       return errorResponse('AI service error. Please try again later.', 500, req);
     }
 
@@ -369,7 +419,7 @@ IMPORTANT: Count every instance of each skill in the transcript. For example, if
     // Extract JSON from response
     const candidate = geminiData.candidates[0];
     const content = candidate.content;
-    
+
     if (!content.parts || !content.parts[0]) {
       console.error('[analyze-session] No parts in Gemini response content:', JSON.stringify(content, null, 2));
       return errorResponse('Empty response from AI service', 500, req);

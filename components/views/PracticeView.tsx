@@ -231,50 +231,35 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
             }
 
             // Fall back to Edge Function
-            const authToken = await getValidAuthToken();
-            if (!authToken) {
-                setSessionExpired(true);
-                throw new Error('Your session has expired. Please refresh the page and log in again.');
-            }
-
-            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-            if (!supabaseUrl) {
-                throw new Error('AI service is not configured');
-            }
-
-            const functionsUrl = `${supabaseUrl}/functions/v1/patient-response`;
-            const response = await fetch(functionsUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`,
-                },
-                body: JSON.stringify({
+            const supabase = getSupabaseClient();
+            const { data: { session: authSession } } = await supabase.auth.getSession();
+            const { data: invokeData, error: invokeError } = await supabase.functions.invoke('patient-response', {
+                body: {
                     transcript,
                     patient,
                     message,
-                }),
+                },
+                headers: authSession?.access_token ? {
+                    Authorization: `Bearer ${authSession.access_token}`
+                } : undefined
             });
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                const errorMessage = errorData.error || `Failed to get patient response (${response.status})`;
+            if (invokeError) {
+                console.error('[PracticeView] Edge Function error:', invokeError);
+                const errorMessage = invokeError.message || 'Failed to get patient response';
 
-                if (response.status === 401) {
+                if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
                     throw new Error('Your session has expired. Please refresh the page and try again.');
-                } else if (response.status === 429) {
+                } else if (errorMessage.includes('429')) {
                     throw new Error('AI service is busy. Please try again in a moment.');
-                } else if (response.status === 504) {
+                } else if (errorMessage.includes('504')) {
                     throw new Error('Patient response timed out. Please try again.');
-                } else if (response.status === 500) {
-                    throw new Error('AI service error. Please try again later.');
                 } else {
                     throw new Error(errorMessage);
                 }
             }
 
-            const data = await response.json();
-            return data.response as string;
+            return invokeData.response as string;
         }
     }, [transcript, patient, user]);
 
@@ -373,71 +358,58 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
      * - Compares outputs and tracks semantic-equal matches
      * - Returns legacy output (for now) while monitoring drift
      */
-    const getFeedbackFromEdgeFunction = useCallback(async (): Promise<Feedback> => {
-        // Check session validity before making request
-        const authToken = await getValidAuthToken();
-        if (!authToken) {
-            setSessionExpired(true);
+    const getFeedbackFromEdgeFunction = useCallback(async (sessionId: string): Promise<Feedback> => {
+        const supabase = getSupabaseClient();
+
+        // Use sessionId if available (preferred)
+        const payload = {
+            sessionId,
+            transcript,
+            patient
+        };
+
+        // Get the current session token - use getSession() which reads from storage
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError) {
+            console.error('[PracticeView] Session error:', sessionError);
+            throw new Error('Failed to get session. Please refresh and try again.');
+        }
+
+        const accessToken = sessionData.session?.access_token;
+
+        if (!accessToken) {
+            console.error('[PracticeView] No access token available - user may need to re-login');
             throw new Error('Your session has expired. Please refresh the page and log in again.');
         }
 
-        // Get Supabase URL and construct Edge Function URL
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        if (!supabaseUrl) {
-            throw new Error('Supabase URL not configured');
-        }
+        console.log('[PracticeView] Calling analyze-session with token length:', accessToken.length);
 
-        // Use dual-run wrapper for Strangler Fig migration tracking
-        const functionsUrl = `${supabaseUrl}/functions/v1/dual-run-analyze-session`;
-
-        // Require authentication
-        if (!isSupabaseConfigured()) {
-            throw new Error('Supabase is not configured. Please check your environment variables.');
-        }
-
-        if (!user) {
-            throw new Error('You must be logged in to generate feedback. Please log in and try again.');
-        }
-
-        // Prepare request with required Authorization header
-        const headers: Record<string, string> = {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`,
-        };
-
-        // Make request to Edge Function
-        const response = await fetch(functionsUrl, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({
-                transcript,
-                patient,
-            }),
+        // Explicitly pass the Authorization header since SSR client may not auto-include it
+        const { data, error } = await supabase.functions.invoke('analyze-session', {
+            body: payload,
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
         });
 
-        // Handle errors
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-            const errorMessage = errorData.error || `Failed to analyze session (${response.status})`;
+        if (error) {
+            console.error('[PracticeView] Edge Function error:', error);
+            const errorMessage = error.message || 'Failed to analyze session';
 
-            // Map HTTP status codes to user-friendly messages
-            if (response.status === 401) {
+            if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
                 throw new Error('Your session has expired. Please refresh the page and try again.');
-            } else if (response.status === 429) {
+            } else if (errorMessage.includes('429')) {
                 throw new Error('AI service is busy. Please try again in a moment.');
-            } else if (response.status === 504) {
+            } else if (errorMessage.includes('504')) {
                 throw new Error('Analysis timed out. Please try again.');
-            } else if (response.status === 500) {
-                throw new Error('AI service error. Please try again later.');
             } else {
                 throw new Error(errorMessage);
             }
         }
 
-        // Parse and return feedback
-        const feedback = await response.json();
-        return feedback as Feedback;
-    }, [transcript, patient, user]);
+        return data as Feedback;
+    }, [transcript, patient]);
 
     const handleEndSession = useCallback(async () => {
         setIsEndingSession(true);
@@ -450,7 +422,29 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
         clearAutoSavedSessions();
 
         try {
-            const feedback = await getFeedbackFromEdgeFunction();
+            // 1. Save session first to get a sessionId
+            let sessionId = '';
+            if (user && isSupabaseConfigured()) {
+                const sessionToSave = {
+                    transcript,
+                    patient,
+                    timestamp: Date.now(),
+                    userTier
+                };
+
+                try {
+                    const { saveSession } = await import('../../services/databaseService');
+                    sessionId = await saveSession(sessionToSave as any, user.id);
+                    console.log('[PracticeView] Session saved with ID:', sessionId);
+                } catch (saveError) {
+                    console.warn('[PracticeView] Failed to save session before analysis. Continuing with ephemeral data.', saveError);
+                    showToast('Note: Progress saving failed, but analysis will continue.', 'warning');
+                    // Continue anyway, Edge Function can fall back to body transcript
+                }
+            }
+
+            // 2. Get feedback (using sessionId for analysis)
+            const feedback = await getFeedbackFromEdgeFunction(sessionId);
             setIsEndingSession(false);
             onFinish(transcript, feedback);
         } catch (error) {
@@ -468,14 +462,16 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
                 });
             }
         }
-    }, [transcript, getFeedbackFromEdgeFunction, onFinish, patient, showToast]);
+    }, [transcript, getFeedbackFromEdgeFunction, onFinish, patient, showToast, user, userTier]);
 
     const handleRetryFeedback = useCallback(async () => {
         setIsRetryingFeedback(true);
         setFeedbackError(null);
 
         try {
-            const feedback = await getFeedbackFromEdgeFunction();
+            // For retry, we don't have the sessionId easily available here unless we store it
+            // So we'll pass an empty string and the Edge Function will use the body
+            const feedback = await getFeedbackFromEdgeFunction('');
             setIsRetryingFeedback(false);
             onFinish(transcript, feedback);
         } catch (error) {

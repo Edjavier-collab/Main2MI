@@ -40,9 +40,18 @@ export const useStripeCallback = ({
       const updateTierDirectly = async () => {
         try {
           const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-          const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-          if (!supabaseUrl || !supabaseAnonKey) {
-            console.warn('[useStripeCallback] ⚠️ VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY not configured');
+          if (!supabaseUrl) {
+            console.warn('[useStripeCallback] ⚠️ NEXT_PUBLIC_SUPABASE_URL not configured');
+            return false;
+          }
+
+          // Get user's access token for authentication
+          const { getSupabaseClient } = await import('../lib/supabase');
+          const supabase = getSupabaseClient();
+          const { data: { session: authSession } } = await supabase.auth.getSession();
+
+          if (!authSession?.access_token) {
+            console.warn('[useStripeCallback] ⚠️ No access token available');
             return false;
           }
 
@@ -52,7 +61,7 @@ export const useStripeCallback = ({
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${supabaseAnonKey}`,
+              'Authorization': `Bearer ${authSession.access_token}`,
             },
             body: JSON.stringify({ sessionId }),
           });

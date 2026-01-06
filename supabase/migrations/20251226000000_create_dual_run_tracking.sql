@@ -33,11 +33,13 @@ create index if not exists idx_dual_run_tracking_timestamp on public.dual_run_tr
 alter table public.dual_run_tracking enable row level security;
 
 -- Policy: Users can read their own tracking data
+DROP POLICY IF EXISTS "Users can read their own dual-run tracking" ON public.dual_run_tracking;
 create policy "Users can read their own dual-run tracking"
   on public.dual_run_tracking for select
   using (auth.uid() = user_id);
 
 -- Policy: Service role can insert/update (for Edge Functions)
+DROP POLICY IF EXISTS "Service role can manage dual-run tracking" ON public.dual_run_tracking;
 create policy "Service role can manage dual-run tracking"
   on public.dual_run_tracking for all
   using (true); -- Edge Functions use service role

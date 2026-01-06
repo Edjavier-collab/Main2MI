@@ -24,7 +24,7 @@ interface DbUserProfile {
 export const saveSession = async (session: Session, userId: string): Promise<string> => {
     try {
         console.log('[databaseService] Saving session for user:', userId);
-        
+
         if (!isSupabaseConfigured()) {
             const errorMsg = 'Supabase is not configured. Session cannot be saved to database.';
             console.warn('[databaseService]', errorMsg);
@@ -32,13 +32,20 @@ export const saveSession = async (session: Session, userId: string): Promise<str
         }
 
         const supabase = getSupabaseClient();
+
+        // Only insert columns that exist in the sessions table schema:
+        // id, user_id, session_data, created_at
+        const payload = {
+            user_id: userId,
+            session_data: session,
+            created_at: new Date().toISOString(),
+        };
+
+        console.log('[databaseService] Saving session for user:', userId);
+
         const { data, error } = await supabase
             .from('sessions')
-            .insert({
-                user_id: userId,
-                session_data: session,
-                created_at: new Date().toISOString(),
-            })
+            .insert(payload)
             .select('id')
             .single();
 
@@ -90,7 +97,7 @@ export const saveSession = async (session: Session, userId: string): Promise<str
 export const getUserSessions = async (userId: string): Promise<Session[]> => {
     try {
         console.log('[databaseService] Fetching sessions for user:', userId);
-        
+
         if (!isSupabaseConfigured()) {
             console.warn('[databaseService] Supabase is not configured. Cannot fetch sessions from database.');
             return [];
@@ -145,7 +152,7 @@ export const getUserSessions = async (userId: string): Promise<Session[]> => {
 export const getSessionCount = async (userId: string, startDate: Date): Promise<number> => {
     try {
         console.log('[databaseService] Counting sessions for user:', userId, 'since:', startDate);
-        
+
         if (!isSupabaseConfigured()) {
             console.warn('[databaseService] Supabase is not configured. Returning 0 for session count.');
             return 0;
@@ -179,7 +186,7 @@ export const getSessionCount = async (userId: string, startDate: Date): Promise<
 export const updateUserTier = async (userId: string, tier: UserTier): Promise<void> => {
     try {
         console.log('[databaseService] Updating tier for user:', userId, 'to:', tier);
-        
+
         if (!isSupabaseConfigured()) {
             console.warn('[databaseService] Supabase is not configured. Cannot update user tier.');
             return;
@@ -213,7 +220,7 @@ export const updateUserTier = async (userId: string, tier: UserTier): Promise<vo
 export const getUserProfile = async (userId: string): Promise<DbUserProfile | null> => {
     try {
         console.log('[databaseService] Fetching profile for user:', userId);
-        
+
         if (!isSupabaseConfigured()) {
             console.warn('[databaseService] Supabase is not configured. Cannot fetch user profile.');
             return null;
@@ -256,7 +263,7 @@ export const getUserProfile = async (userId: string): Promise<DbUserProfile | nu
 export const createUserProfile = async (userId: string, tier: UserTier = UserTier.Free): Promise<DbUserProfile | null> => {
     try {
         console.log('[databaseService] Creating profile for user:', userId, 'with tier:', tier);
-        
+
         if (!isSupabaseConfigured()) {
             console.warn('[databaseService] Supabase is not configured. Cannot create user profile.');
             return null;
@@ -264,7 +271,7 @@ export const createUserProfile = async (userId: string, tier: UserTier = UserTie
 
         const supabase = getSupabaseClient();
         const now = new Date().toISOString();
-        
+
         const { data, error } = await supabase
             .from('profiles')
             .insert({

@@ -18,16 +18,19 @@ CREATE TABLE IF NOT EXISTS user_badges (
 ALTER TABLE user_badges ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can read their own badges
+DROP POLICY IF EXISTS "Users can read their own badges" ON user_badges;
 CREATE POLICY "Users can read their own badges"
   ON user_badges FOR SELECT
   USING (auth.uid() = user_id);
 
 -- Policy: Users can insert their own badges
+DROP POLICY IF EXISTS "Users can insert their own badges" ON user_badges;
 CREATE POLICY "Users can insert their own badges"
   ON user_badges FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
 -- Policy: Users can update their own badges (for marking as seen)
+DROP POLICY IF EXISTS "Users can update their own badges" ON user_badges;
 CREATE POLICY "Users can update their own badges"
   ON user_badges FOR UPDATE
   USING (auth.uid() = user_id);

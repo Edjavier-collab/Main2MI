@@ -12,11 +12,13 @@ create table if not exists public.feedback (
 alter table public.feedback enable row level security;
 
 -- Allow authenticated users to insert their own feedback
+DROP POLICY IF EXISTS "Users can insert their own feedback" ON public.feedback;
 create policy "Users can insert their own feedback"
   on public.feedback for insert
   with check (auth.uid() = user_id or user_id is null);
 
 -- Allow anonymous feedback (user_id = null)
+DROP POLICY IF EXISTS "Allow anonymous feedback insert" ON public.feedback;
 create policy "Allow anonymous feedback insert"
   on public.feedback for insert
   with check (user_id is null);

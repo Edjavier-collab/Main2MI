@@ -5,8 +5,38 @@ export async function verifyJWT(token: string): Promise<{ id: string; email?: st
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
 
+  console.log('[verifyJWT] Starting verification, token length:', token?.length);
+  console.log('[verifyJWT] SUPABASE_URL:', supabaseUrl?.substring(0, 30) + '...');
+
   if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('[verifyJWT] Missing env vars:', { hasUrl: !!supabaseUrl, hasKey: !!supabaseAnonKey });
     throw new Error('Supabase environment variables not set');
+  }
+
+  // Decode JWT to check the issuer (iss) claim
+  try {
+    const parts = token.split('.');
+    if (parts.length === 3) {
+      const payload = JSON.parse(atob(parts[1]));
+      console.log('[verifyJWT] Token payload:', {
+        iss: payload.iss,
+        ref: payload.ref || 'N/A',
+        role: payload.role,
+        exp: payload.exp,
+        iat: payload.iat,
+        now: Math.floor(Date.now() / 1000),
+        expired: payload.exp < Math.floor(Date.now() / 1000)
+      });
+
+      // Check if token is for a different project
+      const expectedRef = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1];
+      if (expectedRef && payload.ref && payload.ref !== expectedRef) {
+        console.error('[verifyJWT] TOKEN PROJECT MISMATCH! Token ref:', payload.ref, 'Expected:', expectedRef);
+        throw new Error(`Token was issued for project "${payload.ref}" but this function is running on "${expectedRef}". Please clear your browser data and log in again.`);
+      }
+    }
+  } catch (decodeError) {
+    console.warn('[verifyJWT] Could not decode token for debugging:', decodeError);
   }
 
   const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
@@ -18,10 +48,23 @@ export async function verifyJWT(token: string): Promise<{ id: string; email?: st
 
   const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
 
-  if (authError || !user) {
+  if (authError) {
+    console.error('[verifyJWT] Auth error:', {
+      message: authError.message,
+      status: authError.status,
+      name: authError.name,
+      code: (authError as any).code,
+      __isAuthError: (authError as any).__isAuthError
+    });
+    throw new Error(authError.message || 'Invalid or expired token');
+  }
+
+  if (!user) {
+    console.error('[verifyJWT] No user returned from getUser');
     throw new Error('Invalid or expired token');
   }
 
+  console.log('[verifyJWT] Successfully verified user:', user.id.substring(0, 8) + '...');
   return { id: user.id, email: user.email };
 }
 
