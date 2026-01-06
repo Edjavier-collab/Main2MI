@@ -66,7 +66,7 @@ export default function AppPage() {
   } = appState;
 
   // Use tier manager hook with server-side premium verification
-  const { userTier, setUserTier, refreshTier, isPremiumVerified, isVerifying: isTierVerifying } = useTierManager();
+  const { userTier, setUserTier, refreshTier, isPremiumVerified, isVerifying: isTierVerifying, verifyPremiumStatus } = useTierManager();
 
   // Use streak hook for gamification
   const { currentStreak, updateStreak, processQueue: processStreakQueue } = useStreak();
@@ -388,6 +388,23 @@ export default function AppPage() {
     }
   }, [user, refreshTier, setUserTier]);
 
+  const handleRestore = useCallback(async () => {
+    if (!user) return;
+    try {
+      const isPremium = await verifyPremiumStatus(true); // force refresh
+      if (isPremium) {
+        // Success toast is handled by showToast, but AppPage doesn't have a toast provider yet
+        // Actually, individual views have toast containers. 
+        // We'll trust the view to show the result or just return the result.
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('[App] Restore failed:', error);
+      return false;
+    }
+  }, [user, verifyPremiumStatus]);
+
   // Show loading state while auth is initializing
   if (authLoading || showOnboarding === null) {
     return <PageLoader message="Initializing..." />;
@@ -439,6 +456,7 @@ export default function AppPage() {
               onGenerateCoachingSummary={handleGenerateCoachingSummary}
               onEmailConfirmation={handleEmailConfirmation}
               onTierUpdated={handleTierUpdated}
+              onRestore={handleRestore}
             />
           </main>
           <BottomNavBar currentView={view} onNavigate={handleNavigate} userTier={userTier} />
@@ -470,6 +488,7 @@ export default function AppPage() {
           onGenerateCoachingSummary={handleGenerateCoachingSummary}
           onEmailConfirmation={handleEmailConfirmation}
           onTierUpdated={handleTierUpdated}
+          onRestore={handleRestore}
         />
       )}
       {showReviewPrompt && (

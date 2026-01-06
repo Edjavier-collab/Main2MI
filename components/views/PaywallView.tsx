@@ -14,6 +14,7 @@ interface PaywallViewProps {
     user: User | null;
     onNavigateToLogin?: () => void;
     onNavigate?: (view: View) => void;
+    onRestore: () => Promise<boolean>;
 }
 
 const FeatureItem: React.FC<{ icon: string; text: React.ReactNode }> = ({ icon, text }) => (
@@ -23,8 +24,9 @@ const FeatureItem: React.FC<{ icon: string; text: React.ReactNode }> = ({ icon, 
     </li>
 );
 
-const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNavigateToLogin, onNavigate }) => {
+const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNavigateToLogin, onNavigate, onRestore }) => {
     const [loading, setLoading] = useState<string | null>(null);
+    const [restoreLoading, setRestoreLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { toasts, showToast, removeToast, ToastContainer } = useToast();
 
@@ -268,10 +270,27 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                 <div className="mt-8 text-xs text-[var(--color-text-muted)]">
                     <div className="flex justify-center space-x-4">
                         <button
-                            onClick={() => onNavigate?.(View.Settings)}
-                            className="hover:text-[var(--color-text-primary)] hover:underline transition-colors"
+                            onClick={async () => {
+                                if (restoreLoading) return;
+                                setRestoreLoading(true);
+                                try {
+                                    showToast('Restoring purchase...', 'info');
+                                    const success = await onRestore();
+                                    if (success) {
+                                        showToast('Purchase restored successfully!', 'success');
+                                    } else {
+                                        showToast('No active subscription found.', 'info');
+                                    }
+                                } catch (err) {
+                                    showToast('Failed to restore purchase.', 'error');
+                                } finally {
+                                    setRestoreLoading(false);
+                                }
+                            }}
+                            className={`hover:text-[var(--color-text-primary)] hover:underline transition-colors ${restoreLoading ? 'opacity-50 cursor-wait' : ''}`}
+                            disabled={restoreLoading}
                         >
-                            Restore Purchase
+                            {restoreLoading ? 'Restoring...' : 'Restore Purchase'}
                         </button>
                         <button
                             onClick={() => onNavigate?.(View.PrivacyPolicy)}
@@ -288,7 +307,7 @@ const PaywallView: React.FC<PaywallViewProps> = ({ onBack, onUpgrade, user, onNa
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

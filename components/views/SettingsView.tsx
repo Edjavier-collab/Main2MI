@@ -8,7 +8,8 @@ import {
     createBillingPortalSession,
     cancelSubscription,
     applyRetentionDiscount,
-    upgradeToAnnual
+    upgradeToAnnual,
+    restoreSubscription
 } from '../../services/stripeService';
 import { submitFeedback } from '../../services/feedbackService';
 import { Button } from '../ui/Button';
@@ -17,7 +18,7 @@ import { useToast } from '../ui/Toast';
 import { FeedbackModal } from '../ui/FeedbackModal';
 import { RetentionPromoModal } from '../ui/RetentionPromoModal';
 import { UpgradeModal } from '../ui/UpgradeModal';
-import { Brain, BarChart, ChevronRight, Star, Receipt, AlertTriangle, ExternalLink, Shield, FileText, BookOpen, Sparkles } from 'lucide-react';
+import { Brain, BarChart, ChevronRight, Star, Receipt, AlertTriangle, ExternalLink, Shield, FileText, BookOpen, Sparkles, RotateCw } from 'lucide-react';
 
 // Helper component for styled icon boxes
 const IconBox = ({ icon, className }: { icon: React.ReactNode; className?: string }) => (
@@ -38,9 +39,10 @@ interface SettingsViewProps {
     onLogout: () => Promise<void>;
     onNavigate: (view: View) => void;
     user: User | null;
+    onRestore: () => Promise<boolean>;
 }
 
-const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywall, onLogout, onNavigate, user }) => {
+const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywall, onLogout, onNavigate, user, onRestore }) => {
     const [logoutLoading, setLogoutLoading] = useState(false);
     const [subscriptionPlan, setSubscriptionPlan] = useState<'monthly' | 'annual' | 'unknown' | null>(null);
     const [subscriptionLoading, setSubscriptionLoading] = useState(true);
@@ -51,6 +53,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
     const [retentionLoading, setRetentionLoading] = useState(false);
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [upgradeLoading, setUpgradeLoading] = useState(false);
+    const [restoreLoading, setRestoreLoading] = useState(false);
 
     const { toasts, showToast, removeToast, ToastContainer } = useToast();
 
@@ -118,7 +121,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
             setBillingPortalLoading(false);
         }
     };
-    
+
     const handleAcceptOffer = async () => {
         if (!user) return;
         setRetentionLoading(true);
@@ -133,7 +136,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
             setShowRetentionModal(false);
         }
     };
-    
+
     const handleProceedToCancel = async () => {
         if (!user) return;
         setRetentionLoading(true);
@@ -165,6 +168,39 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
         }
     };
 
+    const handleRestoreSubscription = async () => {
+        if (!user) return;
+        setRestoreLoading(true);
+        try {
+            await restoreSubscription(user.id);
+            showToast('Your subscription has been restored!', 'success');
+            await fetchSubscription(); // Refresh subscription details
+        } catch (error) {
+            showToast(error instanceof Error ? error.message : 'Failed to restore subscription.', 'error');
+        } finally {
+            setRestoreLoading(false);
+        }
+    };
+
+    const handleRestorePurchase = async () => {
+        if (!user) return;
+        setRestoreLoading(true);
+        try {
+            showToast('Checking for active subscriptions...', 'info');
+            const isPremium = await onRestore();
+            if (isPremium) {
+                showToast('Purchase restored! Your Premium access is active.', 'success');
+                await fetchSubscription();
+            } else {
+                showToast('No active premium subscription found.', 'info');
+            }
+        } catch (error) {
+            showToast('Failed to restore purchase. Please try again.', 'error');
+        } finally {
+            setRestoreLoading(false);
+        }
+    };
+
     const isPremium = userTier === UserTier.Premium;
     const isAnonymous = !user;
 
@@ -180,15 +216,15 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
 
                 <SettingsHeader title="Subscription" />
                 <InsetGroup>
-                    <GroupedListItem 
-                        label="Current Plan" 
+                    <GroupedListItem
+                        label="Current Plan"
                         icon={<IconBox icon={<Star size={20} />} className={isPremium ? "text-yellow-500 bg-yellow-500/[.15]" : "text-primary bg-primary/[.10]"} />}
                     >
                         <span className={`font-semibold ${isPremium ? 'text-yellow-600' : 'text-text-primary'}`}>
                             {subscriptionLoading ? 'Loading...' : isPremium ? `${subscriptionPlan ? subscriptionPlan.charAt(0).toUpperCase() + subscriptionPlan.slice(1) : ''} Pro` : 'Free'}
                         </span>
                     </GroupedListItem>
-                    
+
                     {isPremium && subscriptionPlan === 'monthly' && !cancelAtPeriodEnd && (
                         <GroupedListItem
                             label="Upgrade to Annual"
@@ -207,8 +243,42 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                     )}
 
                     {isPremium && !cancelAtPeriodEnd && (
-                         <GroupedListItem label="Cancel Subscription" icon={<IconBox icon={<AlertTriangle size={20} />} className="bg-error/[.10] text-error" />} onClick={() => setShowRetentionModal(true)}>
+                        <GroupedListItem label="Cancel Subscription" icon={<IconBox icon={<AlertTriangle size={20} />} className="bg-error/[.10] text-error" />} onClick={() => setShowRetentionModal(true)}>
                             <ChevronRight className="h-5 w-5 text-text-muted" />
+                        </GroupedListItem>
+                    )}
+
+                    {isPremium && cancelAtPeriodEnd && (
+                        <GroupedListItem
+                            label="Keep Subscription"
+                            subtitle="Undo your scheduled cancellation"
+                            icon={<IconBox icon={<RotateCw size={20} />} className="bg-success/[.10] text-success" />}
+                            onClick={restoreLoading ? undefined : handleRestoreSubscription}
+                            hoverable={!restoreLoading}
+                        >
+                            <span className="text-sm text-success font-medium mr-2">Restore</span>
+                            {restoreLoading ? (
+                                <div className="animate-spin h-5 w-5 border-2 border-success border-t-transparent rounded-full" />
+                            ) : (
+                                <ChevronRight className="h-5 w-5 text-text-muted" />
+                            )}
+                        </GroupedListItem>
+                    )}
+
+                    {!isPremium && (
+                        <GroupedListItem
+                            label="Restore Purchase"
+                            subtitle="Already subscribed? Sync your status"
+                            icon={<IconBox icon={<RotateCw size={20} />} className="bg-info/[.10] text-info" />}
+                            onClick={restoreLoading ? undefined : handleRestorePurchase}
+                            hoverable={!restoreLoading}
+                        >
+                            <span className="text-sm text-info font-medium mr-2">Sync</span>
+                            {restoreLoading ? (
+                                <div className="animate-spin h-5 w-5 border-2 border-info border-t-transparent rounded-full" />
+                            ) : (
+                                <ChevronRight className="h-5 w-5 text-text-muted" />
+                            )}
                         </GroupedListItem>
                     )}
 
@@ -225,7 +295,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                         <ChevronRight className="h-5 w-5 text-text-muted" />
                     </GroupedListItem>
                     <GroupedListItem label="Feedback Detail" icon={<IconBox icon={<BarChart size={20} />} className="bg-success/[.10] text-success" />} onClick={() => handlePlaceholderClick('Feedback Detail')}>
-                         <ChevronRight className="h-5 w-5 text-text-muted" />
+                        <ChevronRight className="h-5 w-5 text-text-muted" />
                     </GroupedListItem>
                 </InsetGroup>
 
@@ -236,7 +306,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                             <ChevronRight className="h-5 w-5 text-text-muted" />
                         </GroupedListItem>
                     ) : (
-                         <GroupedListItem label="Log Out" onClick={handleLogoutClick} hoverable={false}>
+                        <GroupedListItem label="Log Out" onClick={handleLogoutClick} hoverable={false}>
                             <Button
                                 type="button"
                                 onClick={handleLogoutClick}
@@ -267,10 +337,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                         <ChevronRight className="h-5 w-5 text-text-muted" />
                     </GroupedListItem>
                     <GroupedListItem label="Terms of Service" icon={<IconBox icon={<FileText size={20} />} className="bg-info/[.10] text-info" />} onClick={() => onNavigate(View.TermsOfService)}>
-                         <ChevronRight className="h-5 w-5 text-text-muted" />
+                        <ChevronRight className="h-5 w-5 text-text-muted" />
                     </GroupedListItem>
                     <GroupedListItem label="Documentation" icon={<IconBox icon={<BookOpen size={20} />} className="bg-info/[.10] text-info" />} onClick={() => handlePlaceholderClick('Documentation')}>
-                         <ChevronRight className="h-5 w-5 text-text-muted" />
+                        <ChevronRight className="h-5 w-5 text-text-muted" />
                     </GroupedListItem>
                 </InsetGroup>
             </main>
