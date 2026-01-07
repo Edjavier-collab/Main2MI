@@ -195,3 +195,56 @@ export const generatePatientProfile = (filters?: PatientProfileFilters): Patient
     variantId: variant.variantId,
   };
 };
+
+/**
+ * Generate a dynamic patient profile using AI (Premium feature)
+ * This calls the generate-patient-profile Edge Function for infinite variety.
+ * Falls back to static generation if the API call fails.
+ */
+export const generateDynamicPatientProfile = async (
+  filters?: PatientProfileFilters,
+  authToken?: string
+): Promise<PatientProfile> => {
+  // If no auth token, fall back to static generation
+  if (!authToken) {
+    console.log('[patientService] No auth token, using static profile generation');
+    return generatePatientProfile(filters);
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!supabaseUrl) {
+    console.warn('[patientService] SUPABASE_URL not configured, using static profile generation');
+    return generatePatientProfile(filters);
+  }
+
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/generate-patient-profile`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        topic: filters?.topic,
+        difficulty: filters?.difficulty,
+        stageOfChange: filters?.stageOfChange,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[patientService] Dynamic profile generation failed:', response.status, errorText);
+      // Fall back to static generation
+      return generatePatientProfile(filters);
+    }
+
+    const dynamicProfile: PatientProfile = await response.json();
+    console.log('[patientService] Generated dynamic profile:', dynamicProfile.name);
+    return dynamicProfile;
+
+  } catch (error) {
+    console.error('[patientService] Error generating dynamic profile:', error);
+    // Fall back to static generation
+    return generatePatientProfile(filters);
+  }
+};

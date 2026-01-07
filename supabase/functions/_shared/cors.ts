@@ -11,19 +11,32 @@ const ALLOWED_ORIGINS = [
 // Get allowed origin for request
 function getAllowedOrigin(origin: string | null): string | null {
   if (!origin) {
+    console.log('[CORS] No origin header provided');
     return null;
   }
-  
+
+  // Normalize origin (trim whitespace, remove trailing slash)
+  const normalizedOrigin = origin.trim().replace(/\/$/, '');
+
   // Check if origin is in allowed list
-  if (ALLOWED_ORIGINS.includes(origin)) {
-    return origin;
+  if (ALLOWED_ORIGINS.includes(normalizedOrigin)) {
+    console.log(`[CORS] Origin allowed: ${normalizedOrigin}`);
+    return normalizedOrigin;
   }
-  
+
   // Allow localhost with any port for development
-  if (origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:')) {
-    return origin;
+  if (normalizedOrigin.startsWith('http://localhost:') || normalizedOrigin.startsWith('https://localhost:')) {
+    console.log(`[CORS] Localhost origin allowed: ${normalizedOrigin}`);
+    return normalizedOrigin;
   }
-  
+
+  // Allow any *.vercel.app subdomain for preview deployments
+  if (normalizedOrigin.endsWith('.vercel.app')) {
+    console.log(`[CORS] Vercel preview origin allowed: ${normalizedOrigin}`);
+    return normalizedOrigin;
+  }
+
+  console.warn(`[CORS] Origin rejected: ${normalizedOrigin}`);
   return null;
 }
 

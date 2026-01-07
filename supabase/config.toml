@@ -41,3 +41,9 @@ verify_jwt = false
 
 [functions.analyze-session]
 verify_jwt = false
+
+[functions.generate-patient-profile]
+verify_jwt = false
+
+[functions.patient-response]
+verify_jwt = false

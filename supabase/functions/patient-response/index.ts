@@ -1,16 +1,33 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
-import { corsHeaders, handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
+import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
+import { verifyJWT } from '../_shared/supabase.ts';
 
 /**
  * Patient Response Edge Function
- * 
+ *
  * Generates patient/AI conversation responses using Google Gemini AI.
- * 
+ * Now includes mood tracking to provide emotional state information.
+ *
  * Authentication: Requires valid JWT token in Authorization header
  * Request Body: { transcript: ChatMessage[], patient: PatientProfile, message: string }
- * Returns: { response: string } - The patient's response text
+ * Returns: { response: string, mood: string } - The patient's response text and current emotional state
  */
+
+// Valid mood states for tracking emotional shifts
+const MOOD_STATES = [
+  'guarded',      // Defensive, closed off
+  'resistant',    // Actively pushing back
+  'ambivalent',   // Torn, uncertain
+  'vulnerable',   // Open, emotionally exposed
+  'frustrated',   // Annoyed, irritated
+  'hopeful',      // Cautiously optimistic
+  'engaged',      // Actively participating
+  'withdrawn',    // Pulling back, shutting down
+  'reflective',   // Thoughtful, considering
+  'relieved',     // Feeling heard, understood
+] as const;
+
+type MoodState = typeof MOOD_STATES[number];
 
 // Gemini API configuration
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
@@ -345,6 +362,40 @@ CRITICAL REMINDERS:
 - Good MI should make you feel heard; show that in your responses when appropriate.`;
 }
 
+// Infer mood from response text and patient stage
+function inferMood(responseText: string, patient: any, intent: ClinicianIntent): MoodState {
+  const text = responseText.toLowerCase();
+  const stage = (patient.stageOfChange || '').toLowerCase();
+
+  // Check for explicit mood indicators in the text
+  if (/(don't want|leave me alone|not my fault|back off|stop pushing)/i.test(text)) return 'resistant';
+  if (/(i feel heard|thank you|that.*helps|exactly|you.*understand)/i.test(text)) return 'relieved';
+  if (/(i don't know|maybe|part of me|on one hand|torn|conflicted)/i.test(text)) return 'ambivalent';
+  if (/(scared|afraid|nervous|worried|anxious|terrified)/i.test(text)) return 'vulnerable';
+  if (/(frustrated|annoyed|irritated|fed up|sick of)/i.test(text)) return 'frustrated';
+  if (/(hope|maybe.*can|think.*possible|want.*try|ready to)/i.test(text)) return 'hopeful';
+  if (/(\*looks away\*|\*silence\*|\*shrugs\*|i guess|whatever)/i.test(text)) return 'withdrawn';
+  if (/(thinking about|considering|wonder if|makes me think)/i.test(text)) return 'reflective';
+  if (/(tell me more|what.*you.*think|interested|want.*know)/i.test(text)) return 'engaged';
+
+  // Default mood based on stage of change
+  const stageMoodDefaults: Record<string, MoodState> = {
+    precontemplation: 'guarded',
+    contemplation: 'ambivalent',
+    preparation: 'engaged',
+    action: 'hopeful',
+    maintenance: 'reflective',
+  };
+
+  // If clinician showed empathy, patient might feel relieved
+  if (intent === 'emotion' || intent === 'reflect') {
+    const hasPositiveResponse = /(yeah|yes|exactly|that's|right)/i.test(text);
+    if (hasPositiveResponse) return 'relieved';
+  }
+
+  return stageMoodDefaults[stage] || 'guarded';
+}
+
 // Post-process response to fix third-person references and ensure it answers the question
 function processResponse(text: string, intent: ClinicianIntent, patient: any): string {
   if (!text) return text;
@@ -421,31 +472,16 @@ serve(async (req: Request) => {
 
     const token = authHeader.replace('Bearer ', '');
 
-    // Get Supabase configuration
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      console.error('[patient-response] Missing Supabase environment variables');
-      return errorResponse('Server configuration error', 500, req);
-    }
-
-    // Verify JWT token
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
-
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
-
-    if (authError || !user) {
+    // Verify JWT token using shared verifyJWT function
+    let authenticatedUser;
+    try {
+      authenticatedUser = await verifyJWT(token);
+    } catch (authError) {
       console.error('[patient-response] Auth error:', authError);
       return errorResponse('Invalid or expired token. Please log in and try again.', 401, req);
     }
 
-    const userId = user.id;
+    const userId = authenticatedUser.id;
     console.log('[patient-response] Verified authenticated user:', userId.substring(0, 8) + '...');
 
     // Parse request body
@@ -596,9 +632,12 @@ Your response must feel fresh and varied, not repetitive.`;
       return errorResponse('AI service returned empty response', 500, req);
     }
 
-    console.log('[patient-response] Successfully generated patient response for user:', userId.substring(0, 8) + '...');
+    // Infer patient's current mood from the response
+    const mood = inferMood(responseText, patient, intent);
 
-    return jsonResponse({ response: responseText }, 200, req);
+    console.log('[patient-response] Generated response for user:', userId.substring(0, 8) + '...', '| mood:', mood);
+
+    return jsonResponse({ response: responseText, mood }, 200, req);
 
   } catch (error) {
     console.error('[patient-response] Unexpected error:', error);
