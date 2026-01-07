@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.coaching-summary-v2]
 verify_jwt = false
+
+[functions.analyze-session]
+verify_jwt = false

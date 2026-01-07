@@ -3,6 +3,7 @@ const ALLOWED_ORIGINS = [
   'https://mimastery.com', // Custom domain
   'https://www.mimastery.com', // Custom domain with www
   'https://mi-practice-coach.vercel.app', // Legacy Vercel URL
+  'https://main2-mi.vercel.app', // Current Vercel deployment
   'http://localhost:5173', // Local dev
   'http://localhost:3000', // Alternative local dev
 ];
