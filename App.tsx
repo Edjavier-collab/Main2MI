@@ -69,7 +69,7 @@ const AppContent: React.FC = () => {
   } = appState;
 
   // Use tier manager hook with server-side premium verification
-  const { userTier, setUserTier, refreshTier, isPremiumVerified, isVerifying: isTierVerifying } = useTierManager();
+  const { userTier, setUserTier, refreshTier, isPremiumVerified, isVerifying: isTierVerifying, verifyPremiumStatus } = useTierManager();
 
   // Use streak hook for gamification
   const { currentStreak, updateStreak, processQueue: processStreakQueue } = useStreak();
@@ -421,6 +421,17 @@ const AppContent: React.FC = () => {
     }
   }, [user, refreshTier, setUserTier]);
 
+  const handleRestore = useCallback(async () => {
+    if (!user) return;
+    try {
+      const isPremium = await verifyPremiumStatus(true); // force refresh
+      return isPremium;
+    } catch (error) {
+      console.error('[App] Restore failed:', error);
+      return false;
+    }
+  }, [user, verifyPremiumStatus]);
+
   // Show loading state while auth is initializing
   if (authLoading || showOnboarding === null) {
     return <PageLoader message="Initializing..." />;
@@ -475,6 +486,7 @@ const AppContent: React.FC = () => {
               onGenerateCoachingSummary={handleGenerateCoachingSummary}
               onEmailConfirmation={handleEmailConfirmation}
               onTierUpdated={handleTierUpdated}
+              onRestore={handleRestore}
             />
           </main>
           <BottomNavBar currentView={view} onNavigate={handleNavigate} userTier={userTier} />
@@ -506,6 +518,7 @@ const AppContent: React.FC = () => {
           onGenerateCoachingSummary={handleGenerateCoachingSummary}
           onEmailConfirmation={handleEmailConfirmation}
           onTierUpdated={handleTierUpdated}
+          onRestore={handleRestore}
         />
       )}
       {showReviewPrompt && (

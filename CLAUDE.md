@@ -33,16 +33,18 @@ supabase functions deploy
 Create a `.env.local` file in the project root with:
 
 ```env
-# Required: Gemini AI for chat functionality
-VITE_GEMINI_API_KEY=your_gemini_api_key
+# Required: Gemini AI for chat functionality (server-side only, no prefix needed)
+GEMINI_API_KEY=your_gemini_api_key
 
 # Required: Supabase for auth, database, and Edge Functions
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Required: Stripe for payments (publishable key only - secrets are in Supabase)
-VITE_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
 ```
+
+**Note:** This is a Next.js project. Use `NEXT_PUBLIC_` prefix for client-side variables.
 
 ### Supabase Secrets (set via CLI)
 
@@ -59,8 +61,8 @@ supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
 
 The app uses Supabase for all backend functionality:
 
-1. **Frontend (Vite)** - Port 3000
-   - React SPA with TypeScript
+1. **Frontend (Next.js)** - Port 3000
+   - React with TypeScript
    - PWA-enabled with service worker for offline support
    - Handles UI, routing, and client-side logic
    - Direct communication with Gemini AI and Supabase
@@ -182,7 +184,7 @@ The app uses a hybrid approach:
 **stripeService.ts:**
 - Creates checkout sessions via Supabase Edge Functions
 - Redirects to Stripe Checkout
-- Uses `VITE_SUPABASE_URL/functions/v1` for Edge Function calls
+- Uses `NEXT_PUBLIC_SUPABASE_URL/functions/v1` for Edge Function calls
 
 **subscriptionService.ts:**
 - Enforces free tier limit (3 sessions/month)
@@ -364,7 +366,7 @@ The `scripts/` directory contains helpful utilities:
 
 - **No separate backend needed**: All payment processing is handled by Supabase Edge Functions
 - **Email confirmation**: Supabase sends confirmation emails on signup; check spam folder
-- **Environment variables**: Use `VITE_` prefix for frontend vars; Stripe secrets are in Supabase
+- **Environment variables**: Use `NEXT_PUBLIC_` prefix for client-side vars; `GEMINI_API_KEY` is server-only (no prefix); Stripe secrets are in Supabase
 - **Mock mode**: App gracefully falls back to mock auth if Supabase is not configured
 - **Test payments**: Use Stripe test mode with test card numbers (4242 4242 4242 4242)
 - **PWA testing**: Use Chrome DevTools Application tab to test service worker
