@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface TimerProps {
     initialSeconds: number;
@@ -9,11 +9,24 @@ interface TimerProps {
 
 const Timer: React.FC<TimerProps> = ({ initialSeconds, onTimeUp }) => {
     const [seconds, setSeconds] = useState(initialSeconds);
+    const hasCalledOnTimeUp = useRef(false);
+    const onTimeUpRef = useRef(onTimeUp);
+
+    // Keep the ref updated with the latest callback
+    useEffect(() => {
+        onTimeUpRef.current = onTimeUp;
+    }, [onTimeUp]);
 
     useEffect(() => {
-        if (seconds <= 0) {
-            onTimeUp();
+        // Only call onTimeUp once when timer reaches zero
+        if (seconds <= 0 && !hasCalledOnTimeUp.current) {
+            hasCalledOnTimeUp.current = true;
+            onTimeUpRef.current();
             return;
+        }
+
+        if (seconds <= 0) {
+            return; // Timer is done, don't set up interval
         }
 
         const timerId = setInterval(() => {
@@ -21,7 +34,7 @@ const Timer: React.FC<TimerProps> = ({ initialSeconds, onTimeUp }) => {
         }, 1000);
 
         return () => clearInterval(timerId);
-    }, [seconds, onTimeUp]);
+    }, [seconds]);
 
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;

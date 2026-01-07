@@ -31,6 +31,36 @@ const SpeechVisualizer: React.FC = () => (
     </div>
 );
 
+// Mood indicator configuration
+const MOOD_CONFIG: Record<string, { icon: string; color: string; label: string }> = {
+    guarded: { icon: 'fa-shield', color: 'text-amber-600', label: 'Guarded' },
+    resistant: { icon: 'fa-hand', color: 'text-red-500', label: 'Resistant' },
+    ambivalent: { icon: 'fa-scale-balanced', color: 'text-yellow-600', label: 'Ambivalent' },
+    vulnerable: { icon: 'fa-heart-crack', color: 'text-purple-500', label: 'Vulnerable' },
+    frustrated: { icon: 'fa-face-frown', color: 'text-orange-500', label: 'Frustrated' },
+    hopeful: { icon: 'fa-sun', color: 'text-emerald-500', label: 'Hopeful' },
+    engaged: { icon: 'fa-comments', color: 'text-sky-500', label: 'Engaged' },
+    withdrawn: { icon: 'fa-user-slash', color: 'text-gray-500', label: 'Withdrawn' },
+    reflective: { icon: 'fa-lightbulb', color: 'text-indigo-500', label: 'Reflective' },
+    relieved: { icon: 'fa-face-smile-beam', color: 'text-green-500', label: 'Relieved' },
+};
+
+const MoodIndicator: React.FC<{ mood: string | null }> = ({ mood }) => {
+    if (!mood) return null;
+
+    const config = MOOD_CONFIG[mood.toLowerCase()] || { icon: 'fa-circle', color: 'text-gray-400', label: mood };
+
+    return (
+        <div
+            className={`flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/50 border border-neutral-200/50 text-xs font-medium ${config.color} transition-all duration-300 animate-fade-in`}
+            title={`Patient mood: ${config.label}`}
+        >
+            <i className={`fa-solid ${config.icon} text-[10px]`} aria-hidden="true" />
+            <span className="capitalize">{config.label}</span>
+        </div>
+    );
+};
+
 const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish, onUpgrade }) => {
     const [isSessionStarted, setIsSessionStarted] = useState(false);
     const [transcript, setTranscript] = useState<ChatMessage[]>([]);
@@ -41,6 +71,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
     const [sendError, setSendError] = useState<string | null>(null);
     const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
     const [sessionExpired, setSessionExpired] = useState(false);
+    const [patientMood, setPatientMood] = useState<string | null>(null);
 
     const { user } = useAuth();
     const { showToast, ToastContainer, toasts, removeToast } = useToast();
@@ -185,8 +216,9 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
     /**
      * Get patient response from local Next.js API route
      * Falls back to Edge Function if local API fails
+     * Returns both the response text and patient mood
      */
-    const getPatientResponse = useCallback(async (message: string): Promise<string> => {
+    const getPatientResponse = useCallback(async (message: string): Promise<{ response: string; mood?: string }> => {
         // Try local Next.js API first (works without Supabase)
         try {
             const response = await fetch('/api/chat', {
@@ -216,7 +248,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
             }
 
             const data = await response.json();
-            return data.response as string;
+            return { response: data.response as string, mood: data.mood as string | undefined };
         } catch (error) {
             // If the error is from our API (not a network error), rethrow it
             if (error instanceof Error && !error.message.includes('Failed to fetch')) {
@@ -259,7 +291,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
                 }
             }
 
-            return invokeData.response as string;
+            return { response: invokeData.response as string, mood: invokeData.mood as string | undefined };
         }
     }, [transcript, patient, user]);
 
@@ -284,9 +316,14 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
 
         try {
             // Get patient response from local API (falls back to Edge Function)
-            const patientResponse = await getPatientResponse(text);
+            const { response: patientResponse, mood } = await getPatientResponse(text);
             const newPatientMessage: ChatMessage = { author: 'patient', text: patientResponse };
             setTranscript(prev => [...prev, newPatientMessage]);
+
+            // Update patient mood if returned
+            if (mood) {
+                setPatientMood(mood);
+            }
 
             // Auto-save after successful response
             autoSaveSession({
@@ -352,13 +389,18 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
 
     /**
      * Call the analyze-session Edge Function to get feedback
-     * 
+     *
      * Uses dual-run wrapper for Strangler Fig migration:
      * - Calls both legacy and v2 functions in parallel
      * - Compares outputs and tracks semantic-equal matches
      * - Returns legacy output (for now) while monitoring drift
      */
     const getFeedbackFromEdgeFunction = useCallback(async (sessionId: string): Promise<Feedback> => {
+        // Check if Supabase is configured before trying to use it
+        if (!isSupabaseConfigured()) {
+            throw new Error('Feedback analysis requires Supabase to be configured. Please set up your environment variables.');
+        }
+
         const supabase = getSupabaseClient();
 
         // Use sessionId if available (preferred)
@@ -505,9 +547,12 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
             {/* Header */}
             <header className="flex justify-between items-center px-6 py-4 border-b border-[var(--color-bg-accent)] bg-white/80 backdrop-blur-md sticky top-0 z-10 transition-all duration-200">
                 <div className="flex-1 min-w-0">
-                    <h3 className="font-display font-bold text-lg text-[var(--color-text-primary)] truncate">
-                        Practice Session
-                    </h3>
+                    <div className="flex items-center gap-2">
+                        <h3 className="font-display font-bold text-lg text-[var(--color-text-primary)] truncate">
+                            Practice Session
+                        </h3>
+                        <MoodIndicator mood={patientMood} />
+                    </div>
                     <p className="text-xs font-medium text-[var(--color-text-secondary)] flex items-center gap-1.5 mt-0.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-success)] shadow-[0_0_8px_var(--color-success)]" aria-hidden="true" />
                         Live with {patient.name}

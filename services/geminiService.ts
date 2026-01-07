@@ -1,6 +1,52 @@
 import { GoogleGenAI } from '@google/genai';
 import { PatientProfile, ChatMessage, StageOfChange, DifficultyLevel, PersonalityTrait } from '../types';
 
+// Valid mood states for tracking emotional shifts
+const MOOD_STATES = [
+    'guarded',      // Defensive, closed off
+    'resistant',    // Actively pushing back
+    'ambivalent',   // Torn, uncertain
+    'vulnerable',   // Open, emotionally exposed
+    'frustrated',   // Annoyed, irritated
+    'hopeful',      // Cautiously optimistic
+    'engaged',      // Actively participating
+    'withdrawn',    // Pulling back, shutting down
+    'reflective',   // Thoughtful, considering
+    'relieved',     // Feeling heard, understood
+] as const;
+
+type MoodState = typeof MOOD_STATES[number];
+
+/**
+ * Infer patient mood from response text and patient stage
+ */
+export const inferMood = (responseText: string, patient: PatientProfile): MoodState => {
+    const text = responseText.toLowerCase();
+    const stage = (patient.stageOfChange || '').toLowerCase();
+
+    // Check for explicit mood indicators in the text
+    if (/(don't want|leave me alone|not my fault|back off|stop pushing)/i.test(text)) return 'resistant';
+    if (/(i feel heard|thank you|that.*helps|exactly|you.*understand)/i.test(text)) return 'relieved';
+    if (/(i don't know|maybe|part of me|on one hand|torn|conflicted)/i.test(text)) return 'ambivalent';
+    if (/(scared|afraid|nervous|worried|anxious|terrified)/i.test(text)) return 'vulnerable';
+    if (/(frustrated|annoyed|irritated|fed up|sick of)/i.test(text)) return 'frustrated';
+    if (/(hope|maybe.*can|think.*possible|want.*try|ready to)/i.test(text)) return 'hopeful';
+    if (/(\*looks away\*|\*silence\*|\*shrugs\*|i guess|whatever)/i.test(text)) return 'withdrawn';
+    if (/(thinking about|considering|wonder if|makes me think)/i.test(text)) return 'reflective';
+    if (/(tell me more|what.*you.*think|interested|want.*know)/i.test(text)) return 'engaged';
+
+    // Default mood based on stage of change
+    const stageMoodDefaults: Record<string, MoodState> = {
+        precontemplation: 'guarded',
+        contemplation: 'ambivalent',
+        preparation: 'engaged',
+        action: 'hopeful',
+        maintenance: 'reflective',
+    };
+
+    return stageMoodDefaults[stage] || 'guarded';
+};
+
 // Initialize the Gemini client (server-side only)
 const getGeminiClient = () => {
     const apiKey = process.env.GEMINI_API_KEY;

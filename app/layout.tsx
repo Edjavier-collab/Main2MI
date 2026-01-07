@@ -5,6 +5,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { OfflineIndicator } from '@/components/ui/OfflineIndicator';
 import { CookieConsent } from '@/components/ui/CookieConsent';
+import { ServiceWorkerRegistration } from '@/components/ui/ServiceWorkerRegistration';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -40,6 +41,24 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* PWA Manifest */}
+        <link rel="manifest" href="/manifest.json" />
+
+        {/* PWA Meta Tags */}
+        <meta name="application-name" content="MI Mastery" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="MI Mastery" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="theme-color" content="#0ea5e9" />
+
+        {/* Apple Touch Icons */}
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-192x192.png" />
+
+        {/* Font Awesome */}
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -51,6 +70,7 @@ export default function RootLayout({
       <body className={`${inter.variable} ${mulish.variable} font-sans antialiased text-text-primary bg-bg-main min-h-screen flex flex-col`}>
         <ErrorBoundary>
           <AuthProvider>
+            <ServiceWorkerRegistration />
             <OfflineIndicator />
 
             {/* Header / Top Navigation */}

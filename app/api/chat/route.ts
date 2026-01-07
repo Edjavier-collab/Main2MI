@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generatePatientResponse } from '@/services/geminiService';
+import { generatePatientResponse, inferMood } from '@/services/geminiService';
 import { PatientProfile, ChatMessage } from '@/types';
 
 export async function POST(request: NextRequest) {
@@ -42,7 +42,10 @@ export async function POST(request: NextRequest) {
             transcript || []
         );
 
-        return NextResponse.json({ response });
+        // Infer patient mood from the response
+        const mood = inferMood(response, patient);
+
+        return NextResponse.json({ response, mood });
     } catch (error) {
         console.error('[/api/chat] Error generating response:', error);
 
