@@ -200,7 +200,7 @@ export const useXP = (): UseXPReturn => {
 
     if (!isSupabaseConfigured()) {
       console.warn('[useXP] Supabase not configured, queuing for later sync');
-      queueOperation('xp', userId, {
+      await queueOperation('xp', userId, {
         xpDelta,
         reason,
         timestamp: new Date().toISOString(),
@@ -221,7 +221,7 @@ export const useXP = (): UseXPReturn => {
       if (error) {
         console.error('[useXP] Failed to save XP to Supabase:', error);
         // Queue the delta for retry
-        queueOperation('xp', userId, {
+        await queueOperation('xp', userId, {
           xpDelta,
           reason,
           timestamp: new Date().toISOString(),
@@ -234,7 +234,7 @@ export const useXP = (): UseXPReturn => {
     } catch (error) {
       console.error('[useXP] Error saving XP to Supabase:', error);
       // Queue the delta for retry
-      queueOperation('xp', userId, {
+      await queueOperation('xp', userId, {
         xpDelta,
         reason,
         timestamp: new Date().toISOString(),

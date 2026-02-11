@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev --webpack",
     "dev:vite": "vite",
-    "build": "next build",
+    "build": "next build --webpack",
     "build:vite": "vite build",
     "start": "next start",
     "preview": "vite preview",
@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "@google/genai": "^1.27.0",
+    "@serwist/next": "^9.5.3",
+    "@serwist/sw": "^9.5.3",
     "@stripe/stripe-js": "^8.3.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.79.0",
@@ -26,6 +28,7 @@
     "express-rate-limit": "^8.2.1",
     "fs-extra": "^11.3.2",
     "helmet": "^8.1.0",
+    "idb-keyval": "^6.2.2",
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.468.0",
     "next": "^16.1.1",

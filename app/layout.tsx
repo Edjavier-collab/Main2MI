@@ -31,6 +31,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -47,7 +48,7 @@ export default function RootLayout({
         {/* PWA Meta Tags */}
         <meta name="application-name" content="MI Mastery" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="MI Mastery" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#0ea5e9" />

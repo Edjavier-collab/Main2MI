@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { createClient, isSupabaseConfigured } from '@/lib/supabase';
+import { persistAuthToken, clearPersistedAuthToken, clearQueueForUser, persistSupabaseConfig } from '@/utils/syncQueue';
 
 // Sign up result interface
 export interface SignUpResult {
@@ -61,7 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!isSupabaseConfigured()) {
             console.warn('[AuthProvider] Supabase is not configured. Using mock authentication mode.');
             console.warn('[AuthProvider] Mock users will be stored in localStorage.');
-            
+
             // Try to restore mock user from localStorage
             const mockUserData = localStorage.getItem('mock_user');
             if (mockUserData) {
@@ -73,14 +74,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     console.error('[AuthProvider] Failed to restore mock user:', error);
                 }
             }
-            
+
             setLoading(false);
             return;
         }
 
         try {
             const supabase = createClient();
-            
+
+            // Persist Supabase config to IndexedDB for Service Worker access
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+            const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+            if (supabaseUrl && supabaseAnonKey) {
+                // Persist config for Service Worker
+                const config = { url: supabaseUrl, anonKey: supabaseAnonKey };
+                persistSupabaseConfig(config);
+            }
+
             // Check initial session on mount
             supabase.auth.getSession().then(({ data: { session }, error }) => {
                 if (error) {
@@ -88,7 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setLoading(false);
                     return;
                 }
-                
+
                 if (session?.user) {
                     console.log('[AuthProvider] Initial session found:', session.user.id);
                     setUser(session.user);
@@ -96,23 +106,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     console.log('[AuthProvider] No initial session found');
                     setUser(null);
                 }
-                
+
                 setLoading(false);
             });
-            
+
             // Listen to auth state changes
             const { data: authListener } = supabase.auth.onAuthStateChange(
                 async (event, session) => {
                     console.log('[AuthProvider] Auth state changed:', event);
-                    
+
                     if (session?.user) {
                         console.log('[AuthProvider] User logged in:', session.user.id);
                         setUser(session.user);
+
+                        // Persist token to IndexedDB for service worker access
+                        if (session.access_token) {
+                            await persistAuthToken({
+                                accessToken: session.access_token,
+                                refreshToken: session.refresh_token ?? '',
+                                expiresAt: session.expires_at ?? Math.floor(Date.now() / 1000) + 3600,
+                                userId: session.user.id,
+                            });
+                        }
                     } else {
                         console.log('[AuthProvider] User logged out');
                         setUser(null);
+
+                        // Clear persisted token on logout
+                        await clearPersistedAuthToken();
                     }
-                    
+
                     setLoading(false);
                 }
             );
@@ -141,17 +164,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (!isSupabaseConfigured()) {
                 // Mock authentication - accept any email/password combo
                 console.log('[AuthProvider] Using mock authentication');
-                
+
                 // Simulate network delay
                 await new Promise(resolve => setTimeout(resolve, 500));
-                
+
                 // In mock mode, accept any email/password
                 const mockUser = createMockUser(email);
                 setUser(mockUser);
-                
+
                 // Store in localStorage for persistence
                 localStorage.setItem('mock_user', JSON.stringify({ email }));
-                
+
                 console.log('[AuthProvider] Mock sign in successful');
                 // In mock mode, we set user immediately so we can set loading to false
                 setLoading(false);
@@ -196,10 +219,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (!isSupabaseConfigured()) {
                 // Mock sign up - accept any email/password combo
                 console.log('[AuthProvider] Using mock sign up');
-                
+
                 // Simulate network delay
                 await new Promise(resolve => setTimeout(resolve, 500));
-                
+
                 // In mock mode, accept any email/password
                 const mockUser = createMockUser(email);
                 // Add metadata
@@ -207,10 +230,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     mockUser.user_metadata = { ...mockUser.user_metadata, full_name: fullName };
                 }
                 setUser(mockUser);
-                
+
                 // Store in localStorage for persistence
                 localStorage.setItem('mock_user', JSON.stringify({ email, user_metadata: mockUser.user_metadata }));
-                
+
                 console.log('[AuthProvider] Mock sign up successful');
                 // In mock mode, we set user immediately so we can set loading to false
                 setLoading(false);
@@ -252,7 +275,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             // Check if confirmation email was sent
             const confirmationSent = data.user?.confirmation_sent_at !== null && data.user?.confirmation_sent_at !== undefined;
-            
+
             if (confirmationSent) {
                 console.log('[AuthProvider] ✅ Confirmation email was sent at:', data.user?.confirmation_sent_at);
             } else {
@@ -308,6 +331,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
             console.log('[AuthProvider] Signing out user');
             setLoading(true);
+
+            // Clear persisted data before signing out
+            try {
+                await clearPersistedAuthToken();
+                if (user?.id) {
+                    await clearQueueForUser(user.id);
+                }
+                console.log('[AuthProvider] Cleared persisted auth data');
+            } catch (error) {
+                console.error('[AuthProvider] Error clearing persisted data:', error);
+            }
 
             if (!isSupabaseConfigured()) {
                 console.warn('[AuthProvider] Supabase not configured, clearing local user state');

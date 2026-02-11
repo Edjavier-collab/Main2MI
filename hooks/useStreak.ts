@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
-import { 
-  queueOperation, 
-  processSyncQueue, 
+import {
+  queueOperation,
+  processSyncQueue,
   StreakSyncData,
-  QueuedOperation 
+  QueuedOperation
 } from '../utils/syncQueue';
 
 interface StreakData {
@@ -173,7 +173,7 @@ export const useStreak = (): UseStreakReturn => {
 
     if (!isSupabaseConfigured()) {
       console.warn('[useStreak] Supabase not configured, queuing for later sync');
-      queueOperation('streak', userId, {
+      await queueOperation('streak', userId, {
         currentStreak: data.currentStreak,
         longestStreak: data.longestStreak,
         lastPracticeDate: dateStr,
@@ -196,20 +196,20 @@ export const useStreak = (): UseStreakReturn => {
       if (error) {
         console.error('[useStreak] Failed to save streak to Supabase:', error);
         // Queue for retry
-        queueOperation('streak', userId, {
+        await queueOperation('streak', userId, {
           currentStreak: data.currentStreak,
           longestStreak: data.longestStreak,
           lastPracticeDate: dateStr,
         });
         return false;
       }
-      
+
       console.log('[useStreak] Streak saved to Supabase successfully');
       return true;
     } catch (error) {
       console.error('[useStreak] Error saving streak to Supabase:', error);
       // Queue for retry
-      queueOperation('streak', userId, {
+      await queueOperation('streak', userId, {
         currentStreak: data.currentStreak,
         longestStreak: data.longestStreak,
         lastPracticeDate: dateStr,
@@ -300,11 +300,11 @@ export const useStreak = (): UseStreakReturn => {
 
     // Calculate new streak
     let newCurrentStreak = 1;
-    
+
     if (lastPracticeDate) {
       const lastPracticeDateStr = toLocalDateString(lastPracticeDate);
       const yesterdayStr = getYesterdayLocal();
-      
+
       if (lastPracticeDateStr === yesterdayStr) {
         // Practiced yesterday (local time) - extend streak
         newCurrentStreak = currentStreak + 1;

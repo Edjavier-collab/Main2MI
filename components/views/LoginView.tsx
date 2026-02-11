@@ -170,8 +170,14 @@ const LoginView: React.FC<LoginViewProps> = (props) => {
           <div className="login-view__icon">
             <i className="fa-solid fa-house-medical text-4xl" aria-hidden="true" />
           </div>
-          <h1 className="login-view__title">Welcome to MI Mastery</h1>
-          <p className="login-view__subtitle">Sign in to continue your training.</p>
+          <h1 className="login-view__title">
+            {vm.formState.isSignUp ? 'Create Account' : 'Welcome Back'}
+          </h1>
+          <p className="login-view__subtitle">
+            {vm.formState.isSignUp
+              ? 'Sign up to start your training journey.'
+              : 'Sign in to continue your training.'}
+          </p>
         </div>
 
         {/* Main form card */}

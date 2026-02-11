@@ -38,13 +38,14 @@ export const useOnlineSync = ({
       return;
     }
 
-    if (!hasPendingOperations()) {
+    const hasPending = await hasPendingOperations();
+    if (!hasPending) {
       console.log('[useOnlineSync] No pending operations to sync');
       return;
     }
 
     isSyncing.current = true;
-    const counts = getPendingOperationCounts();
+    const counts = await getPendingOperationCounts();
     console.log('[useOnlineSync] Starting sync of pending operations:', counts);
 
     try {
