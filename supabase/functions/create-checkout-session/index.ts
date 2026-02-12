@@ -84,6 +84,7 @@ serve(async (req: Request) => {
         tier: 'premium',
       },
       billing_address_collection: 'auto',
+      allow_promotion_codes: true,
     };
 
     // Add customer email if provided

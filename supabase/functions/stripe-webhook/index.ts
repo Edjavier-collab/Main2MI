@@ -85,6 +85,19 @@ serve(async (req: Request) => {
           console.error('[stripe-webhook] Failed to update user tier:', updateError);
           // Don't fail the webhook - Stripe will retry
         }
+
+        // Auto-cancel beta promo subscriptions
+        if (session.subscription && (session.total_details?.amount_discount ?? 0) > 0) {
+          try {
+            const subscriptionId = session.subscription as string;
+            await stripe.subscriptions.update(subscriptionId, {
+              cancel_at: Math.floor(new Date('2026-04-15').getTime() / 1000),
+            });
+            console.log(`[stripe-webhook] Beta subscription ${subscriptionId} set to cancel at 2026-04-15`);
+          } catch (cancelError) {
+            console.error('[stripe-webhook] Failed to set beta cancellation:', cancelError);
+          }
+        }
         break;
       }
 
