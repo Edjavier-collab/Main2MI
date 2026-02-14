@@ -7,33 +7,23 @@ interface DetailedInsightsProps {
 }
 
 /**
- * Get score color based on value (0-100)
- * Uses Growth Garden theme semantic colors
+ * Get bar color based on value
  */
-const getScoreColor = (score: number): string => {
-  if (score >= 70) return 'var(--color-success)';
-  if (score >= 40) return 'var(--color-warning)';
-  return 'var(--color-error)';
+const getBarColor = (score: number): string => {
+  if (score >= 80) return 'var(--color-primary)';
+  if (score >= 51) return 'rgba(var(--color-primary-rgb), 0.7)'; // Assuming rgb vars exist, otherwise distinct primary-light
+  if (score >= 21) return 'rgba(var(--color-primary-rgb), 0.4)';
+  return '#E5E5E5';
 };
 
 /**
- * Get score background color (lighter variant)
+ * Get status label and color
  */
-const getScoreBgColor = (score: number): string => {
-  if (score >= 70) return 'rgba(34, 197, 94, 0.1)';
-  if (score >= 40) return 'rgba(234, 179, 8, 0.1)';
-  return 'rgba(239, 68, 68, 0.1)';
-};
-
-/**
- * Get score label
- */
-const getScoreLabel = (score: number): string => {
-  if (score >= 90) return 'Excellent';
-  if (score >= 70) return 'Good';
-  if (score >= 50) return 'Developing';
-  if (score >= 30) return 'Emerging';
-  return 'Focus Area';
+const getStatusInfo = (score: number) => {
+  if (score >= 80) return { label: 'Excellent', color: 'var(--color-success)' };
+  if (score >= 51) return { label: 'Developing ↑', color: 'var(--color-primary)' };
+  if (score >= 21) return { label: 'Developing', color: 'var(--color-text-muted)' };
+  return { label: 'Focus Area', color: 'var(--color-warning)' };
 };
 
 /**
@@ -245,107 +235,85 @@ const SkillCard: React.FC<{
   onToggle: () => void;
 }> = ({ skill, isExpanded, onToggle }) => {
   const { strengths, improvements, recommendation } = getCompetencyInsights(skill);
-  const scoreColor = getScoreColor(skill.score);
-  const scoreBgColor = getScoreBgColor(skill.score);
+  const status = getStatusInfo(skill.score);
+
+  // Custom bar color logic for the request
+  let barColorStr = '#E5E5E5';
+  if (skill.score >= 81) barColorStr = 'var(--color-primary)';
+  else if (skill.score >= 51) barColorStr = 'rgba(var(--color-primary-rgb, 79, 70, 229), 0.7)';
+  else if (skill.score >= 21) barColorStr = 'rgba(var(--color-primary-rgb, 79, 70, 229), 0.4)';
+  else barColorStr = '#E5E5E5';
 
   return (
     <div
-      className="rounded-xl overflow-hidden transition-all duration-200"
-      style={{
-        backgroundColor: 'var(--color-bg-card, #ffffff)',
-        border: `1px solid ${isExpanded ? scoreColor : 'var(--color-neutral-200)'}`,
-      }}
+      className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] overflow-hidden transition-all duration-200"
     >
       {/* Header - always visible */}
       <button
         onClick={onToggle}
-        className="w-full p-4 flex items-center justify-between text-left hover:bg-[var(--color-neutral-50)] transition-colors"
+        className="w-full p-6 text-left hover:bg-[var(--color-neutral-50)] transition-colors group"
         aria-expanded={isExpanded}
-        aria-controls={`skill-details-${skill.name.replace(/\s+/g, '-')}`}
       >
-        <div className="flex items-center gap-3">
-          {/* Score badge */}
-          <div
-            className="w-12 h-12 rounded-lg flex flex-col items-center justify-center"
-            style={{ backgroundColor: scoreBgColor }}
-          >
-            <span className="text-lg font-bold" style={{ color: scoreColor }}>
-              {skill.score}
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="text-[15px] font-medium text-[var(--color-text-primary)]">
+            {skill.name}
+          </h4>
+          <div className="flex items-center gap-3">
+            <span className="text-[15px] font-medium text-[var(--color-text-primary)]">
+              {skill.score}/100
             </span>
-          </div>
-
-          {/* Skill name and label */}
-          <div>
-            <h4
-              className="font-semibold text-sm"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              {skill.name}
-            </h4>
-            <div className="flex items-center gap-2">
-              <span className="text-xs" style={{ color: scoreColor }}>
-                {getScoreLabel(skill.score)}
-              </span>
-              {skill.trend !== 'stable' && (
-                <span
-                  className="text-xs"
-                  style={{
-                    color:
-                      skill.trend === 'improving'
-                        ? 'var(--color-success)'
-                        : 'var(--color-error)',
-                  }}
-                >
-                  {skill.trend === 'improving' ? '↑' : '↓'}
-                </span>
-              )}
-            </div>
+            <i
+              className={`fa-solid fa-chevron-down text-xs text-[var(--color-text-muted)] transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''
+                }`}
+              aria-hidden="true"
+            />
           </div>
         </div>
 
-        {/* Expand/collapse icon */}
-        <i
-          className={`fa-solid fa-chevron-down transition-transform duration-200 ${
-            isExpanded ? 'rotate-180' : ''
-          }`}
-          style={{ color: 'var(--color-text-muted)' }}
-          aria-hidden="true"
-        />
+        {/* Progress Bar */}
+        <div className="relative h-2 bg-[#F0F0F0] rounded-full mb-2 overflow-hidden">
+          {/* Benchmark line at 50% */}
+          <div className="absolute left-1/2 top-0 bottom-0 w-px border-r border-dashed border-gray-300 z-10" />
+
+          <div
+            className="h-full rounded-full transition-all duration-500 ease-out"
+            style={{
+              width: `${skill.score}%`,
+              backgroundColor: barColorStr
+            }}
+          />
+        </div>
+
+        {/* Status Label */}
+        <div className="flex justify-end">
+          <span
+            className="text-xs font-medium"
+            style={{ color: status.color }}
+          >
+            {status.label}
+          </span>
+        </div>
       </button>
 
       {/* Expandable details */}
       <div
-        id={`skill-details-${skill.name.replace(/\s+/g, '-')}`}
-        className={`overflow-hidden transition-all duration-200 ${
-          isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-        }`}
+        className={`overflow-hidden transition-all duration-200 ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+          }`}
       >
-        <div
-          className="px-4 pb-4 pt-0 border-t"
-          style={{ borderColor: 'var(--color-neutral-100)' }}
-        >
+        {/* Divider */}
+        <div className="h-px bg-[var(--color-neutral-100)] mx-6" />
+
+        <div className="p-6 pt-4 space-y-4">
           {/* What you did well */}
-          <div className="mt-3">
-            <h5
-              className="text-xs font-semibold uppercase tracking-wide mb-2 flex items-center gap-2"
-              style={{ color: 'var(--color-success)' }}
-            >
+          <div>
+            <h5 className="text-xs font-bold uppercase tracking-wide mb-2 text-[var(--color-success)] flex items-center gap-2">
               <i className="fa-solid fa-check-circle" aria-hidden="true" />
-              What You Did Well
+              Strengths
             </h5>
             <ul className="space-y-1">
               {strengths.map((strength, idx) => (
-                <li
-                  key={idx}
-                  className="text-sm pl-4 relative"
-                  style={{ color: 'var(--color-text-secondary)' }}
-                >
-                  <span
-                    className="absolute left-0"
-                    style={{ color: 'var(--color-success)' }}
-                  >
-                    •
-                  </span>
+                <li key={idx} className="text-sm pl-4 relative text-[var(--color-text-secondary)]">
+                  <span className="absolute left-0 text-[var(--color-success)]">•</span>
                   {strength}
                 </li>
               ))}
@@ -353,27 +321,15 @@ const SkillCard: React.FC<{
           </div>
 
           {/* What to improve */}
-          <div className="mt-4">
-            <h5
-              className="text-xs font-semibold uppercase tracking-wide mb-2 flex items-center gap-2"
-              style={{ color: 'var(--color-warning)' }}
-            >
+          <div>
+            <h5 className="text-xs font-bold uppercase tracking-wide mb-2 text-[var(--color-warning)] flex items-center gap-2">
               <i className="fa-solid fa-lightbulb" aria-hidden="true" />
-              Areas to Develop
+              Focus Areas
             </h5>
             <ul className="space-y-1">
               {improvements.map((improvement, idx) => (
-                <li
-                  key={idx}
-                  className="text-sm pl-4 relative"
-                  style={{ color: 'var(--color-text-secondary)' }}
-                >
-                  <span
-                    className="absolute left-0"
-                    style={{ color: 'var(--color-warning)' }}
-                  >
-                    •
-                  </span>
+                <li key={idx} className="text-sm pl-4 relative text-[var(--color-text-secondary)]">
+                  <span className="absolute left-0 text-[var(--color-warning)]">•</span>
                   {improvement}
                 </li>
               ))}
@@ -381,18 +337,12 @@ const SkillCard: React.FC<{
           </div>
 
           {/* Practice recommendation */}
-          <div
-            className="mt-4 p-3 rounded-lg"
-            style={{ backgroundColor: 'var(--color-primary-50)' }}
-          >
-            <h5
-              className="text-xs font-semibold uppercase tracking-wide mb-1 flex items-center gap-2"
-              style={{ color: 'var(--color-primary-700)' }}
-            >
+          <div className="bg-[var(--color-primary-50)] p-4 rounded-lg">
+            <h5 className="text-xs font-bold uppercase tracking-wide mb-1 text-[var(--color-primary-700)] flex items-center gap-2">
               <i className="fa-solid fa-seedling" aria-hidden="true" />
-              Practice Recommendation
+              Recommendation
             </h5>
-            <p className="text-sm" style={{ color: 'var(--color-primary-700)' }}>
+            <p className="text-sm text-[var(--color-primary-700)]">
               {recommendation}
             </p>
           </div>
@@ -404,14 +354,6 @@ const SkillCard: React.FC<{
 
 /**
  * DetailedInsights Component
- *
- * Expandable accordion cards for each MI competency showing:
- * - Score with color coding
- * - Strengths
- * - Areas to improve
- * - Practice recommendations
- *
- * Premium only.
  */
 const DetailedInsights: React.FC<DetailedInsightsProps> = ({
   skillScores,
@@ -425,11 +367,11 @@ const DetailedInsights: React.FC<DetailedInsightsProps> = ({
 
   if (isLoading) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-4">
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="animate-pulse h-20 rounded-xl bg-[var(--color-neutral-100)]"
+            className="animate-pulse h-24 rounded-xl bg-[var(--color-neutral-100)]"
           />
         ))}
       </div>
@@ -438,20 +380,17 @@ const DetailedInsights: React.FC<DetailedInsightsProps> = ({
 
   if (!skillScores || skillScores.length === 0) {
     return (
-      <div
-        className="text-sm text-center py-6"
-        style={{ color: 'var(--color-text-muted)' }}
-      >
+      <div className="text-sm text-center py-6 text-[var(--color-text-muted)]">
         Complete sessions to see detailed skill insights.
       </div>
     );
   }
 
-  // Sort by score (lowest first to prioritize areas needing work)
-  const sortedSkills = [...skillScores].sort((a, b) => a.score - b.score);
+  // Sort by score (DESCENDING: highest first)
+  const sortedSkills = [...skillScores].sort((a, b) => b.score - a.score);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-5">
       {sortedSkills.map((skill) => (
         <SkillCard
           key={skill.name}
@@ -465,3 +404,5 @@ const DetailedInsights: React.FC<DetailedInsightsProps> = ({
 };
 
 export default DetailedInsights;
+
+

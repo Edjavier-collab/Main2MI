@@ -133,8 +133,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                             <Button
                                 onClick={onStartPractice}
                                 disabled={!isPremium && displayRemaining === 0}
-                                variant="primary" // We might want a custom white button here, but primary is safe for now or overrides
-                                className="bg-white text-[var(--color-primary-darker)] hover:bg-white/90 border-transparent shadow-none"
+                                variant="primary"
+                                className="!bg-white !text-[var(--color-primary-darker)] !font-bold hover:!bg-gray-50 border-transparent !shadow-lg text-lg transform transition-transform active:scale-95"
                                 size="lg"
                                 loading={isLoadingTier}
                                 icon={<i className="fa-solid fa-play"></i>}

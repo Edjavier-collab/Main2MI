@@ -46,22 +46,25 @@ const ReportsView: React.FC<ReportsViewProps> = ({
 
   return (
     <div className="min-h-screen bg-transparent pb-24">
-      <div className="p-4 sm:p-6 max-w-2xl mx-auto">
+      <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-8">
         {/* Header */}
-        <header className="flex items-center justify-between mb-6">
-          <div className="flex items-center">
+        <header className="mb-8">
+          <div className="flex items-center mb-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={onBack}
               icon={<i className="fa-solid fa-arrow-left" />}
               aria-label="Go back"
-              className="mr-3"
+              className="mr-3 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             />
-            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
-              MI Reports
+            <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">
+              MI Progress Report
             </h1>
           </div>
+          <p className="text-sm text-[var(--color-text-secondary)] ml-11">
+            Based on {reportData.sessionCount} session{reportData.sessionCount !== 1 ? 's' : ''} • {reportData.periodStart ? new Date(reportData.periodStart).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'N/A'} - {reportData.periodEnd ? new Date(reportData.periodEnd).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Present'}
+          </p>
         </header>
 
         {/* Executive Summary Card - Always visible (FREE) */}
@@ -100,31 +103,17 @@ const ReportsView: React.FC<ReportsViewProps> = ({
           </Card>
         )}
 
-        {/* Premium Skill Breakdown - interactive per-skill breakdown with recommendations */}
+        {/* Premium Skill Breakdown */}
         {isPremium && reportData.skillScores.length > 0 && (
-          <Card variant="default" padding="lg" className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3
-                className="text-sm font-bold uppercase tracking-wide"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
-                Skill Breakdown
-              </h3>
-              <span
-                className="text-xs px-2 py-1 rounded-full"
-                style={{
-                  backgroundColor: 'var(--color-primary-50)',
-                  color: 'var(--color-primary-700)',
-                }}
-              >
-                Tap to expand
-              </span>
-            </div>
+          <div className="mb-8">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)] mb-4">
+              Skill Breakdown
+            </h3>
             <DetailedInsights
               skillScores={reportData.skillScores}
               isLoading={reportData.isLoading}
             />
-          </Card>
+          </div>
         )}
 
         {/* Premium Features Preview / Locked Section */}
@@ -132,7 +121,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
           <Card
             variant="default"
             padding="lg"
-            className="mb-6 relative overflow-hidden"
+            className="mb-8 relative overflow-hidden"
           >
             {/* Blur overlay */}
             <div
@@ -172,39 +161,19 @@ const ReportsView: React.FC<ReportsViewProps> = ({
 
             {/* Blurred preview content */}
             <div className="opacity-50">
-              <h3
-                className="text-sm font-bold uppercase tracking-wide mb-4"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
+              <h3 className="text-xs font-bold uppercase tracking-wide text-[var(--color-text-muted)] mb-4">
                 Skill Breakdown
               </h3>
-              <div className="space-y-3">
-                {['Reflective Listening', 'Open Questions', 'Affirmations', 'Summarizing', 'Evoking Change Talk', 'Rolling with Resistance'].map((skill) => (
+              <div className="space-y-4">
+                {['Reflective Listening', 'Open Questions', 'Affirmations', 'Summarizing'].map((skill) => (
                   <div key={skill} className="flex items-center gap-3">
-                    <span
-                      className="text-sm w-40 truncate"
-                      style={{ color: 'var(--color-text-secondary)' }}
-                    >
-                      {skill}
-                    </span>
-                    <div
-                      className="flex-1 h-2 rounded-full"
-                      style={{ backgroundColor: 'var(--color-neutral-200)' }}
-                    >
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${Math.random() * 60 + 20}%`,
-                          backgroundColor: 'var(--color-primary)',
-                        }}
-                      />
+                    <div className="flex-1 space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-[var(--color-text-primary)]">{skill}</span>
+                        <span className="text-sm text-[var(--color-text-muted)]">--/100</span>
+                      </div>
+                      <div className="h-2 bg-[var(--color-neutral-200)] rounded-full w-full" />
                     </div>
-                    <span
-                      className="text-sm font-medium w-10 text-right"
-                      style={{ color: 'var(--color-text-muted)' }}
-                    >
-                      --
-                    </span>
                   </div>
                 ))}
               </div>
@@ -215,20 +184,18 @@ const ReportsView: React.FC<ReportsViewProps> = ({
 
         {/* Premium Action Plan - personalized next steps */}
         {isPremium && reportData.skillScores.length > 0 && (
-          <Card variant="default" padding="lg" className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3
-                className="text-sm font-bold uppercase tracking-wide"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
+          <Card
+            variant="default"
+            padding="lg"
+            className="mb-8"
+            style={{ backgroundColor: '#FAFAFA' }}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)]">
                 Your Action Plan
               </h3>
               <span
-                className="text-xs px-2 py-1 rounded-full"
-                style={{
-                  backgroundColor: 'var(--color-primary-50)',
-                  color: 'var(--color-primary-700)',
-                }}
+                className="text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded border border-[var(--color-primary-200)] text-[var(--color-primary-700)] bg-white"
               >
                 This Week
               </span>

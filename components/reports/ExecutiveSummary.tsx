@@ -62,10 +62,10 @@ const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
   isLoading = false,
   className = '',
 }) => {
-  const { 
-    overallScore, 
-    previousScore, 
-    trend, 
+  const {
+    overallScore,
+    previousScore,
+    trend,
     sessionCount,
     topStrength,
     areaToImprove,
@@ -78,22 +78,17 @@ const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
   // Loading skeleton
   if (isLoading) {
     return (
-      <div className={`${className}`}>
-        <div className="animate-pulse">
-          <div className="flex items-center justify-between mb-6">
-            <div className="h-6 w-40 bg-[var(--color-neutral-200)] rounded" />
-            <div className="h-4 w-20 bg-[var(--color-neutral-200)] rounded" />
+      <div className={`${className} bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] p-6`}>
+        <div className="animate-pulse space-y-6">
+          <div className="h-4 w-32 bg-[var(--color-neutral-200)] rounded" />
+          <div className="flex items-baseline gap-2">
+            <div className="h-12 w-24 bg-[var(--color-neutral-200)] rounded" />
+            <div className="h-6 w-12 bg-[var(--color-neutral-200)] rounded" />
           </div>
-          <div className="flex items-center gap-8 mb-6">
-            <div className="w-32 h-32 rounded-full bg-[var(--color-neutral-200)]" />
-            <div className="flex-1 space-y-3">
-              <div className="h-4 w-full bg-[var(--color-neutral-200)] rounded" />
-              <div className="h-4 w-3/4 bg-[var(--color-neutral-200)] rounded" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="h-20 bg-[var(--color-neutral-200)] rounded-xl" />
-            <div className="h-20 bg-[var(--color-neutral-200)] rounded-xl" />
+          <div className="h-4 w-full bg-[var(--color-neutral-200)] rounded" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            <div className="h-24 bg-[var(--color-neutral-100)] rounded-xl" />
+            <div className="h-24 bg-[var(--color-neutral-100)] rounded-xl" />
           </div>
         </div>
       </div>
@@ -103,175 +98,86 @@ const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
   // Empty state
   if (sessionCount === 0) {
     return (
-      <div className={`text-center py-8 ${className}`}>
-        <div 
-          className="text-6xl mb-4 opacity-40"
-          aria-hidden="true"
-        >
-          📊
+      <div className={`bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] p-6 text-center ${className}`}>
+        <div className="w-16 h-16 bg-[var(--color-neutral-100)] rounded-full flex items-center justify-center mx-auto mb-4">
+          <i className="fa-solid fa-chart-simple text-2xl text-[var(--color-text-muted)]" aria-hidden="true" />
         </div>
-        <h3 
-          className="text-lg font-bold mb-2"
-          style={{ color: 'var(--color-text-primary)' }}
-        >
-          No Sessions Yet
-        </h3>
-        <p 
-          className="text-sm"
-          style={{ color: 'var(--color-text-muted)' }}
-        >
-          {performanceSummary}
-        </p>
+        <h3 className="text-lg font-bold mb-2 text-[var(--color-text-primary)]">No Data Yet</h3>
+        <p className="text-[var(--color-text-secondary)]">Complete a session to see your MI Competency Score.</p>
       </div>
     );
   }
 
   return (
-    <div className={`${className}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h3 
-          className="text-sm font-bold uppercase tracking-wide"
-          style={{ color: 'var(--color-text-muted)' }}
-        >
-          MI Competency Score
-        </h3>
-        <span 
-          className="text-xs px-2 py-1 rounded-full"
-          style={{ 
-            backgroundColor: 'var(--color-primary-50)',
-            color: 'var(--color-primary-dark)',
-          }}
-        >
-          {sessionCount} session{sessionCount !== 1 ? 's' : ''}
-        </span>
-      </div>
-
-      {/* Score Display */}
-      <div className="flex items-center gap-6 mb-6">
-        {/* Large Score Circle */}
-        <div 
-          className="relative w-28 h-28 rounded-full flex items-center justify-center"
-          style={{
-            background: `conic-gradient(${getScoreColor(overallScore)} ${overallScore}%, var(--color-neutral-100) ${overallScore}%)`,
-          }}
-        >
-          <div 
-            className="w-20 h-20 rounded-full flex flex-col items-center justify-center"
-            style={{ backgroundColor: 'var(--color-bg-card, white)' }}
+    <div className={`bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] p-6 ${className}`}>
+      {/* Header / Score Section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)]">
+            MI Competency Score
+          </h3>
+          {/* Trend Badge */}
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+            style={{
+              backgroundColor: trend === 'improving' ? 'rgba(34, 197, 94, 0.1)' : trend === 'declining' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(107, 114, 128, 0.1)',
+              color: trendInfo.color
+            }}
           >
-            <span 
-              className="text-3xl font-bold"
-              style={{ color: getScoreColor(overallScore) }}
-            >
-              {overallScore}
-            </span>
-            <span 
-              className="text-xs"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
-              / 100
-            </span>
-          </div>
-        </div>
-
-        {/* Trend and Summary */}
-        <div className="flex-1">
-          {/* Trend Indicator */}
-          <div className="flex items-center gap-2 mb-3">
-            <span 
-              className="text-2xl font-bold"
-              style={{ color: trendInfo.color }}
-              aria-hidden="true"
-            >
-              {trendInfo.icon}
-            </span>
-            <span 
-              className="text-sm font-semibold"
-              style={{ color: trendInfo.color }}
-            >
-              {trendInfo.label}
-            </span>
-            {scoreChange !== 0 && sessionCount > 1 && (
-              <span 
-                className="text-xs"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
+            <span>{trendInfo.label}</span>
+            <span>{trendInfo.icon}</span>
+            {scoreChange !== 0 && (
+              <span className="ml-1 opacity-80">
                 ({scoreChange > 0 ? '+' : ''}{scoreChange} pts)
               </span>
             )}
           </div>
-
-          {/* Performance Summary */}
-          <p 
-            className="text-sm leading-relaxed"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            {performanceSummary}
-          </p>
         </div>
+
+        {/* Big Score */}
+        <div className="flex items-baseline gap-2 mb-4">
+          <span className="text-5xl font-bold text-[var(--color-text-primary)]">
+            {overallScore}
+          </span>
+          <span className="text-xl font-medium text-[var(--color-text-muted)]">
+            / 100
+          </span>
+        </div>
+
+        {/* Summary Text */}
+        <p className="text-[var(--color-text-secondary)] leading-relaxed max-w-2xl">
+          {performanceSummary}
+        </p>
       </div>
 
-      {/* Strength and Improvement Areas */}
+      {/* Insights Cards */}
       {(topStrength || areaToImprove) && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Top Strength */}
           {topStrength && topStrength.count > 0 && (
-            <div 
-              className="p-4 rounded-xl"
-              style={{ 
-                backgroundColor: 'var(--color-success-light, rgba(34, 197, 94, 0.1))',
-                border: '1px solid var(--color-success)',
-              }}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <i 
-                  className="fa-solid fa-trophy text-sm"
-                  style={{ color: 'var(--color-success)' }}
-                  aria-hidden="true"
-                />
-                <span 
-                  className="text-xs font-semibold uppercase"
-                  style={{ color: 'var(--color-success)' }}
-                >
-                  Strength
+            <div className="relative overflow-hidden bg-white rounded-xl shadow-sm border border-[var(--color-neutral-100)] p-5">
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--color-success)]" />
+              <div className="mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--color-text-muted)]">
+                  Top Strength
                 </span>
               </div>
-              <p 
-                className="text-sm font-medium"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
+              <p className="text-base font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
                 {topStrength.name}
               </p>
             </div>
           )}
 
-          {/* Area to Improve */}
+          {/* Priority Focus */}
           {areaToImprove && (
-            <div 
-              className="p-4 rounded-xl"
-              style={{ 
-                backgroundColor: 'var(--color-warning-light, rgba(234, 179, 8, 0.1))',
-                border: '1px solid var(--color-warning)',
-              }}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <i 
-                  className="fa-solid fa-seedling text-sm"
-                  style={{ color: 'var(--color-warning)' }}
-                  aria-hidden="true"
-                />
-                <span 
-                  className="text-xs font-semibold uppercase"
-                  style={{ color: 'var(--color-warning)' }}
-                >
-                  Focus Area
+            <div className="relative overflow-hidden bg-white rounded-xl shadow-sm border border-[var(--color-neutral-100)] p-5">
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--color-warning)]" />
+              <div className="mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--color-text-muted)]">
+                  Priority Focus
                 </span>
               </div>
-              <p 
-                className="text-sm font-medium"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
+              <p className="text-base font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
                 {areaToImprove.name}
               </p>
             </div>
