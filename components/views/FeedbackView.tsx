@@ -112,13 +112,15 @@ const DEFAULT_NEXT_FOCUS = "Focus on balancing your use of Open Questions and Re
 
 const SkillsChecklist: React.FC<{ skillsUsed: string[] }> = ({ skillsUsed }) => (
     <div>
-        <h3 className="text-lg font-bold text-slate-700 mb-3">MI Skills Checklist</h3>
-        <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+        <div className="grid grid-cols-1 gap-y-3">
             {MASTER_SKILL_LIST.map(skill => {
                 const wasUsed = skillsUsed.includes(skill);
+                // Only show skills that were used, or if looking at full list? 
+                // The request was specifically to use `skillsDetected`.
+                // For now, mirroring previous behavior but listing all.
                 return (
-                    <div key={skill} className={`flex items-center transition-colors duration-300 ${wasUsed ? 'text-slate-800' : 'text-slate-400'}`}>
-                        <i className={`fa-solid ${wasUsed ? 'fa-check-square text-success' : 'fa-square'} mr-3 text-lg`}></i>
+                    <div key={skill} className={`flex items-center transition-colors duration-300 ${wasUsed ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-muted)]'}`}>
+                        <i className={`fa-solid ${wasUsed ? 'fa-check-square text-[var(--color-success)]' : 'fa-square'} mr-3 text-lg`}></i>
                         <span className="font-medium">{skill}</span>
                     </div>
                 );
@@ -127,35 +129,126 @@ const SkillsChecklist: React.FC<{ skillsUsed: string[] }> = ({ skillsUsed }) => 
     </div>
 );
 
-const FeedbackSectionCard: React.FC<{ title: string; icon: string; children: React.ReactNode; premium?: boolean }> = ({ title, icon, children, premium }) => (
-    <Card variant="elevated" padding="md" className={premium ? 'border-l-4 border-l-[var(--color-primary)]' : ''}>
-        <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-3 flex items-center">
-            <i className={`fa-solid ${icon} mr-3 text-[var(--color-primary)]`} aria-hidden="true"></i>
-            {title}
-            {premium && (
-                <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)] rounded-full">
-                    Coaching
-                </span>
+// --- NEW SECTIONS ---
+
+const QuickWinsSection: React.FC<{ quickWins: string[] }> = ({ quickWins }) => {
+    if (!quickWins || quickWins.length === 0) return null;
+    return (
+        <Card variant="soft-accent" padding="md" className="mb-6 border-l-4 border-l-[var(--color-info)] bg-sky-50">
+            <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-3 flex items-center">
+                <i className="fa-solid fa-bolt mr-2 text-[var(--color-info)]"></i>
+                Quick Wins
+            </h3>
+            <ul className="space-y-2">
+                {quickWins.map((win, idx) => (
+                    <li key={idx} className="flex items-start text-[var(--color-text-secondary)]">
+                        <i className="fa-solid fa-check text-[var(--color-success)] mt-1 mr-2 text-sm"></i>
+                        <span>{win}</span>
+                    </li>
+                ))}
+            </ul>
+        </Card>
+    );
+};
+
+const StrengthsSection: React.FC<{ whatWentRight: string | any[] }> = ({ whatWentRight }) => {
+    return (
+        <Card variant="elevated" padding="md" className="mb-6 border-l-4 border-l-[var(--color-success)]">
+            <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-3 flex items-center">
+                <i className="fa-solid fa-thumbs-up mr-2 text-[var(--color-success)]"></i>
+                What Went Right
+            </h3>
+
+            {Array.isArray(whatWentRight) ? (
+                <ul className="space-y-4">
+                    {whatWentRight.map((item, idx) => (
+                        <li key={idx} className="flex flex-col">
+                            <div className="flex items-center mb-1">
+                                <span className="font-bold text-[var(--color-text-primary)] mr-2">{item.skill}</span>
+                            </div>
+                            <p className="italic text-[var(--color-text-secondary)] border-l-2 border-[var(--color-neutral-200)] pl-3 py-1 mb-1">
+                                "{item.quote}"
+                            </p>
+                            {item.explanation && (
+                                <p className="text-sm text-[var(--color-text-muted)] mt-1">{item.explanation}</p>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <p className="text-[var(--color-text-secondary)] leading-relaxed whitespace-pre-wrap">{whatWentRight}</p>
             )}
-        </h3>
-        <div className="text-[var(--color-text-secondary)] leading-relaxed pl-8 whitespace-pre-wrap">{children}</div>
-    </Card>
-);
+        </Card>
+    );
+};
 
-// Helper to combine and deduplicate coaching feedback for premium users
-const combineCoachingFeedback = (areasForGrowth: string, constructiveFeedback: string): string => {
-    // If they're identical or one is empty, return the non-empty one
-    if (!areasForGrowth || areasForGrowth === constructiveFeedback) return constructiveFeedback;
-    if (!constructiveFeedback) return areasForGrowth;
-
-    // Check if one contains the other (to avoid duplication)
-    if (areasForGrowth.includes(constructiveFeedback) || constructiveFeedback.includes(areasForGrowth)) {
-        return areasForGrowth.length > constructiveFeedback.length ? areasForGrowth : constructiveFeedback;
+const GrowthAreasSection: React.FC<{ areasForGrowth: string | any[]; premium?: boolean }> = ({ areasForGrowth, premium }) => {
+    // Legacy support for string (although we try to force array now)
+    if (typeof areasForGrowth === 'string') {
+        return (
+            <Card variant="elevated" padding="md" className={`mb-6 ${premium ? 'border-l-4 border-l-[var(--color-warning)]' : ''}`}>
+                <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-3 flex items-center">
+                    <i className="fa-solid fa-seedling mr-2 text-[var(--color-warning)]"></i>
+                    Key Areas for Growth
+                </h3>
+                <p className="text-[var(--color-text-secondary)] leading-relaxed whitespace-pre-wrap">{areasForGrowth}</p>
+            </Card>
+        );
     }
 
-    // Combine both with a separator for comprehensive coaching feedback
-    return `${constructiveFeedback}\n\n${areasForGrowth}`;
+    // Structured Cards
+    return (
+        <div className="mb-6">
+            <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-4 flex items-center">
+                <i className="fa-solid fa-seedling mr-2 text-[var(--color-warning)]"></i>
+                Key Areas for Growth
+            </h3>
+            <div className="space-y-4">
+                {areasForGrowth.map((area, idx) => (
+                    <Card key={idx} variant="elevated" padding="md" className="border-l-4 border-l-[var(--color-warning)]">
+                        <div className="space-y-3">
+                            <div>
+                                <p className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wide mb-1">What you said</p>
+                                <p className="italic text-[var(--color-text-secondary)] border-l-2 border-[var(--color-neutral-200)] pl-3 py-1">
+                                    "{area.quote}"
+                                </p>
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wide mb-1">Why it could improve</p>
+                                <p className="text-[var(--color-text-primary)]">{area.reason}</p>
+                            </div>
+                            <div className="bg-[var(--color-primary-lighter)]/30 rounded-lg p-3">
+                                <p className="text-xs font-bold text-[var(--color-primary-dark)] uppercase tracking-wide mb-1">Try instead</p>
+                                <p className="italic text-[var(--color-text-primary)]">
+                                    "{area.suggestion}"
+                                </p>
+                            </div>
+                        </div>
+                    </Card>
+                ))}
+            </div>
+        </div>
+    );
 };
+
+const FocusSection: React.FC<{ focus: string }> = ({ focus }) => {
+    return (
+        <Card variant="soft-accent" padding="lg" className="mb-6 relative overflow-hidden border border-[var(--color-primary-light)]">
+            {/* Decorative background element */}
+            <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-[var(--color-primary-light)] rounded-full opacity-20 blur-xl"></div>
+
+            <div className="text-center relative z-10">
+                <i className="fa-solid fa-crosshairs text-3xl mb-3 text-[var(--color-primary)]" aria-hidden="true"></i>
+                <h3 className="text-xl font-bold mb-2 text-[var(--color-text-primary)]">Focus for Next Session</h3>
+                <p className="text-[var(--color-text-secondary)] text-lg leading-relaxed font-medium">
+                    {focus || DEFAULT_NEXT_FOCUS}
+                </p>
+            </div>
+        </Card>
+    );
+};
+
+// --- MAIN VIEW ---
 
 const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade, onStartPractice }) => {
     const { feedback, tier } = session;
@@ -211,193 +304,24 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
         );
     }
 
-    if (tier === UserTier.Free) {
-        const empathyScore = feedback.empathyScore ?? 0;
-        // Use skillsDetected (new field) with fallback to keySkillsUsed (old field)
-        // IMPORTANT: Only use detected skills, never show all 8 from master list
-        const allSkills = feedback.skillsDetected || feedback.keySkillsUsed || [];
-        // Ensure we only show detected skills, never the full master list
-        const visibleSkills = Array.isArray(allSkills) ? allSkills.slice(0, 2) : [];
-        const lockedCount = Math.max(0, allSkills.length - 2);
-        // Use areasForGrowth (new field) with fallback to constructiveFeedback (old field)
-        const areasForGrowthContent = feedback.areasForGrowth || feedback.constructiveFeedback || '';
-        // Use nextFocus (new field) with fallback to nextPracticeFocus (old field)
-        const nextFocusContent = feedback.nextFocus || feedback.nextPracticeFocus || '';
+    const empathyScore = feedback.empathyScore ?? 0;
+    const allSkills = feedback.skillsDetected || feedback.keySkillsUsed || [];
 
-        // Detect if feedback generation failed (error messages in whatWentRight)
-        const isFeedbackError = feedback.whatWentRight?.includes('encountered an issue') ||
-            feedback.whatWentRight?.includes('having trouble connecting') ||
-            feedback.whatWentRight?.includes('technical issues');
+    // Fallback logic for new fields
+    const quickWins = feedback.quickWins || (feedback.keyTakeaway ? [feedback.keyTakeaway] : []);
+    const whatWentRight = feedback.whatWentRight || "No strengths detected.";
+    const areasForGrowth = feedback.areasForGrowth || feedback.constructiveFeedback || "No specific growth areas detected.";
+    const focusForNextSession = feedback.focusForNextSession || feedback.nextFocus || feedback.nextPracticeFocus || DEFAULT_NEXT_FOCUS;
 
-        return (
-            <div className="bg-transparent min-h-screen pb-24">
-                <div className="p-4 sm:p-6 max-w-2xl mx-auto">
-                    <header className="flex items-center justify-between mb-6">
-                        <div className="flex items-center">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={onDone}
-                                icon={<i className="fa fa-arrow-left" />}
-                                aria-label="Go back"
-                                className="mr-3"
-                            />
-                            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Encounter Summary</h1>
-                        </div>
-                    </header>
+    // Free Tier Specifics
+    const visibleSkills = Array.isArray(allSkills) ? allSkills.slice(0, 2) : [];
+    const lockedCount = Math.max(0, allSkills.length - 2);
 
-                    {/* Empathy Score Section - Show score with locked breakdown */}
-                    <Card variant="elevated" padding="md" className="mb-6">
-                        <div className="flex justify-center mb-4">
-                            <div className="flex flex-col items-center">
-                                <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">Empathy Score</h3>
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-4xl font-bold text-[var(--color-text-primary)]">{empathyScore}</span>
-                                    <span className="text-xl font-medium text-[var(--color-text-muted)]">/ 5</span>
-                                </div>
-                                {/* Progress bar */}
-                                <div className="w-48 h-3 bg-[var(--color-neutral-200)] rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-[var(--color-primary)] transition-all duration-500"
-                                        style={{ width: `${(empathyScore / 5) * 100}%` }}
-                                    ></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="text-center mt-4">
-                            <Button
-                                onClick={onUpgrade}
-                                variant="ghost"
-                                size="sm"
-                                icon={<i className="fa-solid fa-lock" />}
-                            >
-                                Upgrade to see score breakdown
-                            </Button>
-                        </div>
-                    </Card>
-
-                    {/* What Went Right - Fully visible */}
-                    <section className="mb-6">
-                        <FeedbackSectionCard title="What Went Right" icon="fa-thumbs-up">
-                            {feedback.whatWentRight}
-                        </FeedbackSectionCard>
-                    </section>
-
-                    {/* Issue 1: Key Areas for Growth - BLURRED with real content visible behind */}
-                    {areasForGrowthContent && (
-                        <section className="mb-6">
-                            <LockedSection onUpgrade={onUpgrade} lockMessage="Unlock with Premium">
-                                <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-                                    <h3 className="text-lg font-bold text-slate-700 mb-3 flex items-center">
-                                        <i className="fa-solid fa-seedling mr-3 text-sky-500"></i>
-                                        Key Areas for Growth
-                                    </h3>
-                                    <p className="text-neutral-700 leading-relaxed pl-8 whitespace-pre-wrap">{areasForGrowthContent}</p>
-                                </div>
-                            </LockedSection>
-                        </section>
-                    )}
-
-                    {/* Issue 2: MI Skills Checklist - Show first 2 skills, lock the rest */}
-                    <Card variant="elevated" padding="md" className="mb-6">
-                        <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-3">MI Skills Checklist</h3>
-                        {/* Free tier: Only show first 2 detected skills, never show all 8 */}
-                        {isFeedbackError ? (
-                            // Show error message when feedback generation failed
-                            <div className="flex flex-col items-center gap-3 text-center py-4">
-                                <i className="fa-solid fa-circle-exclamation text-warning text-2xl"></i>
-                                <p className="text-neutral-600 text-sm">
-                                    Skills analysis couldn't be completed due to a technical issue. Please try another practice session.
-                                </p>
-                            </div>
-                        ) : visibleSkills.length > 0 ? (
-                            <div className="space-y-3">
-                                {visibleSkills.slice(0, 2).map((skill, index) => (
-                                    <div key={`${skill}-${index}`} className="flex items-center gap-3">
-                                        <i className="fa-solid fa-check text-[var(--color-success)] text-lg" aria-hidden="true"></i>
-                                        <span className="text-[var(--color-text-secondary)] font-medium">{skill}</span>
-                                    </div>
-                                ))}
-                                {lockedCount > 0 && (
-                                    <Button
-                                        onClick={onUpgrade}
-                                        variant="ghost"
-                                        size="sm"
-                                        className="mt-3 pt-3 border-t border-[var(--color-neutral-200)]"
-                                        icon={<i className="fa-solid fa-lock" />}
-                                    >
-                                        + {lockedCount} more skill{lockedCount !== 1 ? 's' : ''} analyzed in Premium
-                                    </Button>
-                                )}
-                            </div>
-                        ) : (
-                            <Button
-                                onClick={onUpgrade}
-                                variant="ghost"
-                                size="sm"
-                                icon={<i className="fa-solid fa-lock" />}
-                            >
-                                Upgrade to see skills analysis
-                            </Button>
-                        )}
-                    </Card>
-
-                    {/* Issue 3: Next Practice Focus - Show as locked card (not blurred) */}
-                    <Card
-                        variant="accent"
-                        padding="md"
-                        hoverable
-                        onClick={onUpgrade}
-                        className="mb-6"
-                    >
-                        <div className="flex items-center gap-4 text-[var(--color-text-muted)]">
-                            <i className="fa-solid fa-lock text-2xl" aria-hidden="true"></i>
-                            <div>
-                                <h3 className="font-bold text-[var(--color-text-primary)] text-lg">Next Practice Focus</h3>
-                                <p className="text-sm text-[var(--color-text-secondary)]">Upgrade to get personalized practice recommendations</p>
-                            </div>
-                        </div>
-                    </Card>
-
-                    <footer className="mt-6 space-y-3">
-                        <Button
-                            onClick={onUpgrade}
-                            variant="primary"
-                            size="lg"
-                            fullWidth
-                            icon={<i className="fa fa-award" />}
-                        >
-                            Upgrade to Premium
-                        </Button>
-                        <Button
-                            onClick={onDone}
-                            variant="secondary"
-                            size="lg"
-                            fullWidth
-                        >
-                            Done
-                        </Button>
-                    </footer>
-                </div>
-            </div>
-        );
-    }
-
-    // Premium View - Show everything unlocked
-    const premiumSkills = feedback.skillsDetected || feedback.keySkillsUsed || [];
-    // Combine areasForGrowth and constructiveFeedback for comprehensive coaching
-    const areasForGrowth = feedback.areasForGrowth || '';
-    const constructiveFeedback = feedback.constructiveFeedback || '';
-    const premiumCoachingFeedback = combineCoachingFeedback(areasForGrowth, constructiveFeedback);
-    // Always ensure we have content for Next Practice Focus - use fallback if empty
-    const rawNextFocus = feedback.nextFocus || feedback.nextPracticeFocus || '';
-    const premiumNextFocus = rawNextFocus.trim() || DEFAULT_NEXT_FOCUS;
-
-    // Detect if feedback generation failed (error messages in whatWentRight)
-    const isPremiumFeedbackError = feedback.whatWentRight?.includes('encountered an issue') ||
-        feedback.whatWentRight?.includes('having trouble connecting') ||
-        feedback.whatWentRight?.includes('technical issues');
-
+    const isFeedbackError = typeof whatWentRight === 'string' && (
+        whatWentRight.includes('encountered an issue') ||
+        whatWentRight.includes('having trouble connecting') ||
+        whatWentRight.includes('technical issues')
+    );
 
     return (
         <div className="bg-transparent pb-24">
@@ -416,65 +340,147 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ session, onDone, onUpgrade,
                     </div>
                 </header>
 
-                {/* At a Glance Section */}
-                <Card variant="elevated" padding="md" className="mb-6 animate-slide-fade-in">
+                {/* Empathy Score Section */}
+                <Card variant="elevated" padding="md" className="mb-6">
                     <div className="flex justify-center text-center">
                         <div className="flex flex-col items-center">
                             <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">Empathy Score</h3>
-                            <EmpathyGauge score={feedback.empathyScore ?? 0} />
-                            {/* Premium: Show empathy breakdown */}
-                            {feedback.empathyBreakdown && (
+                            <EmpathyGauge score={empathyScore} />
+
+                            {tier === UserTier.Premium && feedback.empathyBreakdown && (
                                 <p className="text-[var(--color-text-secondary)] text-sm mt-3 max-w-md text-center">{feedback.empathyBreakdown}</p>
+                            )}
+
+                            {tier === UserTier.Free && (
+                                <div className="text-center mt-4">
+                                    <Button
+                                        onClick={onUpgrade}
+                                        variant="ghost"
+                                        size="sm"
+                                        icon={<i className="fa-solid fa-lock" />}
+                                    >
+                                        Upgrade to see score breakdown
+                                    </Button>
+                                </div>
                             )}
                         </div>
                     </div>
                 </Card>
 
-                <main className="space-y-4 mb-6">
-                    <FeedbackSectionCard title="What Went Right" icon="fa-thumbs-up">
-                        {feedback.whatWentRight}
-                    </FeedbackSectionCard>
+                {/* Quick Wins (New Section) */}
+                <QuickWinsSection quickWins={quickWins} />
 
-                    {premiumCoachingFeedback && (
-                        <FeedbackSectionCard title="Key Areas for Growth" icon="fa-seedling" premium>
-                            {premiumCoachingFeedback}
-                        </FeedbackSectionCard>
-                    )}
-                </main>
+                {/* What Went Right (Updated Section) */}
+                <StrengthsSection whatWentRight={whatWentRight} />
 
+                {/* Areas for Growth (Updated Section - Locked for Free) */}
+                {tier === UserTier.Free ? (
+                    <section className="mb-6">
+                        <LockedSection onUpgrade={onUpgrade} lockMessage="Unlock with Premium">
+                            <GrowthAreasSection areasForGrowth={areasForGrowth} premium={false} />
+                        </LockedSection>
+                    </section>
+                ) : (
+                    <GrowthAreasSection areasForGrowth={areasForGrowth} premium={true} />
+                )}
+
+                {/* MI Skills Checklist (Existing logic) */}
                 <Card variant="elevated" padding="md" className="mb-6">
-                    {isPremiumFeedbackError ? (
-                        // Show error message when feedback generation failed
+                    <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-3">MI Skills Checklist</h3>
+                    {isFeedbackError ? (
                         <div className="flex flex-col items-center gap-3 text-center py-4">
                             <i className="fa-solid fa-circle-exclamation text-[var(--color-warning)] text-2xl" aria-hidden="true"></i>
-                            <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">MI Skills Checklist</h3>
                             <p className="text-[var(--color-text-secondary)] text-sm">
-                                Skills analysis couldn't be completed due to a technical issue. Please try another practice session.
+                                Skills analysis couldn't be completed due to a technical issue.
                             </p>
                         </div>
+                    ) : tier === UserTier.Free ? (
+                        // Free view
+                        visibleSkills.length > 0 ? (
+                            <div className="space-y-3">
+                                {visibleSkills.map((skill, index) => (
+                                    <div key={`${skill}-${index}`} className="flex items-center gap-3">
+                                        <i className="fa-solid fa-check text-[var(--color-success)] text-lg" aria-hidden="true"></i>
+                                        <span className="text-[var(--color-text-secondary)] font-medium">{skill}</span>
+                                    </div>
+                                ))}
+                                {lockedCount > 0 && (
+                                    <Button
+                                        onClick={onUpgrade}
+                                        variant="ghost"
+                                        size="sm"
+                                        className="mt-3 pt-3 border-t border-[var(--color-neutral-200)] w-full"
+                                        icon={<i className="fa-solid fa-lock" />}
+                                    >
+                                        + {lockedCount} more skill{lockedCount !== 1 ? 's' : ''} analyzed in Premium
+                                    </Button>
+                                )}
+                            </div>
+                        ) : (
+                            <Button
+                                onClick={onUpgrade}
+                                variant="ghost"
+                                size="sm"
+                                icon={<i className="fa-solid fa-lock" />}
+                            >
+                                Upgrade to see skills analysis
+                            </Button>
+                        )
                     ) : (
-                        <SkillsChecklist skillsUsed={premiumSkills} />
+                        // Premium view
+                        <SkillsChecklist skillsUsed={allSkills} />
                     )}
                 </Card>
 
-                <div className="mb-6">
-                    <Card variant="soft-accent" padding="lg" className="text-center min-h-[120px] flex flex-col justify-center">
-                        <i className="fa-solid fa-bullseye text-3xl mb-3 text-[var(--color-primary)]" aria-hidden="true"></i>
-                        <h3 className="text-xl font-bold mb-2 text-[var(--color-text-primary)]">Your Next Practice Focus</h3>
-                        <p className="text-[var(--color-text-secondary)] text-lg">
-                            {premiumNextFocus || DEFAULT_NEXT_FOCUS}
-                        </p>
+                {/* Focus for Next Session (New Section - Locked for Free) */}
+                {tier === UserTier.Free ? (
+                    <Card
+                        variant="accent"
+                        padding="md"
+                        hoverable
+                        onClick={onUpgrade}
+                        className="mb-6"
+                    >
+                        <div className="flex items-center gap-4 text-[var(--color-text-muted)]">
+                            <i className="fa-solid fa-lock text-2xl" aria-hidden="true"></i>
+                            <div>
+                                <h3 className="font-bold text-[var(--color-text-primary)] text-lg">Next Practice Focus</h3>
+                                <p className="text-sm text-[var(--color-text-secondary)]">Upgrade to get personalized practice recommendations</p>
+                            </div>
+                        </div>
                     </Card>
-                </div>
+                ) : (
+                    <FocusSection focus={focusForNextSession} />
+                )}
 
-                <footer className="mt-4 pb-4">
+                <footer className="mt-4 pb-4 space-y-3">
+                    {tier === UserTier.Free && (
+                        <Button
+                            onClick={onUpgrade}
+                            variant="primary"
+                            size="lg"
+                            fullWidth
+                            icon={<i className="fa fa-award" />}
+                        >
+                            Upgrade to Premium
+                        </Button>
+                    )}
                     <Button
                         onClick={onStartPractice}
-                        variant="primary"
+                        variant={tier === UserTier.Free ? "secondary" : "primary"}
                         size="lg"
                         fullWidth
                     >
                         Start a New Practice
+                    </Button>
+                    <Button
+                        onClick={onDone}
+                        variant="ghost"
+                        size="lg"
+                        fullWidth
+                        className="border border-[var(--color-neutral-200)]"
+                    >
+                        Back to Dashboard
                     </Button>
                 </footer>
             </div>

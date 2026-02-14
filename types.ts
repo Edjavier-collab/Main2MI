@@ -46,7 +46,7 @@ export enum DifficultyLevel {
 }
 
 // Personality traits that affect patient behavior and add complexity
-export type PersonalityTrait = 
+export type PersonalityTrait =
   | 'defensive'
   | 'emotional'
   | 'reserved'
@@ -75,60 +75,74 @@ export interface PatientProfileFilters {
 }
 
 export interface ChatMessage {
-    author: 'user' | 'patient';
-    text: string;
+  author: 'user' | 'patient';
+  text: string;
+}
+
+export interface WhatWentRightItem {
+  skill: string;
+  quote: string;
+  explanation?: string;
+}
+
+export interface AreaForGrowthItem {
+  quote: string;
+  reason: string;
+  suggestion: string;
 }
 
 export interface Feedback {
-    whatWentRight: string; // Stays for free tier compatibility and as a premium summary
-    keyTakeaway?: string;
-    empathyScore: number; // Always generated (1-5)
-    empathyBreakdown?: string; // Explanation of why that score
-    constructiveFeedback?: string; // Formerly areasForGrowth (kept for backward compatibility)
-    areasForGrowth?: string; // Specific suggestions for growth
-    keySkillsUsed?: string[]; // Changed from string to string[] (kept for backward compatibility)
-    skillsDetected?: string[]; // Array of skill names that were used
-    skillCounts?: Record<string, number>; // Object with count per skill, e.g., {"Reflections": 4, "Open Questions": 2}
-    nextPracticeFocus?: string; // Kept for backward compatibility
-    nextFocus?: string; // Next practice recommendation
-    analysisStatus?: 'complete' | 'insufficient-data' | 'error';
-    analysisMessage?: string;
+  whatWentRight: string | WhatWentRightItem[]; // String (legacy) or structured array
+  keyTakeaway?: string;
+  empathyScore: number; // Always generated (1-5)
+  empathyBreakdown?: string; // Explanation of why that score
+  constructiveFeedback?: string; // Formerly areasForGrowth (kept for backward compatibility)
+  areasForGrowth?: string | AreaForGrowthItem[]; // String (legacy) or structured array
+  quickWins?: string[]; // Short actionable tips
+  focusForNextSession?: string; // New description for bottom callout
+  keySkillsUsed?: string[]; // Changed from string to string[] (kept for backward compatibility)
+  skillsDetected?: string[]; // Array of skill names that were used
+  skillCounts?: Record<string, number>; // Object with count per skill, e.g., {"Reflections": 4, "Open Questions": 2}
+  nextPracticeFocus?: string; // Kept for backward compatibility
+  nextFocus?: string; // Next practice recommendation (maps to focusForNextSession)
+  analysisStatus?: 'complete' | 'insufficient-data' | 'error';
+  analysisMessage?: string;
 }
 
 export interface Session {
-    id: string;
-    date: string;
-    patient: PatientProfile;
-    transcript: ChatMessage[];
-    feedback: Feedback;
-    tier: UserTier;
+  id: string;
+  date: string;
+  patient: PatientProfile;
+  transcript: ChatMessage[];
+  feedback: Feedback;
+  tier: UserTier;
 }
 
 export interface CoachingSummary {
-    totalSessions: number;
-    dateRange: string;
-    strengthsAndTrends: string;
-    areasForFocus: string;
-    summaryAndNextSteps: string;
-    skillProgression?: Array<{
-        skillName: string;
-        totalCount: number;
-        averagePerSession: number;
-        trend: 'increasing' | 'stable' | 'decreasing';
-    }>;
-    topSkillsToImprove?: string[];
-    specificNextSteps?: string[];
+  totalSessions: number;
+  dateRange: string;
+  strengthsAndTrends: string;
+  areasForFocus: string;
+  summaryAndNextSteps: string;
+  skillProgression?: Array<{
+    skillName: string;
+    totalCount: number;
+    averagePerSession: number;
+    trend: 'increasing' | 'stable' | 'decreasing';
+  }>;
+  topSkillsToImprove?: string[];
+  specificNextSteps?: string[];
 }
 
 export interface SubscriptionDetails {
-    customerId: string;
-    subscriptionId: string;
-    plan: 'monthly' | 'annual' | 'unknown';
-    status: string;
-    currentPeriodEnd: string;
-    cancelAtPeriodEnd: boolean;
-    currentPrice: number;
-    originalPrice: number;
-    discountPercent: number;
-    hasRetentionDiscount: boolean;
+  customerId: string;
+  subscriptionId: string;
+  plan: 'monthly' | 'annual' | 'unknown';
+  status: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+  currentPrice: number;
+  originalPrice: number;
+  discountPercent: number;
+  hasRetentionDiscount: boolean;
 }

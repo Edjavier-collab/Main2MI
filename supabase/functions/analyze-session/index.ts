@@ -64,6 +64,42 @@ function coerceSkillCounts(rawCounts: unknown): Record<string, number> {
   return {};
 }
 
+// Helper to sanitize whatWentRight (structured array or legacy string)
+function sanitizeWhatWentRight(value: unknown): string | Array<{ skill: string; quote: string; explanation?: string }> {
+  if (Array.isArray(value)) {
+    const items = value
+      .filter((item: any) => item && typeof item === 'object' && typeof item.skill === 'string' && typeof item.quote === 'string')
+      .map((item: any) => ({
+        skill: item.skill.trim(),
+        quote: item.quote.trim(),
+        ...(typeof item.explanation === 'string' && item.explanation.trim() ? { explanation: item.explanation.trim() } : {}),
+      }));
+    if (items.length > 0) return items;
+  }
+  return sanitizeString(value, 'No strengths were detected.');
+}
+
+// Helper to sanitize areasForGrowth (structured array or legacy string)
+function sanitizeAreasForGrowth(value: unknown): string | Array<{ quote: string; reason: string; suggestion: string }> {
+  if (Array.isArray(value)) {
+    const items = value
+      .filter((item: any) => item && typeof item === 'object' && typeof item.quote === 'string' && typeof item.suggestion === 'string')
+      .map((item: any) => ({
+        quote: item.quote.trim(),
+        reason: sanitizeString(item.reason, ''),
+        suggestion: item.suggestion.trim(),
+      }));
+    if (items.length > 0) return items;
+  }
+  return sanitizeString(value, 'No areas for growth generated.');
+}
+
+// Helper to sanitize quickWins (string array)
+function sanitizeQuickWins(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((s): s is string => typeof s === 'string' && s.trim().length > 0).map(s => s.trim());
+}
+
 // Normalize feedback output to match client-side format
 function normalizeFeedbackOutput(feedbackJson: any) {
   const skillsDetected = sanitizeSkills(feedbackJson?.skillsDetected);
@@ -79,19 +115,22 @@ function normalizeFeedbackOutput(feedbackJson: any) {
     'For your next session, focus on using at least three open questions and three reflections.'
   );
 
+  const focusForNextSession = sanitizeString(
+    feedbackJson?.focusForNextSession || feedbackJson?.nextFocus || feedbackJson?.nextPracticeFocus,
+    'Focus on reflective listening.'
+  );
+
   return {
     keyTakeaway: sanitizeString(feedbackJson?.keyTakeaway, undefined as unknown as string),
     empathyScore,
     empathyBreakdown: sanitizeString(feedbackJson?.empathyBreakdown, 'No empathy analysis generated.'),
-    whatWentRight: sanitizeString(feedbackJson?.whatWentRight, 'No strengths were detected.'),
+    whatWentRight: sanitizeWhatWentRight(feedbackJson?.whatWentRight),
     constructiveFeedback: sanitizeString(
-      feedbackJson?.constructiveFeedback || feedbackJson?.areasForGrowth,
+      feedbackJson?.constructiveFeedback || (typeof feedbackJson?.areasForGrowth === 'string' ? feedbackJson.areasForGrowth : ''),
       'No constructive feedback generated.'
     ),
-    areasForGrowth: sanitizeString(
-      feedbackJson?.areasForGrowth || feedbackJson?.constructiveFeedback,
-      'No areas for growth generated.'
-    ),
+    areasForGrowth: sanitizeAreasForGrowth(feedbackJson?.areasForGrowth),
+    quickWins: sanitizeQuickWins(feedbackJson?.quickWins),
     skillsDetected,
     keySkillsUsed: keySkillsUsed.length ? keySkillsUsed : skillsDetected,
     skillCounts,
@@ -100,6 +139,7 @@ function normalizeFeedbackOutput(feedbackJson: any) {
       'Practice delivering at least three complex reflections that capture both sides of ambivalence.'
     ),
     nextFocus,
+    focusForNextSession,
     analysisStatus: feedbackJson?.analysisStatus || 'complete',
     analysisMessage: sanitizeString(feedbackJson?.analysisMessage, '')
   };
@@ -256,7 +296,7 @@ serve(async (req: Request) => {
       .map((msg: any) => `${msg.author === 'user' ? 'Clinician' : 'Patient'}: ${msg.text}`)
       .join('\n');
 
-    // Build the prompt (same as client-side)
+    // Build the prompt
     const prompt = `You are an expert MI coach, trained by Miller and Rollnick, the founders of Motivational Interviewing. Your tone is supportive, educational, and never judgmental. You focus on building the user's confidence while providing concrete, evidence-based suggestions for improvement.
 
 Analyze the clinician's performance in the following transcript.
@@ -272,14 +312,12 @@ Based on your analysis, provide a detailed report in the requested JSON format w
 
 - empathyScore: A number from 1-5 rating the clinician's overall empathy level
 - empathyBreakdown: Explain WHY you gave that score, referencing 2-3 specific examples from the transcript
-- whatWentRight: What the clinician did well, with direct quotes from the transcript
-- constructiveFeedback: Coaching-style feedback using the pattern: "Instead of saying '[exact quote from clinician]', you could have said '[your suggested alternative]'." Provide 1-2 concrete coaching suggestions in this format.
-- areasForGrowth: Coaching-style growth suggestions. For each suggestion, use the pattern: "Instead of '[quote from clinician]', try '[improved version]'." Focus on actionable rewrites the clinician can practice.
+- whatWentRight: An array of objects. For each strength, identify the MI skill used, quote the clinician's exact words, and optionally explain why it was effective. Provide 2-4 items.
+- areasForGrowth: An array of objects. For each area, quote the clinician's exact words, explain why it could be improved, and provide a specific MI-aligned alternative. Provide 1-3 items.
+- quickWins: An array of 2-3 short, actionable tips (one sentence each) the clinician can immediately apply in their next session. These should be concrete and specific. 
 - skillsDetected: An array of ALL MI skills you detected in the transcript (from: Open Questions, Affirmations, Reflections, Summaries, Developing Discrepancy, Eliciting Change Talk, Rolling with Resistance, Supporting Self-Efficacy)
 - skillCounts: A JSON string representation of an object counting how many times each skill was used. Count all instances in the transcript. Format as a JSON string: "{\"Reflections\": 4, \"Open Questions\": 2, \"Affirmations\": 1}"
-- nextFocus: A concise, actionable recommendation for the next practice session (1-2 sentences)
-
-COACHING STYLE REQUIREMENT: For constructiveFeedback and areasForGrowth, you MUST use the "Instead of [quote], you could have said [suggestion]" pattern. This makes feedback actionable and concrete. Always quote the clinician's exact words, then provide a specific alternative they could practice.
+- focusForNextSession: A distinct, purely forward-looking recommendation for the NEXT session. This should be 1-2 sentences highlighting the single most important skill to practice next time.
 
 IMPORTANT: Count every instance of each skill in the transcript. For example, if the clinician used 4 reflections, 2 open questions, and 1 affirmation, skillCounts should be: {"Reflections": 4, "Open Questions": 2, "Affirmations": 1}`;
 
@@ -300,24 +338,35 @@ IMPORTANT: Count every instance of each skill in the transcript. For example, if
           description: "A 2-3 sentence explanation of why the empathy score was given. Reference specific examples from the transcript that demonstrate the level of empathy shown.",
         },
         whatWentRight: {
-          type: 'string',
-          description: "A paragraph (2-3 sentences) detailing what the user did well, focusing on specific examples of good MI practice. MUST include a direct quote from the clinician's transcript to support the analysis.",
-        },
-        constructiveFeedback: {
-          type: 'string',
-          description: "Coaching-style feedback using the 'Instead of [quote], you could have said [suggestion]' pattern. Provide 1-2 specific examples where you quote the clinician's exact words, then offer an improved alternative. Example: 'Instead of saying \"Why don't you just stop drinking?\", you could have said \"What would be different in your life if you decided to cut back on drinking?\"'",
-        },
-        areasForGrowth: {
-          type: 'string',
-          description: "Coaching-style growth suggestions using the 'Instead of [quote], try [improved version]' pattern. Focus on 1-2 actionable rewrites the clinician can practice. Always quote the clinician's actual words and provide a specific MI-aligned alternative.",
-        },
-        keySkillsUsed: {
           type: 'array',
           items: {
-            type: 'string',
-            enum: FEEDBACK_SKILLS
+            type: 'object',
+            properties: {
+              skill: { type: 'string', description: "The specific MI skill used (e.g., 'Complex Reflection')." },
+              quote: { type: 'string', description: "The exact quote from the clinician's transcript." },
+              explanation: { type: 'string', description: "Brief explanation of why this was effective." }
+            },
+            required: ["skill", "quote"]
           },
-          description: "An array of MI skills the user employed effectively. Only include skills from the provided enum list.",
+          description: "A list of 2-3 specific strengths, structured with skill name, quote, and explanation.",
+        },
+        areasForGrowth: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              quote: { type: 'string', description: "The exact words the clinician said." },
+              reason: { type: 'string', description: "Why this response could be improved (e.g., 'Closed question blocked elaboration')." },
+              suggestion: { type: 'string', description: "A concrete, better alternative response." }
+            },
+            required: ["quote", "reason", "suggestion"]
+          },
+          description: "A list of 2-3 specific growth areas, structured with the original quote, reason for improvement, and a suggested alternative.",
+        },
+        quickWins: {
+          type: 'array',
+          items: { type: 'string' },
+          description: "An array of 2-3 strings. Each string is a short, positive 'quick win' observation.",
         },
         skillsDetected: {
           type: 'array',
@@ -331,16 +380,20 @@ IMPORTANT: Count every instance of each skill in the transcript. For example, if
           type: 'string',
           description: "A JSON string representation of an object mapping each detected skill to the number of times it was used. Format as a JSON string, e.g., '{\"Reflections\": 4, \"Open Questions\": 2, \"Affirmations\": 1}'. Only include skills that were actually used.",
         },
+        focusForNextSession: {
+          type: 'string',
+          description: "A highlighted 'Focus for Next Session' callout. 1-2 sentences identifying the single most important skill to practice next time.",
+        },
         nextPracticeFocus: {
           type: 'string',
-          description: "A single, actionable goal for the user's next practice session. Frame it as a clear instruction, like 'For your next session, focus on asking at least three open-ended questions that explore the patient's values.'",
+          description: "Legacy field for backward compatibility.",
         },
         nextFocus: {
           type: 'string',
-          description: "A concise next practice recommendation (1-2 sentences) with a specific, actionable focus area for improvement.",
+          description: "Legacy field for backward compatibility.",
         }
       },
-      required: ["empathyScore", "empathyBreakdown", "whatWentRight", "areasForGrowth", "skillsDetected", "nextFocus"],
+      required: ["empathyScore", "empathyBreakdown", "whatWentRight", "areasForGrowth", "skillsDetected", "quickWins", "focusForNextSession"],
     };
 
     // Prepare Gemini API request
