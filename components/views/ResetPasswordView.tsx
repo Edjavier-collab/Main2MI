@@ -9,7 +9,12 @@ import { Input } from '../ui/Input';
 import { useToast } from '../ui/Toast';
 import PasswordStrengthIndicator from '../ui/PasswordStrengthIndicator';
 
-const ResetPasswordView: React.FC = () => {
+interface ResetPasswordViewProps {
+    onBack?: () => void;
+    onSuccess?: () => void;
+}
+
+const ResetPasswordView: React.FC<ResetPasswordViewProps> = () => {
     const router = useRouter();
     const { updatePassword, signOut } = useAuth();
     const { toasts, showToast, removeToast, ToastContainer } = useToast();
