@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { UserTier } from '../../types';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { Search, BookOpen, Target, Zap, ChevronRight, CheckCircle2, Circle, ArrowLeft, Lock, Unlock, FileText } from 'lucide-react';
 
 interface ResourceLibraryProps {
     onUpgrade: () => void;
@@ -15,37 +16,37 @@ const resourcesData = [
     {
         category: 'Introductory Principles',
         items: [
-            { id: 1, title: 'What is Motivational Interviewing?', premiumOnly: false },
-            { id: 2, title: 'The Spirit of Motivational Interviewing', premiumOnly: false },
-            { id: 3, title: 'The 5 Stages of Change Explained', premiumOnly: false },
-            { id: 4, title: 'The Four Processes of MI', premiumOnly: true },
+            { id: 1, title: 'What is Motivational Interviewing?', description: 'The foundations of MI and why it works', readTime: '3 min', premiumOnly: false },
+            { id: 2, title: 'The Spirit of Motivational Interviewing', description: 'Partnership, acceptance, compassion, and evocation', readTime: '4 min', premiumOnly: false },
+            { id: 3, title: 'The 5 Stages of Change Explained', description: 'From precontemplation to maintenance and beyond', readTime: '5 min', premiumOnly: false },
+            { id: 4, title: 'The Four Processes of MI', description: 'Engaging, focusing, evoking, and planning', readTime: '4 min', premiumOnly: true },
         ]
     },
     {
         category: 'Core Skills (OARS)',
         items: [
-            { id: 10, title: 'Open Questions', premiumOnly: false },
-            { id: 11, title: 'Affirmations', premiumOnly: false },
-            { id: 12, title: 'Reflections', premiumOnly: false },
-            { id: 13, title: 'Summaries', premiumOnly: false },
-            { id: 14, title: 'Advanced Reflections', premiumOnly: true },
-            { id: 15, title: 'Developing Discrepancy', premiumOnly: true },
+            { id: 10, title: 'Open Questions', description: 'When and how to use open-ended questions effectively', readTime: '3 min', premiumOnly: false },
+            { id: 11, title: 'Affirmations', description: 'Building patient confidence and recognizing strengths', readTime: '2 min', premiumOnly: false },
+            { id: 12, title: 'Reflections', description: 'Simple vs complex reflections and when to use each', readTime: '5 min', premiumOnly: false },
+            { id: 13, title: 'Summaries', description: 'Tying conversations together to show understanding', readTime: '3 min', premiumOnly: false },
+            { id: 14, title: 'Advanced Reflections', description: 'Deepening the conversation with complex reflections', readTime: '4 min', premiumOnly: true },
+            { id: 15, title: 'Developing Discrepancy', description: 'Helping patients see gaps between values and behavior', readTime: '4 min', premiumOnly: true },
         ]
     },
     {
         category: 'Advanced Techniques',
         items: [
-            { id: 20, title: 'Eliciting Change Talk', premiumOnly: true },
-            { id: 21, title: 'Responding to Sustain Talk', premiumOnly: true },
-            { id: 22, title: 'Integrating MI with Other Methods', premiumOnly: true },
-            { id: 23, title: 'MI for Complex Cases', premiumOnly: true },
-            { id: 24, title: 'Using MI with Mandated Clients', premiumOnly: true },
-            { id: 25, title: 'Measuring Your MI Fidelity', premiumOnly: true },
-            { id: 26, title: 'Strengthening Commitment Language', premiumOnly: true },
-            { id: 27, title: 'MI for Health Behavior Change', premiumOnly: true },
-            { id: 28, title: 'MI in Brief Interventions (SBIRT)', premiumOnly: true },
-            { id: 29, title: 'Working with Anger and Defensiveness', premiumOnly: true },
-            { id: 30, title: 'Cultural Adaptations of MI', premiumOnly: true },
+            { id: 20, title: 'Eliciting Change Talk', description: 'Drawing out the patient\'s own reasons for change', readTime: '4 min', premiumOnly: true },
+            { id: 21, title: 'Responding to Sustain Talk', description: 'Responding to pushback without confrontation', readTime: '4 min', premiumOnly: true },
+            { id: 22, title: 'Integrating MI with Other Methods', description: 'Combining MI with CBT, Harm Reduction, and more', readTime: '5 min', premiumOnly: true },
+            { id: 23, title: 'MI for Complex Cases', description: 'Navigating difficult clinical scenarios and comorbidities', readTime: '6 min', premiumOnly: true },
+            { id: 24, title: 'Using MI with Mandated Clients', description: 'Strategies for working with involuntary clients', readTime: '5 min', premiumOnly: true },
+            { id: 25, title: 'Measuring Your MI Fidelity', description: 'Assessing and improving your MI skills', readTime: '3 min', premiumOnly: true },
+            { id: 26, title: 'Strengthening Commitment Language', description: 'Moving from preparation to action', readTime: '4 min', premiumOnly: true },
+            { id: 27, title: 'MI for Health Behavior Change', description: 'applying MI to chronic disease management', readTime: '5 min', premiumOnly: true },
+            { id: 28, title: 'MI in Brief Interventions (SBIRT)', description: 'Effective MI in short clinical encounters', readTime: '4 min', premiumOnly: true },
+            { id: 29, title: 'Working with Anger and Defensiveness', description: 'De-escalation techniques using MI principles', readTime: '5 min', premiumOnly: true },
+            { id: 30, title: 'Cultural Adaptations of MI', description: 'Tailoring MI for diverse populations', readTime: '4 min', premiumOnly: true },
         ]
     }
 ];
@@ -357,20 +358,25 @@ const ResourceDetailView: React.FC<{ resourceId: number; onBack: () => void; }> 
                 case 'subheading':
                     return <h4 key={index} className="text-lg font-semibold text-[var(--color-text-primary)] mt-4 mb-1">{item.text}</h4>;
                 case 'paragraph':
-                    return <p key={index} className="text-[var(--color-text-secondary)] leading-relaxed mb-4">{item.text}</p>;
+                    return <p key={index} className="text-[var(--color-text-secondary)] leading-relaxed mb-4 text-[15px]">{item.text}</p>;
                 case 'list':
                     return (
-                        <ul key={index} className="list-disc list-inside space-y-2 pl-4 text-[var(--color-text-secondary)]">
-                            {item.items.map((li: string, i: number) => <li key={i}>{li}</li>)}
+                        <ul key={index} className="space-y-2 pl-4 text-[var(--color-text-secondary)] mb-4">
+                            {item.items.map((li: string, i: number) => (
+                                <li key={i} className="flex items-start gap-2 text-[15px]">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] mt-2 flex-shrink-0" />
+                                    <span>{li}</span>
+                                </li>
+                            ))}
                         </ul>
                     );
                 case 'dialogue':
                     return (
-                        <Card key={index} variant="accent" padding="sm" className="border-l-4 border-[var(--color-primary)] my-4">
+                        <Card key={index} variant="accent" padding="sm" className="border-l-4 border-[var(--color-primary)] my-4 bg-gray-50/50">
                             {item.lines.map((line: { speaker: string, text: string }, i: number) => (
-                                <p key={i} className="mb-1">
-                                    <span className={`font-bold ${line.speaker.includes('Patient') ? 'text-[var(--color-error)]' : 'text-[var(--color-primary)]'}`}>{line.speaker}: </span>
-                                    <span className="text-[var(--color-text-secondary)] italic">"{line.text}"</span>
+                                <p key={i} className="mb-2 last:mb-0 text-[15px]">
+                                    <span className={`font-semibold ${line.speaker.includes('Patient') ? 'text-[var(--color-error)]' : 'text-[var(--color-primary)]'}`}>{line.speaker}: </span>
+                                    <span className="text-[var(--color-text-secondary)]">"{line.text}"</span>
                                 </p>
                             ))}
                         </Card>
@@ -382,20 +388,21 @@ const ResourceDetailView: React.FC<{ resourceId: number; onBack: () => void; }> 
     };
 
     return (
-        <div className="min-h-screen bg-transparent pb-24 px-6">
-            <header className="flex items-center mb-6 pt-4">
+        <div className="min-h-screen bg-transparent pb-24 px-4 sm:px-6">
+            <header className="flex items-center mb-6 pt-6">
                 <Button
                     variant="ghost"
-                    size="sm"
+                    size="icon-only"
                     onClick={onBack}
-                    icon={<i className="fa-solid fa-arrow-left" />}
+                    className="mr-3 text-[var(--color-text-primary)] hover:bg-black/5"
                     aria-label="Go back"
-                    className="mr-3"
-                />
-                <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">{resource.title}</h1>
+                >
+                    <ArrowLeft size={24} />
+                </Button>
+                <h1 className="text-2xl font-bold text-[var(--color-text-primary)] line-clamp-1">{resource.title}</h1>
             </header>
-            <main className="pb-8">
-                <Card variant="elevated" padding="lg">
+            <main className="pb-8 max-w-3xl mx-auto">
+                <Card variant="elevated" padding="lg" className="shadow-sm">
                     {renderContent()}
                 </Card>
             </main>
@@ -406,20 +413,49 @@ const ResourceDetailView: React.FC<{ resourceId: number; onBack: () => void; }> 
 const ResourceLibrary: React.FC<ResourceLibraryProps> = ({ onUpgrade, userTier, onBack }) => {
     const [viewingResourceId, setViewingResourceId] = useState<number | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [openCategory, setOpenCategory] = useState<string | null>(resourcesData[0].category);
+    // Initialize openCategory to "Introductory Principles" if it exists, otherwise null
+    const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({
+        'Introductory Principles': true // Default open
+    });
 
     const isPremium = userTier === UserTier.Premium;
+
+    const toggleCategory = (categoryName: string) => {
+        setOpenCategories(prev => ({
+            ...prev,
+            [categoryName]: !prev[categoryName]
+        }));
+    };
 
     const filteredData = useMemo(() => {
         if (!searchTerm) return resourcesData;
         const lowercasedFilter = searchTerm.toLowerCase();
-        return resourcesData
+
+        // When searching, we want to return categories that have matching items
+        // And we should automatically expand categories with matches
+        const results = resourcesData
             .map(category => ({
                 ...category,
-                items: category.items.filter(item => item.title.toLowerCase().includes(lowercasedFilter)),
+                items: category.items.filter(item =>
+                    item.title.toLowerCase().includes(lowercasedFilter) ||
+                    (item as any).description?.toLowerCase().includes(lowercasedFilter)
+                ),
             }))
             .filter(category => category.items.length > 0);
+
+        return results;
     }, [searchTerm]);
+
+    // Auto-expand categories when searching
+    useMemo(() => {
+        if (searchTerm) {
+            const newOpenState: Record<string, boolean> = {};
+            filteredData.forEach(cat => {
+                newOpenState[cat.category] = true;
+            });
+            setOpenCategories(newOpenState);
+        }
+    }, [searchTerm, filteredData]);
 
     const handleItemClick = (item: { id: number; premiumOnly: boolean; }) => {
         if (item.premiumOnly && !isPremium) {
@@ -429,131 +465,145 @@ const ResourceLibrary: React.FC<ResourceLibraryProps> = ({ onUpgrade, userTier, 
         }
     };
 
+    const getCategoryIcon = (category: string) => {
+        switch (category) {
+            case 'Introductory Principles':
+                return <BookOpen size={24} className="text-[var(--color-primary)]" />;
+            case 'Core Skills (OARS)':
+                return <Target size={24} className="text-[var(--color-primary)]" />;
+            case 'Advanced Techniques':
+                return <Zap size={24} className="text-[var(--color-primary)]" />;
+            default:
+                return <FileText size={24} className="text-[var(--color-primary)]" />;
+        }
+    };
+
     if (viewingResourceId) {
         return <ResourceDetailView resourceId={viewingResourceId} onBack={() => setViewingResourceId(null)} />;
     }
 
     return (
-        <div className="min-h-screen bg-transparent pb-24 flex flex-col">
-            <header className="flex items-center mb-4 pt-4 px-6">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onBack}
-                    icon={<i className="fa-solid fa-arrow-left" />}
-                    aria-label="Go back"
-                    className="mr-3"
-                />
-                <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Resource Library</h1>
+        <div className="min-h-screen bg-transparent pb-24 flex flex-col max-w-2xl mx-auto w-full">
+            {/* 1. Page Header */}
+            <header className="px-4 pt-6 mb-8">
+                <div className="flex items-center mb-2">
+                    <Button
+                        variant="ghost"
+                        size="icon-only"
+                        onClick={onBack}
+                        className="mr-3 -ml-2 text-[#333] hover:bg-black/5"
+                        aria-label="Go back"
+                    >
+                        <ArrowLeft size={24} />
+                    </Button>
+                    <h1 className="text-2xl font-semibold text-[var(--color-text-primary)]">
+                        Resource Library
+                    </h1>
+                </div>
+                <p className="text-[14px] text-[var(--color-text-muted)] pl-1">
+                    Learn the foundations and techniques of Motivational Interviewing
+                </p>
             </header>
 
-            <div className="relative mb-6 px-6">
-                <i className="fa fa-search absolute left-10 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" aria-hidden="true"></i>
-                <input
-                    type="text"
-                    placeholder="Search resources"
-                    aria-label="Search resources"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-white border border-[var(--color-neutral-300)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-[var(--color-text-primary)]"
-                />
+            {/* 2. Search Bar */}
+            <div className="px-4 mb-8">
+                <div className="relative group">
+                    <Search
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] group-focus-within:text-[var(--color-primary)] transition-colors"
+                        size={20}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Search topics, skills, techniques..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-12 pr-4 py-3.5 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition-all placeholder:text-gray-400 text-[15px]"
+                    />
+                </div>
             </div>
 
-            <main className="space-y-4 px-6">
-                {filteredData.map(category => {
-                    const isCategoryOpen = openCategory === category.category;
-                    const premiumItems = category.items.filter(i => i.premiumOnly);
-                    const freeItems = category.items.filter(i => !i.premiumOnly);
+            {/* 3. Content */}
+            <main className="px-4 space-y-4">
+                {filteredData.length > 0 ? (
+                    filteredData.map(category => {
+                        const isOpen = openCategories[category.category] || false;
 
-                    return (
-                        <div key={category.category}>
-                            <Card
-                                variant="accent"
-                                padding="md"
-                                hoverable={isPremium}
-                                onClick={() => isPremium ? setOpenCategory(isCategoryOpen ? null : category.category) : undefined}
-                                className={`border-l-4 border-[var(--color-primary)] ${!isPremium ? 'cursor-default' : ''}`}
-                            >
-                                <div className="flex justify-between items-center">
-                                    <span className="font-bold text-[var(--color-text-primary)]">{category.category}</span>
-                                    {isPremium ? (
-                                        <i className={`fa fa-chevron-down transition-transform ${isCategoryOpen ? 'rotate-180' : ''}`} aria-hidden="true"></i>
-                                    ) : (
-                                        <div className="relative group">
-                                            <i className="fa fa-chevron-down text-[var(--color-text-muted)] opacity-50" aria-hidden="true"></i>
-                                            <div className="absolute bottom-full mb-2 right-0 px-2 py-1 bg-[var(--color-neutral-800)] text-white text-xs font-medium rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                                                Premium feature
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </Card>
+                        return (
+                            <div key={category.category} className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] overflow-hidden transition-all duration-200">
+                                {/* Category Header */}
+                                <button
+                                    onClick={() => toggleCategory(category.category)}
+                                    className="w-full flex items-center p-5 text-left hover:bg-[#FAFAFA] transition-colors"
+                                >
+                                    <div className="w-10 h-10 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center mr-4 flex-shrink-0">
+                                        {getCategoryIcon(category.category)}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h2 className="text-[17px] font-semibold text-[var(--color-text-primary)]">
+                                            {category.category}
+                                        </h2>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-[12px] font-medium text-[var(--color-text-muted)]">
+                                            {category.items.length} articles
+                                        </span>
+                                        <ChevronRight
+                                            size={20}
+                                            className={`text-[var(--color-text-muted)] transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
+                                        />
+                                    </div>
+                                </button>
 
-                            {(isPremium ? isCategoryOpen : true) && (
-                                <div className="mt-1 space-y-1">
-                                    {freeItems.map(item => (
-                                        <Card
-                                            key={item.id}
-                                            variant="elevated"
-                                            padding="sm"
-                                            hoverable
-                                            onClick={() => handleItemClick(item)}
-                                            className="cursor-pointer"
-                                        >
-                                            {item.title}
-                                        </Card>
-                                    ))}
-                                    {isPremium ? (
-                                        premiumItems.map(item => (
-                                            <Card
+                                {/* Article Rows (Expanded) */}
+                                {isOpen && (
+                                    <div className="border-t border-[#F0F0F0]">
+                                        {category.items.map((item: any, index) => (
+                                            <div
                                                 key={item.id}
-                                                variant="elevated"
-                                                padding="sm"
-                                                hoverable
                                                 onClick={() => handleItemClick(item)}
-                                                className="cursor-pointer"
+                                                className={`group flex items-center p-4 cursor-pointer hover:bg-[#FAFAFA] transition-colors border-b border-[#F0F0F0] last:border-b-0 relative ${index === 0 ? 'pt-5' : ''} ${index === category.items.length - 1 ? 'pb-5' : ''}`}
                                             >
-                                                {item.title}
-                                            </Card>
-                                        ))
-                                    ) : (
-                                        <>
-                                            {premiumItems.slice(0, 3).map(item => (
-                                                <Card
-                                                    key={item.id}
-                                                    variant="elevated"
-                                                    padding="sm"
-                                                    hoverable
-                                                    onClick={onUpgrade}
-                                                    className="cursor-pointer"
-                                                >
-                                                    <div className="flex justify-between items-center text-[var(--color-text-muted)]">
-                                                        <span>{item.title}</span>
-                                                        <i className="fa fa-lock" aria-hidden="true"></i>
+                                                <div className="flex-1 min-w-0 pr-4">
+                                                    <div className="flex items-center gap-2 mb-0.5">
+                                                        <h3 className={`text-[15px] font-medium truncate ${item.premiumOnly && !isPremium ? 'text-[var(--color-text-secondary)]' : 'text-[var(--color-text-primary)]'}`}>
+                                                            {item.title}
+                                                        </h3>
+                                                        {item.premiumOnly && !isPremium && (
+                                                            <Lock size={12} className="text-[var(--color-text-muted)]" />
+                                                        )}
                                                     </div>
-                                                </Card>
-                                            ))}
-                                            {premiumItems.length > 3 && (
-                                                <Card
-                                                    variant="accent"
-                                                    padding="md"
-                                                    hoverable
-                                                    onClick={onUpgrade}
-                                                    className="mt-2 border-2 border-[var(--color-primary)] border-dashed cursor-pointer text-center"
-                                                >
-                                                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--color-primary-lighter)] mb-2 mx-auto">
-                                                        <i className="fa fa-unlock text-xl text-[var(--color-primary)]" aria-hidden="true"></i>
-                                                    </div>
-                                                    <p className="font-bold text-[var(--color-primary-dark)]">Unlock All Advanced Techniques</p>
-                                                </Card>
-                                            )}
-                                        </>
-                                    )}
-                                </div>
-                            )}
+                                                    <p className="text-[13px] text-[var(--color-text-muted)] line-clamp-1">
+                                                        {item.description}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-3 flex-shrink-0">
+                                                    {item.readTime && (
+                                                        <span className="text-[12px] text-[var(--color-text-muted)] hidden sm:block">
+                                                            {item.readTime}
+                                                        </span>
+                                                    )}
+                                                    <ChevronRight size={16} className="text-[#D4D4D4] group-hover:text-[var(--color-text-secondary)] transition-colors" />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })
+                ) : (
+                    <div className="text-center py-12">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Search size={24} className="text-gray-400" />
                         </div>
-                    );
-                })}
+                        <h3 className="text-[16px] font-medium text-[var(--color-text-primary)] mb-1">
+                            No resources found
+                        </h3>
+                        <p className="text-[14px] text-[var(--color-text-muted)]">
+                            Try a broader search term
+                        </p>
+                    </div>
+                )}
             </main>
         </div>
     );
