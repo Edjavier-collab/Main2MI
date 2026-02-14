@@ -16,6 +16,15 @@ interface CalendarViewProps {
     hasCoachingSummary: boolean;
 }
 
+// Safely format a session date string, returning a fallback if invalid
+const formatSessionDate = (dateStr: string): string => {
+    const parsed = new Date(dateStr);
+    if (isNaN(parsed.getTime())) {
+        return 'Date unavailable';
+    }
+    return parsed.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+};
+
 const CalendarView: React.FC<CalendarViewProps> = ({ sessions, onBack, userTier, onGenerateCoachingSummary, isGeneratingSummary, hasCoachingSummary }) => {
     const [selectedSession, setSelectedSession] = useState<Session | null>(null);
     const { toasts, showToast, removeToast, ToastContainer } = useToast();
@@ -48,7 +57,15 @@ const CalendarView: React.FC<CalendarViewProps> = ({ sessions, onBack, userTier,
     }
 
     // Sort sessions by date, most recent first
-    const sortedSessions = [...sessions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const sortedSessions = [...sessions].sort((a, b) => {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        // Push invalid dates to the end
+        if (isNaN(dateA) && isNaN(dateB)) return 0;
+        if (isNaN(dateA)) return 1;
+        if (isNaN(dateB)) return -1;
+        return dateB - dateA;
+    });
 
     return (
         <div className="min-h-screen bg-transparent pb-24">
@@ -68,6 +85,175 @@ const CalendarView: React.FC<CalendarViewProps> = ({ sessions, onBack, userTier,
             </div>
 
             <main className="px-6">
+                {/* Coaching Summary Tile — Dark Premium Card */}
+                {sortedSessions.length > 0 && (
+                    <div
+                        className="relative overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg"
+                        style={{
+                            backgroundColor: '#0c4a6e',
+                            borderRadius: '12px',
+                            padding: '24px',
+                            marginBottom: '32px',
+                        }}
+                        onClick={handleGenerateClick}
+                    >
+                        {/* Subtle decorative arc in top-right */}
+                        <div
+                            className="absolute pointer-events-none"
+                            style={{
+                                top: '-40px',
+                                right: '-40px',
+                                width: '160px',
+                                height: '160px',
+                                borderRadius: '50%',
+                                backgroundColor: 'rgba(255,255,255,0.05)',
+                            }}
+                        />
+
+                        <div className="relative z-10">
+                            <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span
+                                            style={{
+                                                fontSize: '11px',
+                                                fontWeight: 700,
+                                                letterSpacing: '0.08em',
+                                                color: 'rgba(255,255,255,0.6)',
+                                                textTransform: 'uppercase' as const,
+                                            }}
+                                        >
+                                            MI PROGRESS REPORT
+                                        </span>
+                                    </div>
+
+                                    <h2
+                                        style={{
+                                            fontSize: '20px',
+                                            fontWeight: 600,
+                                            color: '#ffffff',
+                                            marginBottom: '4px',
+                                        }}
+                                    >
+                                        Coaching Summary
+                                    </h2>
+
+                                    <p
+                                        style={{
+                                            fontSize: '14px',
+                                            color: 'rgba(255,255,255,0.7)',
+                                            marginBottom: '16px',
+                                            maxWidth: '32rem',
+                                        }}
+                                    >
+                                        Compile a clear, AI-powered snapshot of your recent sessions
+                                    </p>
+
+                                    <div className="flex flex-wrap gap-2 mb-4">
+                                        {['Personalized insights', 'Progress trends', 'Next-step focus'].map(tag => (
+                                            <span
+                                                key={tag}
+                                                style={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    padding: '6px 12px',
+                                                    borderRadius: '6px',
+                                                    backgroundColor: 'rgba(255,255,255,0.1)',
+                                                    color: 'rgba(255,255,255,0.8)',
+                                                    fontSize: '12px',
+                                                    fontWeight: 500,
+                                                }}
+                                            >
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="ml-4 flex flex-col items-end">
+                                    {hasCoachingSummary ? (
+                                        <span
+                                            className="inline-flex items-center gap-1.5"
+                                            style={{
+                                                padding: '4px 12px',
+                                                backgroundColor: 'rgba(5, 150, 105, 0.15)',
+                                                color: '#34d399',
+                                                fontSize: '12px',
+                                                fontWeight: 700,
+                                                borderRadius: '9999px',
+                                                marginBottom: '12px',
+                                            }}
+                                        >
+                                            <i className="fa-solid fa-check-circle"></i>
+                                            Ready
+                                        </span>
+                                    ) : !isPremium ? (
+                                        <span
+                                            className="inline-flex items-center gap-1.5"
+                                            style={{
+                                                padding: '4px 12px',
+                                                backgroundColor: 'rgba(255,255,255,0.1)',
+                                                color: 'rgba(255,255,255,0.6)',
+                                                fontSize: '12px',
+                                                fontWeight: 700,
+                                                borderRadius: '9999px',
+                                                marginBottom: '12px',
+                                            }}
+                                        >
+                                            <i className="fa-solid fa-lock"></i>
+                                            Premium
+                                        </span>
+                                    ) : null}
+                                </div>
+                            </div>
+
+                            {/* View/Generate Report Button */}
+                            <div className="mt-2">
+                                {isGeneratingSummary ? (
+                                    <span
+                                        className="inline-flex items-center gap-2"
+                                        style={{
+                                            padding: '12px 24px',
+                                            backgroundColor: '#0ea5e9',
+                                            color: '#ffffff',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            fontWeight: 600,
+                                            opacity: 0.7,
+                                        }}
+                                    >
+                                        <i className="fa-solid fa-spinner fa-spin"></i>
+                                        Generating Report...
+                                    </span>
+                                ) : (
+                                    <button
+                                        className="inline-flex items-center gap-2 transition-colors duration-200"
+                                        style={{
+                                            padding: '12px 24px',
+                                            backgroundColor: '#0ea5e9',
+                                            color: '#ffffff',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            fontWeight: 600,
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                        }}
+                                        onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#0284c7')}
+                                        onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#0ea5e9')}
+                                        onClick={e => {
+                                            e.stopPropagation();
+                                            handleGenerateClick();
+                                        }}
+                                    >
+                                        {hasCoachingSummary ? 'View Report' : 'Generate Report'}
+                                        <span aria-hidden="true">&rarr;</span>
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {sortedSessions.length === 0 ? (
                     <Card variant="accent" padding="lg" className="mt-6 text-center">
                         <div className="mb-6">
@@ -79,20 +265,23 @@ const CalendarView: React.FC<CalendarViewProps> = ({ sessions, onBack, userTier,
                         </p>
                     </Card>
                 ) : (
-                    <div className="space-y-3 mt-6">
+                    <div className="space-y-3">
+                        <h3 className="text-sm font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Recent Sessions</h3>
                         {sortedSessions.map(session => (
-                            <Card
+                            <div
                                 key={session.id}
-                                variant="elevated"
-                                padding="md"
-                                hoverable
+                                className="bg-white cursor-pointer transition-colors duration-200 hover:bg-[var(--color-neutral-50)] min-h-[60px]"
+                                style={{
+                                    border: '1px solid #E5E5E5',
+                                    borderRadius: '12px',
+                                    padding: '16px 24px',
+                                }}
                                 onClick={() => setSelectedSession(session)}
-                                className="min-h-[60px]"
                             >
                                 <div className="flex justify-between items-center">
                                     <div className="flex-1">
                                         <p className="font-bold text-[var(--color-primary-dark)] text-lg mb-1">
-                                            {new Date(session.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                                            {formatSessionDate(session.date)}
                                         </p>
                                         <p className="text-sm text-[var(--color-text-secondary)] capitalize">
                                             {`${session.patient.age} y/o ${session.patient.sex.toLowerCase()}, ${session.patient.topic}, ${session.patient.stageOfChange}`}
@@ -100,85 +289,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({ sessions, onBack, userTier,
                                     </div>
                                     <i className="fa fa-chevron-right text-[var(--color-text-muted)] ml-4" aria-hidden="true"></i>
                                 </div>
-                            </Card>
+                            </div>
                         ))}
-                    </div>
-                )}
-
-                {/* Progress Report Section */}
-                {sortedSessions.length > 0 && (
-                    <div className="mt-10">
-                        <Card
-                            variant="accent"
-                            padding="lg"
-                            className="border-4 border-black shadow-2xl bg-white"
-                        >
-                            <div className="flex items-start gap-4 mb-4">
-                                <span className="inline-flex h-16 w-16 items-center justify-center rounded-none border-4 border-black bg-gradient-to-br from-amber-400 via-orange-500 to-pink-500 text-white shadow-xl">
-                                    <i className="fa-solid fa-wand-magic-sparkles text-3xl text-white drop-shadow-2xl font-bold" style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.5))' }} aria-hidden="true"></i>
-                                </span>
-                                <div className="flex-1">
-                                    <p className="text-xs font-semibold text-[var(--color-primary-dark)] uppercase tracking-wide">
-                                        AI Progress Report
-                                    </p>
-                                    <h3 className="text-2xl font-bold text-[var(--color-text-primary)] leading-tight">
-                                        Coaching Summary
-                                    </h3>
-                                    <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-                                        Compile a clear, AI-powered snapshot of your recent sessions.
-                                    </p>
-                                </div>
-                                {hasCoachingSummary && (
-                                    <span className="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary-lighter)] px-3 py-1 text-xs font-semibold text-[var(--color-primary-dark)]">
-                                        <i className="fa-solid fa-check-circle" aria-hidden="true"></i>
-                                        Ready
-                                    </span>
-                                )}
-                            </div>
-
-                            <div className="space-y-3">
-                                <div className="flex flex-wrap gap-3">
-                                    <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[var(--color-primary-dark)] border border-[var(--color-primary-light)]">
-                                        <i className="fa-solid fa-brain" aria-hidden="true"></i>
-                                        Personalized insights
-                                    </span>
-                                    <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[var(--color-primary-dark)] border border-[var(--color-primary-light)]">
-                                        <i className="fa-solid fa-chart-line" aria-hidden="true"></i>
-                                        Progress trends
-                                    </span>
-                                    <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[var(--color-primary-dark)] border border-[var(--color-primary-light)]">
-                                        <i className="fa-solid fa-bullseye" aria-hidden="true"></i>
-                                        Next-step focus
-                                    </span>
-                                </div>
-
-                                <div className="mt-6 flex justify-center">
-                                    <button
-                                        onClick={handleGenerateClick}
-                                        disabled={isGeneratingSummary}
-                                        className={`inline-flex items-center gap-3 px-7 py-3.5 bg-white border border-[var(--color-neutral-300)] rounded-lg shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 text-[var(--color-text-primary)] font-semibold text-base disabled:opacity-50 disabled:cursor-not-allowed ${isPremium ? 'hover:bg-[var(--color-bg-accent)]' : ''}`}
-                                    >
-                                        {isGeneratingSummary ? (
-                                            <i className="fa-solid fa-spinner fa-spin text-lg" aria-hidden="true"></i>
-                                        ) : (
-                                            <i className={`fa-solid ${hasCoachingSummary ? 'fa-eye' : (isPremium ? 'fa-wand-magic-sparkles' : 'fa-lock')} text-lg`} aria-hidden="true"></i>
-                                        )}
-                                        <span>{hasCoachingSummary ? 'View Summary' : 'Generate Summary'}</span>
-                                    </button>
-                                </div>
-
-                                {!isPremium && (
-                                    <p className="text-center text-sm text-[var(--color-text-muted)]">
-                                        Upgrade to Premium to unlock your AI-powered Coaching Summary.
-                                    </p>
-                                )}
-                                {(isPremium && sessions.filter(s => s.tier === UserTier.Premium).length === 0 && sessions.length > 0) && (
-                                    <p className="text-center text-sm text-[var(--color-text-muted)]">
-                                        Complete a premium session to generate your first summary.
-                                    </p>
-                                )}
-                            </div>
-                        </Card>
                     </div>
                 )}
             </main>
