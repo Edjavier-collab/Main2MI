@@ -138,7 +138,7 @@ serve(async (req: Request) => {
 
     // Require authenticated user - verify JWT token (no anonymous access)
     console.log(`[analyze-session-v2] Verifying token (length: ${token.length})`);
-    
+
     // Create Supabase client for Edge Function
     const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
@@ -212,29 +212,59 @@ serve(async (req: Request) => {
     // Build the prompt (same as client-side)
     const prompt = `You are an expert MI coach, trained by Miller and Rollnick, the founders of Motivational Interviewing. Your tone is supportive, educational, and never judgmental. You focus on building the user's confidence while providing concrete, evidence-based suggestions for improvement.
 
-Analyze the clinician's performance in the following transcript.
+---
 
-Patient Profile: ${JSON.stringify(patient)}
+WRITING STYLE CONSTRAINTS (MANDATORY):
+- Write like a clinical supervisor reviewing a trainee's recorded session — direct, evidence-based, and actionable.
+- Use the tone of a peer-reviewed medical education journal: precise, professional, and grounded in specific observations.
+- Every piece of feedback MUST include a concrete "Try this next" action the clinician can practice.
+- Be specific and cite evidence from the transcript. Never give vague praise like "good job" or "nice work."
 
-Transcript:
-${formattedTranscript}
+FORBIDDEN WORDS AND PHRASES — NEVER use any of the following:
+"delve", "delve into", "delves", "tapestry", "comprehensive", "multifaceted", "holistic", 
+"nuanced", "robust", "synergy", "leverage", "paradigm", "transformative", "empower", 
+"empowerment", "unlock", "unlocking potential", "journey" (when used metaphorically), 
+"navigate" (when used metaphorically), "landscape", "realm", "foster", "facilitate" (prefer "help" or "support"),
+"utilize" (use "use" instead), "implement" (use "try" or "practice" instead),
+"demonstrates" (use "shows" or "used"), "exhibits" (use "shows"),
+"It's important to note", "It's worth mentioning", "In summary",
+"Great job!", "Nice work!", "Well done!", "Keep it up!"
 
-Crucially, you MUST ground your feedback in the transcript. When you mention something the clinician did well or could improve, quote the specific phrase they used to illustrate your point.
+INSTEAD USE:
+- Direct clinical language: "You used 3 reflections, 2 of which were complex."
+- Specific observations: "At minute 2, you shifted from closed to open questions — this opened the conversation."
+- Actionable coaching: "In your next session, aim for a 1:2 ratio of simple to complex reflections."
+- Evidence-based framing: "Research by Miller & Rollnick suggests that complex reflections deepen patient engagement."
 
-Based on your analysis, provide a detailed report in the requested JSON format with ALL required fields:
+---
 
-- empathyScore: A number from 1-5 rating the clinician's overall empathy level
-- empathyBreakdown: Explain WHY you gave that score, referencing 2-3 specific examples from the transcript
-- whatWentRight: What the clinician did well, with direct quotes from the transcript
-- constructiveFeedback: Coaching-style feedback using the pattern: "Instead of saying '[exact quote from clinician]', you could have said '[your suggested alternative]'." Provide 1-2 concrete coaching suggestions in this format.
-- areasForGrowth: Coaching-style growth suggestions. For each suggestion, use the pattern: "Instead of '[quote from clinician]', try '[improved version]'." Focus on actionable rewrites the clinician can practice.
-- skillsDetected: An array of ALL MI skills you detected in the transcript (from: Open Questions, Affirmations, Reflections, Summaries, Developing Discrepancy, Eliciting Change Talk, Rolling with Resistance, Supporting Self-Efficacy)
-- skillCounts: A JSON string representation of an object counting how many times each skill was used. Count all instances in the transcript. Format as a JSON string: "{\"Reflections\": 4, \"Open Questions\": 2, \"Affirmations\": 1}"
-- nextFocus: A concise, actionable recommendation for the next practice session (1-2 sentences)
+ADDITIONAL INSTRUCTIONS:
+- Structure your feedback like a clinical case review. Lead with data (skill counts, empathy score justification), then observations, then recommendations.
+- When scoring empathy (1-5), anchor to this rubric: 1=No evidence of understanding patient's perspective, 2=Minimal acknowledgment, 3=Adequate reflection of patient feelings, 4=Deep understanding with complex reflections, 5=Masterful empathic engagement throughout.
 
-COACHING STYLE REQUIREMENT: For constructiveFeedback and areasForGrowth, you MUST use the "Instead of [quote], you could have said [suggestion]" pattern. This makes feedback actionable and concrete. Always quote the clinician's exact words, then provide a specific alternative they could practice.
-
-IMPORTANT: Count every instance of each skill in the transcript. For example, if the clinician used 4 reflections, 2 open questions, and 1 affirmation, skillCounts should be: {"Reflections": 4, "Open Questions": 2, "Affirmations": 1}`;
+    Analyze the clinician's performance in the following transcript.
+    
+    Patient Profile: ${JSON.stringify(patient)}
+    
+    Transcript:
+    ${formattedTranscript}
+    
+    Crucially, you MUST ground your feedback in the transcript. When you mention something the clinician did well or could improve, quote the specific phrase they used to illustrate your point.
+    
+    Based on your analysis, provide a detailed report in the requested JSON format with ALL required fields:
+    
+    - empathyScore: A number from 1-5 rating the clinician's overall empathy level
+    - empathyBreakdown: Explain WHY you gave that score, referencing 2-3 specific examples from the transcript
+    - whatWentRight: What the clinician did well, with direct quotes from the transcript
+    - constructiveFeedback: Coaching-style feedback using the pattern: "Instead of saying '[exact quote from clinician]', you could have said '[your suggested alternative]'." Provide 1-2 concrete coaching suggestions in this format.
+    - areasForGrowth: Coaching-style growth suggestions. For each suggestion, use the pattern: "Instead of '[quote from clinician]', try '[improved version]'." Focus on actionable rewrites the clinician can practice.
+    - skillsDetected: An array of ALL MI skills you detected in the transcript (from: Open Questions, Affirmations, Reflections, Summaries, Developing Discrepancy, Eliciting Change Talk, Rolling with Resistance, Supporting Self-Efficacy)
+    - skillCounts: A JSON string representation of an object counting how many times each skill was used. Count all instances in the transcript. Format as a JSON string: "{\"Reflections\": 4, \"Open Questions\": 2, \"Affirmations\": 1}"
+    - nextFocus: A concise, actionable recommendation for the next practice session (1-2 sentences)
+    
+    COACHING STYLE REQUIREMENT: For constructiveFeedback and areasForGrowth, you MUST use the "Instead of [quote], you could have said [suggestion]" pattern. This makes feedback actionable and concrete. Always quote the clinician's exact words, then provide a specific alternative they could practice.
+    
+    IMPORTANT: Count every instance of each skill in the transcript. For example, if the clinician used 4 reflections, 2 open questions, and 1 affirmation, skillCounts should be: {"Reflections": 4, "Open Questions": 2, "Affirmations": 1}`;
 
     // Define feedback schema for structured output
     const feedbackSchema = {
@@ -318,7 +348,7 @@ IMPORTANT: Count every instance of each skill in the transcript. For example, if
 
     // Call Gemini API with timeout
     const geminiUrl = `${GEMINI_API_URL}?key=${geminiApiKey}`;
-    
+
     let geminiResponse: Response;
     try {
       geminiResponse = await Promise.race([
@@ -349,14 +379,14 @@ IMPORTANT: Count every instance of each skill in the transcript. For example, if
     if (!geminiResponse.ok) {
       const errorText = await geminiResponse.text();
       console.error('[analyze-session-v2] Gemini API error:', geminiResponse.status, errorText);
-      
+
       if (geminiResponse.status === 400) {
         return errorResponse('Invalid request to AI service', 400, req);
       }
       if (geminiResponse.status === 401 || geminiResponse.status === 403) {
         return errorResponse('AI service authentication failed', 500, req);
       }
-      
+
       return errorResponse('AI service error. Please try again later.', 500, req);
     }
 
@@ -372,7 +402,7 @@ IMPORTANT: Count every instance of each skill in the transcript. For example, if
     // Extract JSON from response
     const candidate = geminiData.candidates[0];
     const content = candidate.content;
-    
+
     if (!content.parts || !content.parts[0]) {
       console.error('[analyze-session-v2] No parts in Gemini response content:', JSON.stringify(content, null, 2));
       return errorResponse('Empty response from AI service', 500, req);

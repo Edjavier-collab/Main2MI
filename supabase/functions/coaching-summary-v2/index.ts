@@ -96,25 +96,25 @@ function normalizeCoachingSummary(
 const coachingSummarySchema = {
   type: 'object',
   properties: {
-    totalSessions: { 
+    totalSessions: {
       type: 'integer',
       description: 'The total number of sessions being analyzed.'
     },
-    dateRange: { 
+    dateRange: {
       type: 'string',
       description: 'The date range of the sessions, e.g., "May 1, 2024 to May 30, 2024".'
     },
-    strengthsAndTrends: { 
-      type: 'string', 
-      description: 'A detailed analysis of recurring strengths and positive trends. Use markdown for lists (e.g., "* Point one").' 
+    strengthsAndTrends: {
+      type: 'string',
+      description: 'A detailed analysis of recurring strengths and positive trends. Use markdown for lists (e.g., "* Point one").'
     },
-    areasForFocus: { 
-      type: 'string', 
-      description: 'A detailed analysis of 1-2 core themes for continued focus. Use markdown for lists if needed.' 
+    areasForFocus: {
+      type: 'string',
+      description: 'A detailed analysis of 1-2 core themes for continued focus. Use markdown for lists if needed.'
     },
-    summaryAndNextSteps: { 
-      type: 'string', 
-      description: 'A brief, encouraging summary and a concrete, actionable next step for their next practice session. Use markdown for lists if needed.' 
+    summaryAndNextSteps: {
+      type: 'string',
+      description: 'A brief, encouraging summary and a concrete, actionable next step for their next practice session. Use markdown for lists if needed.'
     },
     skillProgression: {
       type: 'array',
@@ -241,6 +241,34 @@ serve(async (req: Request) => {
     const prompt = `
     You are an expert Motivational Interviewing (MI) coach analyzing a user's practice sessions.
     Your tone should be encouraging, insightful, and focused on growth.
+
+---
+
+WRITING STYLE CONSTRAINTS (MANDATORY):
+- Write as if presenting findings at a clinical team meeting. Be concise, data-driven, and focused on measurable improvement.
+- Use the tone of a peer-reviewed medical education journal: precise, professional, and grounded in specific observations.
+- Every piece of feedback MUST include a concrete "Try this next" action the clinician can practice.
+- Be specific and cite evidence from the transcript. Never give vague praise like "good job" or "nice work."
+
+FORBIDDEN WORDS AND PHRASES — NEVER use any of the following:
+"delve", "delve into", "delves", "tapestry", "comprehensive", "multifaceted", "holistic", 
+"nuanced", "robust", "synergy", "leverage", "paradigm", "transformative", "empower", 
+"empowerment", "unlock", "unlocking potential", "journey" (when used metaphorically), 
+"navigate" (when used metaphorically), "landscape", "realm", "foster", "facilitate" (prefer "help" or "support"),
+"utilize" (use "use" instead), "implement" (use "try" or "practice" instead),
+"demonstrates" (use "shows" or "used"), "exhibits" (use "shows"),
+"It's important to note", "It's worth mentioning", "In summary",
+"Great job!", "Nice work!", "Well done!", "Keep it up!"
+
+INSTEAD USE:
+- Direct clinical language: "You used 3 reflections, 2 of which were complex."
+- Specific observations: "Reflections increased from 2 per session to 5 per session across 4 sessions."
+- Actionable coaching: "In your next session, aimed for a 1:2 ratio of simple to complex reflections."
+
+ADDITIONAL INSTRUCTIONS:
+- When identifying trends, use specific numbers: 'Reflections increased from 2 per session to 5 per session across 4 sessions' rather than vague statements like 'You're improving.'
+
+---
     
     IMPORTANT: This analysis is based on ${sessionSummaries.length} practice session${sessionSummaries.length === 1 ? '' : 's'} that have been aggregated and analyzed together. Make sure to reference this in your analysis where relevant.
     
@@ -310,7 +338,7 @@ serve(async (req: Request) => {
 
     // Call Gemini API with timeout
     const geminiUrl = `${GEMINI_API_URL}?key=${geminiApiKey}`;
-    
+
     let geminiResponse: Response;
     try {
       geminiResponse = await Promise.race([
@@ -341,14 +369,14 @@ serve(async (req: Request) => {
     if (!geminiResponse.ok) {
       const errorText = await geminiResponse.text();
       console.error('[coaching-summary-v2] Gemini API error:', geminiResponse.status, errorText);
-      
+
       if (geminiResponse.status === 400) {
         return errorResponse('Invalid request to AI service', 400, req);
       }
       if (geminiResponse.status === 401 || geminiResponse.status === 403) {
         return errorResponse('AI service authentication failed', 500, req);
       }
-      
+
       return errorResponse('AI service error. Please try again later.', 500, req);
     }
 
@@ -364,7 +392,7 @@ serve(async (req: Request) => {
     // Extract text from response
     const candidate = geminiData.candidates[0];
     const content = candidate.content;
-    
+
     if (!content.parts || !content.parts[0] || !content.parts[0].text) {
       console.error('[coaching-summary-v2] No text in Gemini response:', JSON.stringify(content, null, 2));
       return errorResponse('Empty response from AI service', 500, req);
