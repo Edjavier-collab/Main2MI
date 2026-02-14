@@ -77,14 +77,14 @@ export default function RootLayout({
             {/* Header / Top Navigation */}
             <header className="sticky top-0 z-50 w-full backdrop-blur-xl bg-white/80 pt-safe-top shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all border-b border-neutral-200/50">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
+                <a href="/" className="flex items-center gap-2.5 no-underline">
                   <div className="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-lg shadow-sm">
                     M
                   </div>
                   <span className="font-display font-bold text-lg tracking-tight text-text-primary">
                     MI Mastery
                   </span>
-                </div>
+                </a>
               </div>
             </header>
 
