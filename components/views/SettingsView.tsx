@@ -13,14 +13,14 @@ import {
 } from '../../services/stripeService';
 import { submitFeedback } from '../../services/feedbackService';
 import { Button } from '../ui/Button';
-import { InsetGroup, GroupedListItem } from '../ui/Card';
+import { Card, InsetGroup, GroupedListItem } from '../ui/Card';
 import { useToast } from '../ui/Toast';
 import { FeedbackModal } from '../ui/FeedbackModal';
 import { RetentionPromoModal } from '../ui/RetentionPromoModal';
 import { UpgradeModal } from '../ui/UpgradeModal';
 import { Brain, BarChart, ChevronRight, Star, Receipt, AlertTriangle, ExternalLink, Shield, FileText, BookOpen, Sparkles, RotateCw } from 'lucide-react';
 
-// Helper component for styled icon boxes
+// Helper component for styled icon boxes - Native Premium Style
 const IconBox = ({ icon, className }: { icon: React.ReactNode; className?: string }) => (
     <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${className}`}>
         {icon}
@@ -28,7 +28,7 @@ const IconBox = ({ icon, className }: { icon: React.ReactNode; className?: strin
 );
 
 const SettingsHeader: React.FC<{ title: string }> = ({ title }) => (
-    <h2 className="px-4 pt-6 pb-2 text-sm font-semibold text-text-secondary uppercase tracking-wider">
+    <h2 className="px-4 pt-6 pb-2 text-[var(--font-size-xs)] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">
         {title}
     </h2>
 );
@@ -204,12 +204,15 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
     const isPremium = userTier === UserTier.Premium;
     const isAnonymous = !user;
 
+    // Common styling for row items to enforce height and standard layout
+    const rowClassName = "h-[56px] flex items-center";
+
     return (
-        <div className="min-h-screen bg-transparent pb-24">
+        <div className="min-h-screen bg-[var(--color-bg-main)] pb-24">
             <ToastContainer toasts={toasts} onRemove={removeToast} />
 
             <div className="flex items-center px-6 py-4">
-                <h1 className="text-2xl font-bold text-text-primary">Settings</h1>
+                <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Settings</h1>
             </div>
 
             <main className="max-w-2xl mx-auto px-4">
@@ -218,9 +221,11 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                 <InsetGroup>
                     <GroupedListItem
                         label="Current Plan"
-                        icon={<IconBox icon={<Star size={20} />} className={isPremium ? "text-yellow-500 bg-yellow-500/[.15]" : "text-primary bg-primary/[.10]"} />}
+                        icon={<IconBox icon={<Star size={20} />} className={isPremium ? "text-[var(--color-success)] bg-[var(--color-success)]/[.15]" : "text-[var(--color-primary)] bg-[var(--color-primary)]/[.10]"} />}
+                        className={rowClassName}
+                        hoverable={false}
                     >
-                        <span className={`font-semibold ${isPremium ? 'text-yellow-600' : 'text-text-primary'}`}>
+                        <span className={`text-[var(--font-size-base)] font-semibold ${isPremium ? 'text-[var(--color-success)]' : 'text-[var(--color-text-primary)]'}`}>
                             {subscriptionLoading ? 'Loading...' : isPremium ? `${subscriptionPlan ? subscriptionPlan.charAt(0).toUpperCase() + subscriptionPlan.slice(1) : ''} Pro` : 'Free'}
                         </span>
                     </GroupedListItem>
@@ -228,23 +233,34 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                     {isPremium && subscriptionPlan === 'monthly' && !cancelAtPeriodEnd && (
                         <GroupedListItem
                             label="Upgrade to Annual"
-                            icon={<IconBox icon={<Sparkles size={20} />} className="bg-warning/[.10] text-warning" />}
+                            icon={<IconBox icon={<Sparkles size={20} />} className="bg-[var(--color-accent)]/[.10] text-[var(--color-accent)]" />}
                             onClick={() => setShowUpgradeModal(true)}
+                            className={rowClassName}
                         >
-                            <span className="text-sm text-success font-medium mr-2">Save 30%</span>
-                            <ChevronRight className="h-5 w-5 text-text-muted" />
+                            <span className="bg-[var(--color-success-light)] text-[var(--color-success-dark)] rounded-full px-2 py-0.5 text-xs font-medium mr-2">Save 30%</span>
+                            <ChevronRight className="h-5 w-5 text-[var(--color-text-muted)]" />
                         </GroupedListItem>
                     )}
 
                     {isPremium && !cancelAtPeriodEnd && (
-                        <GroupedListItem label="Manage Billing" icon={<IconBox icon={<Receipt size={20} />} className="bg-success/[.10] text-success" />} onClick={handleManageBilling}>
-                            <ExternalLink className="h-5 w-5 text-text-muted" />
+                        <GroupedListItem
+                            label="Manage Billing"
+                            icon={<IconBox icon={<Receipt size={20} />} className="bg-[var(--color-success)]/[.10] text-[var(--color-success)]" />}
+                            onClick={handleManageBilling}
+                            className={rowClassName}
+                        >
+                            <ExternalLink className="h-5 w-5 text-[var(--color-text-muted)]" />
                         </GroupedListItem>
                     )}
 
                     {isPremium && !cancelAtPeriodEnd && (
-                        <GroupedListItem label="Cancel Subscription" icon={<IconBox icon={<AlertTriangle size={20} />} className="bg-error/[.10] text-error" />} onClick={() => setShowRetentionModal(true)}>
-                            <ChevronRight className="h-5 w-5 text-text-muted" />
+                        <GroupedListItem
+                            label="Cancel Subscription"
+                            icon={<IconBox icon={<AlertTriangle size={20} />} className="bg-[var(--color-error)]/[.10] text-[var(--color-error)]" />}
+                            onClick={() => setShowRetentionModal(true)}
+                            className={rowClassName}
+                        >
+                            <ChevronRight className="h-5 w-5 text-[var(--color-text-muted)]" />
                         </GroupedListItem>
                     )}
 
@@ -252,15 +268,16 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                         <GroupedListItem
                             label="Keep Subscription"
                             subtitle="Undo your scheduled cancellation"
-                            icon={<IconBox icon={<RotateCw size={20} />} className="bg-success/[.10] text-success" />}
+                            icon={<IconBox icon={<RotateCw size={20} />} className="bg-[var(--color-success)]/[.10] text-[var(--color-success)]" />}
                             onClick={restoreLoading ? undefined : handleRestoreSubscription}
                             hoverable={!restoreLoading}
+                            className={rowClassName}
                         >
-                            <span className="text-sm text-success font-medium mr-2">Restore</span>
+                            <span className="text-sm text-[var(--color-success)] font-medium mr-2">Restore</span>
                             {restoreLoading ? (
-                                <div className="animate-spin h-5 w-5 border-2 border-success border-t-transparent rounded-full" />
+                                <div className="animate-spin h-5 w-5 border-2 border-[var(--color-success)] border-t-transparent rounded-full" />
                             ) : (
-                                <ChevronRight className="h-5 w-5 text-text-muted" />
+                                <ChevronRight className="h-5 w-5 text-[var(--color-text-muted)]" />
                             )}
                         </GroupedListItem>
                     )}
@@ -269,79 +286,121 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                         <GroupedListItem
                             label="Restore Purchase"
                             subtitle="Already subscribed? Sync your status"
-                            icon={<IconBox icon={<RotateCw size={20} />} className="bg-info/[.10] text-info" />}
+                            icon={<IconBox icon={<RotateCw size={20} />} className="bg-[var(--color-info)]/[.10] text-[var(--color-info)]" />}
                             onClick={restoreLoading ? undefined : handleRestorePurchase}
                             hoverable={!restoreLoading}
+                            className={rowClassName}
                         >
-                            <span className="text-sm text-info font-medium mr-2">Sync</span>
+                            <span className="text-sm text-[var(--color-info)] font-medium mr-2">Sync</span>
                             {restoreLoading ? (
-                                <div className="animate-spin h-5 w-5 border-2 border-info border-t-transparent rounded-full" />
+                                <div className="animate-spin h-5 w-5 border-2 border-[var(--color-info)] border-t-transparent rounded-full" />
                             ) : (
-                                <ChevronRight className="h-5 w-5 text-text-muted" />
+                                <ChevronRight className="h-5 w-5 text-[var(--color-text-muted)]" />
                             )}
                         </GroupedListItem>
                     )}
 
                     {!isPremium && (
-                        <GroupedListItem label="Upgrade to Pro" icon={<IconBox icon={<Star size={20} />} className="text-primary bg-primary/[.10]" />} onClick={onNavigateToPaywall}>
-                            <Button variant="primary" size="sm">Upgrade</Button>
+                        <GroupedListItem
+                            label="Upgrade to Pro"
+                            icon={<IconBox icon={<Star size={20} />} className="text-[var(--color-primary)] bg-[var(--color-primary)]/[.10]" />}
+                            onClick={onNavigateToPaywall}
+                            className={rowClassName}
+                        >
+                            <ChevronRight className="h-5 w-5 text-[var(--color-text-muted)]" />
                         </GroupedListItem>
                     )}
                 </InsetGroup>
 
                 <SettingsHeader title="Preferences" />
                 <InsetGroup>
-                    <GroupedListItem label="AI Persona" icon={<IconBox icon={<Brain size={20} />} className="bg-info/[.10] text-info" />} onClick={() => handlePlaceholderClick('AI Persona')}>
-                        <ChevronRight className="h-5 w-5 text-text-muted" />
+                    <GroupedListItem
+                        label="AI Persona"
+                        icon={<IconBox icon={<Brain size={20} />} className="bg-[var(--color-info)]/[.10] text-[var(--color-info)]" />}
+                        onClick={() => handlePlaceholderClick('AI Persona')}
+                        className={rowClassName}
+                    >
+                        <ChevronRight className="h-5 w-5 text-[var(--color-text-muted)]" />
                     </GroupedListItem>
-                    <GroupedListItem label="Feedback Detail" icon={<IconBox icon={<BarChart size={20} />} className="bg-success/[.10] text-success" />} onClick={() => handlePlaceholderClick('Feedback Detail')}>
-                        <ChevronRight className="h-5 w-5 text-text-muted" />
+                    <GroupedListItem
+                        label="Feedback Detail"
+                        icon={<IconBox icon={<BarChart size={20} />} className="bg-[var(--color-success)]/[.10] text-[var(--color-success)]" />}
+                        onClick={() => handlePlaceholderClick('Feedback Detail')}
+                        className={rowClassName}
+                    >
+                        <ChevronRight className="h-5 w-5 text-[var(--color-text-muted)]" />
+                    </GroupedListItem>
+                </InsetGroup>
+
+                <SettingsHeader title="Support" />
+                <InsetGroup>
+                    <GroupedListItem
+                        label="Contact Us / Help Center"
+                        onClick={() => onNavigate(View.Support)}
+                        className={rowClassName}
+                    >
+                        <ChevronRight className="h-5 w-5 text-[var(--color-text-muted)]" />
+                    </GroupedListItem>
+                    <GroupedListItem
+                        label="Give Feedback"
+                        onClick={() => setFeedbackModalOpen(true)}
+                        className={rowClassName}
+                    >
+                        <ChevronRight className="h-5 w-5 text-[var(--color-text-muted)]" />
+                    </GroupedListItem>
+                </InsetGroup>
+
+                <SettingsHeader title="Legal" />
+                <InsetGroup>
+                    <GroupedListItem
+                        label="Privacy Policy"
+                        icon={<IconBox icon={<Shield size={20} />} className="bg-[var(--color-info)]/[.10] text-[var(--color-info)]" />}
+                        onClick={() => onNavigate(View.PrivacyPolicy)}
+                        className={rowClassName}
+                    >
+                        <ChevronRight className="h-5 w-5 text-[var(--color-text-muted)]" />
+                    </GroupedListItem>
+                    <GroupedListItem
+                        label="Terms of Service"
+                        icon={<IconBox icon={<FileText size={20} />} className="bg-[var(--color-info)]/[.10] text-[var(--color-info)]" />}
+                        onClick={() => onNavigate(View.TermsOfService)}
+                        className={rowClassName}
+                    >
+                        <ChevronRight className="h-5 w-5 text-[var(--color-text-muted)]" />
+                    </GroupedListItem>
+                    <GroupedListItem
+                        label="Documentation"
+                        icon={<IconBox icon={<BookOpen size={20} />} className="bg-[var(--color-info)]/[.10] text-[var(--color-info)]" />}
+                        onClick={() => handlePlaceholderClick('Documentation')}
+                        className={rowClassName}
+                    >
+                        <ChevronRight className="h-5 w-5 text-[var(--color-text-muted)]" />
                     </GroupedListItem>
                 </InsetGroup>
 
                 <SettingsHeader title="Account" />
                 <InsetGroup>
                     {isAnonymous ? (
-                        <GroupedListItem label="Sign In or Create Account" onClick={() => onNavigate(View.Login)}>
-                            <ChevronRight className="h-5 w-5 text-text-muted" />
+                        <GroupedListItem
+                            label="Sign In or Create Account"
+                            onClick={() => onNavigate(View.Login)}
+                            className={rowClassName}
+                        >
+                            <ChevronRight className="h-5 w-5 text-[var(--color-text-muted)]" />
                         </GroupedListItem>
                     ) : (
-                        <GroupedListItem label="Log Out" onClick={handleLogoutClick} hoverable={false}>
-                            <Button
-                                type="button"
-                                onClick={handleLogoutClick}
-                                disabled={logoutLoading}
-                                variant="danger"
-                                size="sm"
-                                loading={logoutLoading}
-                            >
+                        <Card
+                            variant="grouped-row"
+                            padding="md"
+                            onClick={handleLogoutClick}
+                            hoverable={!logoutLoading}
+                            className={`${rowClassName} justify-center cursor-pointer`}
+                        >
+                            <span className="text-[var(--color-error)] font-medium">
                                 {logoutLoading ? 'Logging Out...' : 'Log Out'}
-                            </Button>
-                        </GroupedListItem>
+                            </span>
+                        </Card>
                     )}
-                </InsetGroup>
-
-                <SettingsHeader title="Support" />
-                <InsetGroup>
-                    <GroupedListItem label="Contact Us / Help Center" onClick={() => onNavigate(View.Support)}>
-                        <ChevronRight className="h-5 w-5 text-text-muted" />
-                    </GroupedListItem>
-                    <GroupedListItem label="Give Feedback" onClick={() => setFeedbackModalOpen(true)}>
-                        <ChevronRight className="h-5 w-5 text-text-muted" />
-                    </GroupedListItem>
-                </InsetGroup>
-
-                <SettingsHeader title="Legal" />
-                <InsetGroup>
-                    <GroupedListItem label="Privacy Policy" icon={<IconBox icon={<Shield size={20} />} className="bg-info/[.10] text-info" />} onClick={() => onNavigate(View.PrivacyPolicy)}>
-                        <ChevronRight className="h-5 w-5 text-text-muted" />
-                    </GroupedListItem>
-                    <GroupedListItem label="Terms of Service" icon={<IconBox icon={<FileText size={20} />} className="bg-info/[.10] text-info" />} onClick={() => onNavigate(View.TermsOfService)}>
-                        <ChevronRight className="h-5 w-5 text-text-muted" />
-                    </GroupedListItem>
-                    <GroupedListItem label="Documentation" icon={<IconBox icon={<BookOpen size={20} />} className="bg-info/[.10] text-info" />} onClick={() => handlePlaceholderClick('Documentation')}>
-                        <ChevronRight className="h-5 w-5 text-text-muted" />
-                    </GroupedListItem>
                 </InsetGroup>
             </main>
 
@@ -363,7 +422,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ userTier, onNavigateToPaywa
                 onUpgrade={handleUpgradeToAnnual}
                 loading={upgradeLoading}
             />
-        </div>
+        </div >
     );
 };
 

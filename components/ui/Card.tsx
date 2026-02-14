@@ -105,16 +105,17 @@ interface GroupedListItemProps {
   onClick?: () => void;
   hoverable?: boolean;
   padding?: 'none' | 'sm' | 'md' | 'lg';
+  className?: string; // Support for custom classes
 }
 
-export const GroupedListItem = ({ icon, label, subtitle, progress, children, onClick, hoverable = true, padding = 'md' }: GroupedListItemProps) => {
+export const GroupedListItem = ({ icon, label, subtitle, progress, children, onClick, hoverable = true, padding = 'md', className }: GroupedListItemProps) => {
   return (
-    <Card 
-      variant="grouped-row" 
+    <Card
+      variant="grouped-row"
       padding={padding}
       onClick={onClick}
       hoverable={hoverable && !!onClick}
-      className="w-full"
+      className={`w-full ${className || ''}`}
     >
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">

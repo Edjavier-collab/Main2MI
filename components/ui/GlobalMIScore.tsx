@@ -256,74 +256,54 @@ const GlobalMIScore: React.FC<GlobalMIScoreProps> = ({
   const trend = useMemo(() => calculateTrend(sessions), [sessions]);
   const skillMessage = useMemo(() => analyzeSkillTrends(sessions), [sessions]);
 
-  // Show component even if no sessions - will display 0% score
-  // This ensures the component is always visible for better UX
-
   return (
-    <div
-      className="rounded-2xl p-6 mb-6 shadow-lg backdrop-blur-md border border-[var(--color-primary-lighter)]"
-      style={{
-        background: 'linear-gradient(135deg, var(--color-bg-card) 0%, var(--color-bg-accent) 100%)',
-      }}
-    >
-      {/* Header with title and settings icon */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h3 className="text-xl font-bold text-[var(--color-text-primary)] mb-1">Global MI Score</h3>
-          <p className="text-sm text-[var(--color-text-secondary)]">Average across all sessions</p>
-        </div>
-        <button
-          onClick={onSettingsClick}
-          className="text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors p-2 -mr-2"
-          aria-label="Settings"
-        >
-          <i className="fa-solid fa-gear text-lg" aria-hidden="true"></i>
-        </button>
+    <div className="bg-white rounded-xl border border-[var(--color-neutral-200)] p-6 mb-8 shadow-sm flex items-center gap-6">
+      {/* Left: Gauge (Fixed Size 80px) */}
+      <div className="flex-shrink-0">
+        <RadialProgress value={globalScore} max={100} size={80} strokeWidth={8} />
       </div>
 
-      {/* Main content: Circular progress and trend */}
-      <div className="flex items-start gap-8">
-        {/* Circular progress indicator */}
-        <div className="flex-shrink-0">
-          <RadialProgress value={globalScore} max={100} />
+      {/* Right: Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
+            Global MI Score
+          </h3>
+          {onSettingsClick && (
+            <button
+              onClick={onSettingsClick}
+              className="text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors p-1"
+              aria-label="Settings"
+            >
+              <i className="fa-solid fa-gear text-sm" aria-hidden="true"></i>
+            </button>
+          )}
         </div>
 
-        {/* Trend and message */}
-        <div className="flex-1 pt-2">
-          {trend && (
-            <div className="flex items-center gap-2 mb-4">
+        {/* Trend Indicator */}
+        <div className="flex items-center gap-3 mb-2">
+          {trend ? (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[var(--color-bg-secondary)]">
               <i
-                className={`fa-solid fa-arrow-${
-                  trend.isPositive ? 'up' : 'down'
-                }`}
-                style={{
-                  color: trend.isPositive ? 'var(--color-success)' : 'var(--color-error)',
-                  fontSize: '14px',
-                }}
+                className={`fa-solid fa-arrow-${trend.isPositive ? 'up' : 'down'}`}
+                style={{ color: trend.isPositive ? 'var(--color-success)' : 'var(--color-error)', fontSize: '10px' }}
                 aria-hidden="true"
               ></i>
-              <span
-                className="text-sm font-semibold"
-                style={{
-                  color: trend.isPositive ? 'var(--color-success)' : 'var(--color-error)',
-                }}
-              >
-                {trend.isPositive ? '+' : '-'}
+              <span className="text-xs font-medium text-[var(--color-text-secondary)]">
                 {trend.percentage}% vs last week
               </span>
             </div>
+          ) : (
+            <span className="text-xs text-[var(--color-text-muted)]">
+              No trend data yet
+            </span>
           )}
-          {!trend && (
-            <div className="mb-4">
-              <span className="text-sm text-[var(--color-text-muted)]">
-                Complete more sessions to see trends
-              </span>
-            </div>
-          )}
-          <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed" style={{ lineHeight: '1.6' }}>
-            {skillMessage}
-          </p>
         </div>
+
+        {/* Insight Message */}
+        <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed line-clamp-2">
+          {skillMessage}
+        </p>
       </div>
     </div>
   );
