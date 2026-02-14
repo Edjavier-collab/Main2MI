@@ -31,13 +31,13 @@ serve(async (req: Request) => {
 
     // Always verify webhook signature - no bypass
     let event: Stripe.Event;
-      try {
-        event = await stripe.webhooks.constructEventAsync(
-          body,
-          signature,
-          webhookSecret
-        );
-      } catch (err) {
+    try {
+      event = await stripe.webhooks.constructEventAsync(
+        body,
+        signature,
+        webhookSecret
+      );
+    } catch (err) {
       console.error('[stripe-webhook] Signature verification failed');
       return errorResponse('Webhook signature verification failed', 400, req);
     }
@@ -87,7 +87,7 @@ serve(async (req: Request) => {
         }
 
         // Auto-cancel beta promo subscriptions
-        if (session.subscription && (session.total_details?.amount_discount ?? 0) > 0) {
+        if (session.subscription && (session.discount || (session.discounts && session.discounts.length > 0))) {
           try {
             const subscriptionId = session.subscription as string;
             await stripe.subscriptions.update(subscriptionId, {
