@@ -10,34 +10,46 @@ interface PatientProfileCardProps {
     onUpgrade?: () => void;
 }
 
-// Personality trait display configuration
-const PERSONALITY_TRAIT_LABELS: Record<PersonalityTrait, { label: string; icon: string; colorClass: string }> = {
-    defensive: { label: 'Defensive', icon: 'fa-shield', colorClass: 'bg-red-100 text-red-700' },
-    emotional: { label: 'Emotional', icon: 'fa-heart', colorClass: 'bg-pink-100 text-pink-700' },
-    reserved: { label: 'Reserved', icon: 'fa-lock', colorClass: 'bg-slate-100 text-slate-700' },
-    talkative: { label: 'Talkative', icon: 'fa-comments', colorClass: 'bg-blue-100 text-blue-700' },
-    intellectualizer: { label: 'Intellectualizer', icon: 'fa-brain', colorClass: 'bg-purple-100 text-purple-700' },
-    pleaser: { label: 'People Pleaser', icon: 'fa-handshake', colorClass: 'bg-green-100 text-green-700' },
+// ----------------------------------------------------------------------
+// HELPER FUNCTIONS
+// ----------------------------------------------------------------------
+
+const AVATAR_COLORS = ['#6B8E7B', '#7B8FA1', '#9B8EA7', '#A1887F', '#8D9E72', '#7E9AAB'];
+
+/**
+ * Generate a consistent muted color based on the patient's name.
+ */
+const getAvatarColor = (name: string): string => {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % AVATAR_COLORS.length;
+    return AVATAR_COLORS[index];
 };
 
-// Stage colors for pills
-const stageColors: Record<StageOfChange, { bg: string; text: string }> = {
-    [StageOfChange.Precontemplation]: { bg: 'var(--color-error-light)', text: 'var(--color-error-dark)' },
-    [StageOfChange.Contemplation]: { bg: 'var(--color-warning-light)', text: 'var(--color-warning-dark)' },
-    [StageOfChange.Preparation]: { bg: 'var(--color-info-light)', text: 'var(--color-info-dark)' },
-    [StageOfChange.Action]: { bg: 'var(--color-success-light)', text: 'var(--color-success-dark)' },
-    [StageOfChange.Maintenance]: { bg: 'var(--color-primary-light)', text: 'var(--color-primary-dark)' },
+/**
+ * Get initials from name (max 2 characters).
+ */
+const getInitials = (name: string): string => {
+    return name
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .substring(0, 2)
+        .toUpperCase();
 };
 
-// Generate avatar URL based on patient demographics
-const getAvatarUrl = (name: string, sex: string, age: number): string => {
-    // Use UI Avatars service for consistent, seeded avatars
-    const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2);
-    const bgColor = sex === 'Male' ? '4A90A4' : sex === 'Female' ? 'A4789B' : '7A8B99';
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=${bgColor}&color=fff&size=128&bold=true&font-size=0.4`;
+const PERSONALITY_TRAIT_LABELS: Record<PersonalityTrait, string> = {
+    defensive: 'Defensive',
+    emotional: 'Emotional',
+    reserved: 'Reserved',
+    talkative: 'Talkative',
+    intellectualizer: 'Intellectualizer',
+    pleaser: 'People Pleaser',
 };
 
-// MI Session Objectives based on stage of change
+// MI Session Objectives based on stage of change (Unchanged logic)
 const getSessionObjectives = (stage: StageOfChange): string[] => {
     const commonObjectives = [
         'Resist the righting reflex',
@@ -77,129 +89,135 @@ const getSessionObjectives = (stage: StageOfChange): string[] => {
 
 const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTier, onUpgrade }) => {
     const isFreeTier = userTier === UserTier.Free;
-    const avatarUrl = useMemo(() => getAvatarUrl(patient.name, patient.sex, patient.age), [patient.name, patient.sex, patient.age]);
     const sessionObjectives = useMemo(() => getSessionObjectives(patient.stageOfChange), [patient.stageOfChange]);
+    const avatarColor = useMemo(() => getAvatarColor(patient.name), [patient.name]);
+    const initials = useMemo(() => getInitials(patient.name), [patient.name]);
 
     return (
         <Card
             variant="soft"
             padding="none"
-            className="w-full max-w-2xl mx-auto overflow-hidden"
+            className="w-full max-w-2xl mx-auto overflow-hidden bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] rounded-xl"
         >
-            {/* Header - Centered Avatar Layout */}
-            <header className="pt-6 pb-4 px-6 text-center border-b border-[var(--color-neutral-200)]">
+            {/* ----------------------------------------------------------------------
+                HEADER: Avatar, Name, Demographics, Clinical Tags
+               ---------------------------------------------------------------------- */}
+            <header className="pt-8 pb-6 px-6 text-center border-b border-[#F0F0F0]">
                 {/* Avatar */}
-                <div className="relative inline-block mb-4">
-                    <img
-                        src={avatarUrl}
-                        alt={`${patient.name}'s avatar`}
-                        className="w-24 h-24 rounded-full border-4 border-white shadow-lg"
-                    />
-                    {/* Online indicator */}
-                    <span
-                        className="absolute bottom-1 right-1 w-5 h-5 rounded-full border-2 border-white"
-                        style={{ backgroundColor: 'var(--color-success)' }}
-                        aria-label="Available for session"
-                    />
+                <div
+                    className="relative inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 shadow-[0_2px_8px_rgba(0,0,0,0.1)]"
+                    style={{ backgroundColor: avatarColor }}
+                >
+                    <span className="text-white text-2xl font-bold tracking-wide">
+                        {initials}
+                    </span>
                 </div>
 
-                {/* Name and basic info */}
-                <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">{patient.name}</h2>
-                <p className="text-[var(--color-text-secondary)] mt-1">
+                {/* Name & Demographics */}
+                <h2 className="text-[22px] font-bold text-[var(--color-text-primary)] mb-1">
+                    {patient.name}
+                </h2>
+                <p className="text-[14px] text-[var(--color-text-muted)] mb-6">
                     {patient.age} years old, {patient.sex}
                 </p>
 
-                {/* Stat Pills */}
-                <div className="flex items-center justify-center gap-2 mt-4 flex-wrap">
-                    {/* Stage of Change Pill */}
-                    <span
-                        className="px-3 py-1 text-xs font-semibold rounded-full"
-                        style={{
-                            backgroundColor: stageColors[patient.stageOfChange].bg,
-                            color: stageColors[patient.stageOfChange].text,
-                        }}
-                    >
-                        <i className="fa-solid fa-circle-dot mr-1 text-[10px]" aria-hidden="true" />
-                        {patient.stageOfChange}
-                    </span>
-
-                    {/* Focus Area Pill */}
-                    <span
-                        className="px-3 py-1 text-xs font-semibold rounded-full"
-                        style={{
-                            backgroundColor: 'var(--color-primary-light)',
-                            color: 'var(--color-primary-dark)',
-                        }}
-                    >
-                        <i className="fa-solid fa-bullseye mr-1 text-[10px]" aria-hidden="true" />
-                        {patient.topic}
-                    </span>
-
-                    {/* Personality Trait Pill (if available) */}
-                    {patient.personalityTrait && PERSONALITY_TRAIT_LABELS[patient.personalityTrait] && (
-                        <span className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 ${PERSONALITY_TRAIT_LABELS[patient.personalityTrait].colorClass}`}>
-                            <i className={`fa-solid ${PERSONALITY_TRAIT_LABELS[patient.personalityTrait].icon} text-[10px]`} aria-hidden="true" />
-                            {PERSONALITY_TRAIT_LABELS[patient.personalityTrait].label}
+                {/* Clinical Tags Row */}
+                <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-4">
+                    {/* Stage of Change */}
+                    <div className="flex flex-col items-center">
+                        <span className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5 opacity-70">
+                            Stage
                         </span>
+                        <div className="px-3.5 py-2 rounded-md border border-[#D4D4D4] bg-white text-[13px] font-medium text-[#555]">
+                            {patient.stageOfChange}
+                        </div>
+                    </div>
+
+                    {/* Presenting Issue */}
+                    <div className="flex flex-col items-center">
+                        <span className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5 opacity-70">
+                            Issue
+                        </span>
+                        <div className="px-3.5 py-2 rounded-md border border-[#D4D4D4] bg-white text-[13px] font-medium text-[#555]">
+                            {patient.topic}
+                        </div>
+                    </div>
+
+                    {/* Personality Style (Optional) */}
+                    {patient.personalityTrait && (
+                        <div className="flex flex-col items-center">
+                            <span className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5 opacity-70">
+                                Style
+                            </span>
+                            <div className="px-3.5 py-2 rounded-md border border-[#D4D4D4] bg-white text-[13px] font-medium text-[#555]">
+                                {PERSONALITY_TRAIT_LABELS[patient.personalityTrait] || patient.personalityTrait}
+                            </div>
+                        </div>
                     )}
                 </div>
             </header>
 
-            <main className="p-6 space-y-5">
-                {/* Reason for Visit / Chief Complaint */}
+            {/* ----------------------------------------------------------------------
+                MAIN CONTENT: Reason, Context, Objectives
+               ---------------------------------------------------------------------- */}
+            <main className="p-6 space-y-6 bg-[var(--color-bg-main)]">
+
+                {/* 1. Reason for Visit */}
                 <section>
-                    <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-2 flex items-center">
-                        <i className="fa-solid fa-quote-left text-[var(--color-primary)] mr-2" aria-hidden="true" />
+                    <h3 className="text-[12px] font-bold text-[var(--color-text-muted)] uppercase tracking-[0.05em] mb-3">
                         Reason for Visit
                     </h3>
-                    <blockquote
-                        className="border-l-4 pl-4 py-2 italic text-[var(--color-text-primary)]"
-                        style={{ borderColor: 'var(--color-primary)' }}
+                    <div
+                        className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden flex"
                     >
-                        "{patient.chiefComplaint}"
-                    </blockquote>
+                        <div className="w-[3px] bg-[var(--color-primary)] flex-shrink-0" />
+                        <div className="p-6 flex-1 bg-[#FAFAFA]">
+                            <p className="text-[15px] italic text-[var(--color-text-primary)] leading-relaxed">
+                                "{patient.chiefComplaint}"
+                            </p>
+                        </div>
+                    </div>
                 </section>
 
-                {/* Clinical Context (Premium) */}
+                {/* 2. Clinical Context (Premium) */}
                 {!isFreeTier && (
-                    <section
-                        className="rounded-xl p-4"
-                        style={{ backgroundColor: 'var(--color-neutral-50)' }}
-                    >
-                        <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-3 flex items-center">
-                            <i className="fa-solid fa-stethoscope text-[var(--color-primary)] mr-2" aria-hidden="true" />
+                    <section>
+                        <h3 className="text-[12px] font-bold text-[var(--color-text-muted)] uppercase tracking-[0.05em] mb-3">
                             Clinical Context
                         </h3>
+                        <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-6">
+                            <div className="space-y-4">
+                                {/* Usage */}
+                                <div>
+                                    <h4 className="text-[11px] font-bold text-[#999] uppercase tracking-wider mb-1.5">
+                                        Usage Pattern
+                                    </h4>
+                                    <p className="text-[15px] text-[var(--color-text-primary)] leading-relaxed">
+                                        {patient.presentingProblem}
+                                    </p>
+                                </div>
+                                <div className="h-px bg-[#F0F0F0]" />
 
-                        <div className="space-y-4">
-                            {/* Usage Pattern */}
-                            <div>
-                                <h4 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase mb-1">
-                                    Usage Pattern
-                                </h4>
-                                <p className="text-sm text-[var(--color-text-primary)]">
-                                    {patient.presentingProblem}
-                                </p>
-                            </div>
+                                {/* Health Impact */}
+                                <div>
+                                    <h4 className="text-[11px] font-bold text-[#999] uppercase tracking-wider mb-1.5">
+                                        Health Impact
+                                    </h4>
+                                    <p className="text-[15px] text-[var(--color-text-primary)] leading-relaxed">
+                                        {patient.history}
+                                    </p>
+                                </div>
+                                <div className="h-px bg-[#F0F0F0]" />
 
-                            {/* Health Impact */}
-                            <div>
-                                <h4 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase mb-1">
-                                    Health Impact
-                                </h4>
-                                <p className="text-sm text-[var(--color-text-primary)]">
-                                    {patient.history}
-                                </p>
-                            </div>
-
-                            {/* Background */}
-                            <div>
-                                <h4 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase mb-1">
-                                    Background
-                                </h4>
-                                <p className="text-sm text-[var(--color-text-primary)]">
-                                    {patient.background}
-                                </p>
+                                {/* Background */}
+                                <div>
+                                    <h4 className="text-[11px] font-bold text-[#999] uppercase tracking-wider mb-1.5">
+                                        Background
+                                    </h4>
+                                    <p className="text-[15px] text-[var(--color-text-primary)] leading-relaxed">
+                                        {patient.background}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -208,61 +226,57 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
                 {/* Brief History for Free Tier */}
                 {isFreeTier && (
                     <section>
-                        <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-2 flex items-center">
-                            <i className="fa-solid fa-file-medical text-[var(--color-primary)] mr-2" aria-hidden="true" />
-                            Relevant History
+                        <h3 className="text-[12px] font-bold text-[var(--color-text-muted)] uppercase tracking-[0.05em] mb-3">
+                            Clinical Context
                         </h3>
-                        <p className="text-sm text-[var(--color-text-primary)]">
-                            {patient.history.split('.')[0]}.
-                        </p>
+                        <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-6">
+                            <p className="text-[15px] text-[var(--color-text-primary)] leading-relaxed">
+                                {patient.history.split('.')[0]}.
+                            </p>
+                        </div>
                     </section>
                 )}
 
-                {/* Session Objectives */}
-                <section
-                    className="rounded-xl p-4"
-                    style={{ backgroundColor: 'var(--color-primary-light)' }}
-                >
-                    <h3 className="text-sm font-semibold uppercase tracking-wide mb-3 flex items-center" style={{ color: 'var(--color-primary-dark)' }}>
-                        <i className="fa-solid fa-clipboard-list mr-2" aria-hidden="true" />
+                {/* 3. Session Objectives */}
+                <section>
+                    <h3 className="text-[12px] font-bold text-[var(--color-text-muted)] uppercase tracking-[0.05em] mb-3">
                         Session Objectives
                     </h3>
-                    <ul className="space-y-2">
-                        {sessionObjectives.map((objective, index) => (
-                            <li key={index} className="flex items-start gap-2">
-                                <i
-                                    className="fa-solid fa-circle-check mt-0.5 text-sm flex-shrink-0"
-                                    style={{ color: 'var(--color-primary)' }}
-                                    aria-hidden="true"
-                                />
-                                <span className="text-sm text-[var(--color-text-primary)]">{objective}</span>
-                            </li>
-                        ))}
-                    </ul>
+                    <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden flex">
+                        <div className="w-[3px] bg-[var(--color-primary)] flex-shrink-0" />
+                        <div className="p-6 flex-1">
+                            <ul className="space-y-3">
+                                {sessionObjectives.map((objective, index) => (
+                                    <li key={index} className="flex items-start gap-3">
+                                        <span
+                                            className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white mt-0.5"
+                                            style={{ backgroundColor: 'var(--color-primary)' }}
+                                        >
+                                            {index + 1}
+                                        </span>
+                                        <span className="text-[15px] text-[var(--color-text-primary)] leading-snug">
+                                            {objective}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
                 </section>
             </main>
 
             {/* Free Tier Upgrade CTA */}
             {isFreeTier && (
                 <footer
-                    className={`border-t border-[var(--color-neutral-200)] px-6 py-4 text-center ${onUpgrade ? 'cursor-pointer hover:bg-[var(--color-neutral-50)] transition-colors' : ''}`}
-                    style={{ backgroundColor: 'var(--color-bg-card)' }}
+                    className={`border-t border-[#F0F0F0] px-6 py-5 text-center bg-white ${onUpgrade ? 'cursor-pointer hover:bg-gray-50 transition-colors' : ''}`}
                     onClick={onUpgrade}
-                    role={onUpgrade ? 'button' : undefined}
-                    tabIndex={onUpgrade ? 0 : undefined}
-                    onKeyDown={onUpgrade ? (e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            onUpgrade();
-                        }
-                    } : undefined}
                 >
                     <div className="flex items-center justify-center gap-2">
-                        <i className="fa-solid fa-lock text-[var(--color-neutral-400)]" aria-hidden="true" />
-                        <p className="text-sm font-medium text-[var(--color-text-secondary)]">
+                        <i className="fa-solid fa-lock text-[var(--color-text-muted)] text-sm" aria-hidden="true" />
+                        <p className="text-[14px] font-medium text-[var(--color-text-secondary)]">
                             Upgrade to Premium for full clinical context
                         </p>
-                        <i className="fa-solid fa-arrow-right text-[var(--color-primary)] text-sm" aria-hidden="true" />
+                        <i className="fa-solid fa-arrow-right text-[var(--color-primary)] text-sm ml-1" aria-hidden="true" />
                     </div>
                 </footer>
             )}

@@ -532,7 +532,7 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
                     onClick={() => setIsSessionStarted(true)}
                     variant="primary"
                     size="lg"
-                    className="mt-8 px-12 py-4 text-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] border-2 border-black"
+                    className="mt-8 w-full max-w-[360px] h-14 text-base font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)] transition-all active:translate-y-[1px] !rounded-xl"
                 >
                     Begin Session
                 </Button>
