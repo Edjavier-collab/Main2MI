@@ -48,14 +48,17 @@ export const useSpeechRecognition = () => {
     const interimTranscriptRef = useRef(''); // Mirror interim transcript in a ref (avoids stale state in stop/onend)
 
 
+    const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const SILENCE_TIMEOUT_MS = 5000; // 5 seconds of silence on desktop before committing text (but keeping mic open)
+
     useEffect(() => {
         // Reset mounted state on mount
         isMountedRef.current = true;
-        
+
         // Restore transcript from persisted value (survives React Strict Mode remounts)
         finalTranscriptRef.current = persistedTranscript;
         setFinalTranscript(persistedTranscript);
-        
+
         if (!SpeechRecognitionAPI) {
             const errorMsg = "Speech Recognition API is not supported in this browser. Please use Chrome, Edge, or another Chromium-based browser.";
             console.error(errorMsg);
@@ -69,9 +72,9 @@ export const useSpeechRecognition = () => {
         // 2. localhost or 127.0.0.1 (development)
         // 3. Explicitly secure contexts as defined by window.isSecureContext
         const isSecureContext = window.isSecureContext ||
-                                window.location.protocol === 'https:' ||
-                                window.location.hostname === 'localhost' ||
-                                window.location.hostname === '127.0.0.1';
+            window.location.protocol === 'https:' ||
+            window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1';
 
         if (!isSecureContext) {
             const errorMsg = "Speech Recognition requires a secure context (HTTPS or localhost). Please access this app via HTTPS or localhost.";
@@ -85,8 +88,14 @@ export const useSpeechRecognition = () => {
         recognition.continuous = !isMobile; // continuous on desktop, single-utterance on mobile
         recognition.interimResults = true;
         recognition.lang = 'en-US';
-        
+
         recognition.onresult = (event: SpeechRecognitionEvent) => {
+            // Clear any existing silence timer when we hear speech
+            if (silenceTimerRef.current) {
+                clearTimeout(silenceTimerRef.current);
+                silenceTimerRef.current = null;
+            }
+
             // Build interim transcript from ONLY the latest interim results in this event
             // Don't accumulate - rebuild from scratch each time
             let newInterimTranscript = '';
@@ -94,7 +103,7 @@ export const useSpeechRecognition = () => {
 
             // Process results from resultIndex to end of results array
             const startIndex = event.resultIndex;
-            
+
             for (let i = startIndex; i < event.results.length; ++i) {
                 const result = event.results[i];
                 if (result.isFinal) {
@@ -133,6 +142,25 @@ export const useSpeechRecognition = () => {
                     const nextInterim = newInterimTranscript.trim();
                     setInterimTranscript(nextInterim);
                     interimTranscriptRef.current = nextInterim;
+
+                    // On Desktop: Set a silence timer to commit interim as final if user stops speaking but mic stays open
+                    if (!isMobile && nextInterim) {
+                        silenceTimerRef.current = setTimeout(() => {
+                            if (interimTranscriptRef.current) {
+                                // Commit current interim to final
+                                const textToAdd = finalTranscriptRef.current ? ' ' + interimTranscriptRef.current : interimTranscriptRef.current;
+                                finalTranscriptRef.current = textToAdd;
+                                persistedTranscript = finalTranscriptRef.current;
+
+                                // Update state
+                                if (isMountedRef.current) {
+                                    setFinalTranscript(finalTranscriptRef.current);
+                                    setInterimTranscript('');
+                                    interimTranscriptRef.current = '';
+                                }
+                            }
+                        }, SILENCE_TIMEOUT_MS);
+                    }
                 }
             }
         };
@@ -143,23 +171,49 @@ export const useSpeechRecognition = () => {
                 return;
             }
 
-            setIsListening(false);
-            stopTriggeredRef.current = false;
-            // If we never received a final result, preserve whatever interim we had at stop time
-            if (!finalTranscriptRef.current && interimTranscriptRef.current.trim()) {
-                finalTranscriptRef.current = interimTranscriptRef.current.trim();
+            // If user explicitly stopped, we're done
+            if (userExplicitlyStoppedRef.current) {
+                setIsListening(false);
+                stopTriggeredRef.current = false;
+
+                // If we never received a final result, preserve whatever interim we had at stop time
+                if (!finalTranscriptRef.current && interimTranscriptRef.current.trim()) {
+                    finalTranscriptRef.current = interimTranscriptRef.current.trim();
+                    persistedTranscript = finalTranscriptRef.current;
+                    setFinalTranscript(() => finalTranscriptRef.current);
+                }
+                // Clear interim at end
+                setInterimTranscript('');
+                interimTranscriptRef.current = '';
+
+                // Always preserve the transcript in onend
                 persistedTranscript = finalTranscriptRef.current;
                 setFinalTranscript(() => finalTranscriptRef.current);
+                stateSyncedInStopRef.current = false;
+                userExplicitlyStoppedRef.current = false;
+                return;
             }
-            // Clear interim at end
-            setInterimTranscript('');
-            interimTranscriptRef.current = '';
-            
-            // Always preserve the transcript in onend
-            persistedTranscript = finalTranscriptRef.current;
-            setFinalTranscript(() => finalTranscriptRef.current);
-            stateSyncedInStopRef.current = false;
-            userExplicitlyStoppedRef.current = false;
+
+            // If NOT explicitly stopped (cutoff happening):
+
+            // On Mobile: Auto-restart to simulate continuous listening
+            if (isMobile) {
+                // Determine if we should restart immediately
+                // We restart if we weren't stopped explicitly
+                setTimeout(() => {
+                    if (isMountedRef.current && !userExplicitlyStoppedRef.current && recognitionRef.current) {
+                        try {
+                            recognitionRef.current.start();
+                        } catch (e) {
+                            // Ignore restart errors
+                        }
+                    }
+                }, 500); // 500ms delay before restart
+            } else {
+                // On Desktop: Just update state, but usually continuous mode keeps it open
+                // If it closed unexpectedly on desktop, we let it close to avoid infinite loops if permission revoked
+                setIsListening(false);
+            }
         };
 
         recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
@@ -167,11 +221,22 @@ export const useSpeechRecognition = () => {
             if (!isMountedRef.current) {
                 return;
             }
-            
+
+            // If we are on mobile and get 'no-speech' or 'aborted', we might want to just restart silently
+            // instead of showing error, to keep the "continuous" feel
+            if (isMobile && (event.error === 'no-speech' || event.error === 'aborted' || event.error === 'network')) {
+                // Don't set error, just let onend handle the restart
+                return;
+            }
+
             console.error('Speech recognition error', event.error);
             setIsListening(false);
             stopTriggeredRef.current = false;
-            userExplicitlyStoppedRef.current = false;
+            // Only set explicitly stopped if it's a fatal error, otherwise let onend retry if mobile
+            if (event.error === 'not-allowed' || event.error === 'audio-capture') {
+                userExplicitlyStoppedRef.current = true;
+            }
+
             setInterimTranscript('');
 
             // Provide user-friendly error messages
@@ -195,14 +260,17 @@ export const useSpeechRecognition = () => {
                 default:
                     errorMessage = `Speech recognition error: ${event.error}`;
             }
-            setError(errorMessage);
 
-            // Clear error after 5 seconds (only if still mounted)
-            setTimeout(() => {
-                if (isMountedRef.current) {
-                    setError(null);
-                }
-            }, 5000);
+            // On mobile, suppress some errors to avoid UI flicker during auto-restart
+            if (!isMobile) {
+                setError(errorMessage);
+                // Clear error after 5 seconds (only if still mounted)
+                setTimeout(() => {
+                    if (isMountedRef.current) {
+                        setError(null);
+                    }
+                }, 5000);
+            }
         };
 
         recognitionRef.current = recognition;
@@ -211,10 +279,15 @@ export const useSpeechRecognition = () => {
             // Mark component as unmounted
             isMountedRef.current = false;
 
+            // Clear silence timer
+            if (silenceTimerRef.current) {
+                clearTimeout(silenceTimerRef.current);
+            }
+
             // Remove all event listeners by stopping recognition
             if (recognitionRef.current) {
                 try {
-                recognitionRef.current.stop();
+                    recognitionRef.current.stop();
                 } catch (err) {
                     // Ignore errors when stopping (may already be stopped)
                 }
@@ -247,7 +320,7 @@ export const useSpeechRecognition = () => {
             userExplicitlyStoppedRef.current = false;
             stateSyncedInStopRef.current = false;
             setError(null);
-            
+
             // Clear interim when starting new session
             setInterimTranscript('');
             interimTranscriptRef.current = '';
@@ -256,8 +329,8 @@ export const useSpeechRecognition = () => {
         } catch (err) {
             console.error('Failed to start speech recognition:', err);
             if (isMountedRef.current) {
-            setError('Failed to start microphone. Please check your browser permissions.');
-            setIsListening(false);
+                setError('Failed to start microphone. Please check your browser permissions.');
+                setIsListening(false);
             }
         }
     };
@@ -265,6 +338,14 @@ export const useSpeechRecognition = () => {
     const stopListening = () => {
         if (recognitionRef.current && isListening) {
             stopTriggeredRef.current = true;
+            userExplicitlyStoppedRef.current = true; // MARK EXPLICIT STOP
+
+            // Clear silence timer
+            if (silenceTimerRef.current) {
+                clearTimeout(silenceTimerRef.current);
+                silenceTimerRef.current = null;
+            }
+
             recognitionRef.current.stop();
             setIsListening(false);
             // Preserve whatever interim we have by promoting it to final if we don't have a final yet
@@ -277,7 +358,7 @@ export const useSpeechRecognition = () => {
             // Clear interim when stopping
             setInterimTranscript('');
             interimTranscriptRef.current = '';
-            
+
             // Sync React state with ref immediately
             setFinalTranscript(() => finalTranscriptRef.current);
             stateSyncedInStopRef.current = true;
@@ -303,7 +384,7 @@ export const useSpeechRecognition = () => {
 
         // Non-empty text: full reset (for explicit transcript setting)
         userExplicitlyStoppedRef.current = true;
-        
+
         finalTranscriptRef.current = text;
         persistedTranscript = text;
         setFinalTranscript(text);
@@ -316,20 +397,20 @@ export const useSpeechRecognition = () => {
 
     // Check if Speech Recognition API is supported and we're in a secure context
     const isSecureContext = window.isSecureContext ||
-                            window.location.protocol === 'https:' ||
-                            window.location.hostname === 'localhost' ||
-                            window.location.hostname === '127.0.0.1';
+        window.location.protocol === 'https:' ||
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1';
     const hasSupport = !!SpeechRecognitionAPI && isSecureContext;
 
-    return { 
-        isListening, 
+    return {
+        isListening,
         transcript, // Combined (backward compatibility)
         finalTranscript, // Only final confirmed text
         interimTranscript, // Live preview (temporary)
-        startListening, 
-        stopListening, 
-        hasSupport, 
-        error, 
-        setTranscript: customSetTranscript 
+        startListening,
+        stopListening,
+        hasSupport,
+        error,
+        setTranscript: customSetTranscript
     };
 };

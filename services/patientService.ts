@@ -15,7 +15,7 @@ const shuffleArray = <T,>(array: T[]): T[] => {
 
 // Track recently used names to avoid repeats
 const RECENT_NAMES_KEY = 'mi-coach-recent-patient-names';
-const RECENT_NAMES_MAX = 7; // Track last 7 sessions
+const RECENT_NAMES_MAX = 15; // Track last 15 sessions
 
 // Track recently used variants per topic to avoid repetition
 const RECENT_VARIANTS_KEY = 'mi-coach-recent-variants';
@@ -47,14 +47,14 @@ const addRecentName = (name: string): void => {
 const selectNameAvoidingRecent = (allNames: string[]): string => {
   const recent = getRecentNames();
   const available = allNames.filter(name => !recent.includes(name));
-  
+
   // If all names have been used recently, reset and use any name
   if (available.length === 0) {
     console.log('[patientService] All names used recently, resetting recent names');
     localStorage.removeItem(RECENT_NAMES_KEY);
     return getRandomElement(allNames);
   }
-  
+
   return getRandomElement(available);
 };
 
@@ -85,13 +85,13 @@ const addRecentVariant = (variantId: string): void => {
 const selectVariantAvoidingRecent = (variants: PatientTemplateVariant[]): PatientTemplateVariant => {
   const recent = getRecentVariants();
   const available = variants.filter(v => !recent.includes(v.variantId));
-  
+
   // If all variants have been used recently, use the shuffled full list
   if (available.length === 0) {
     console.log('[patientService] All variants used recently, selecting from full list');
     return getRandomElement(shuffleArray(variants));
   }
-  
+
   return getRandomElement(shuffleArray(available));
 };
 
@@ -134,39 +134,39 @@ export const generatePatientProfile = (filters?: PatientProfileFilters): Patient
 
   // Replace the age placeholder in the background text
   const background = variant.background.replace('{age}', age.toString());
-  
+
   // 5. Decide whether to use a conflicting chief complaint (50% chance)
   let chiefComplaint = variant.chiefComplaint;
   if (variant.conflictingChiefComplaint && Math.random() < 0.5) {
     chiefComplaint = variant.conflictingChiefComplaint;
   }
-  
+
   // 6. Determine stage of change based on filters
   let stageOfChange: StageOfChange;
 
   if (filters?.stageOfChange) {
-      // A specific stage selection takes highest priority
-      stageOfChange = filters.stageOfChange;
+    // A specific stage selection takes highest priority
+    stageOfChange = filters.stageOfChange;
   } else if (filters?.difficulty) {
-      // If no stage is chosen, use difficulty to determine the pool of stages
-      let possibleStages: StageOfChange[];
-      switch (filters.difficulty) {
-          case DifficultyLevel.Beginner:
-              possibleStages = [StageOfChange.Preparation, StageOfChange.Action, StageOfChange.Maintenance];
-              break;
-          case DifficultyLevel.Intermediate:
-              possibleStages = [StageOfChange.Contemplation];
-              break;
-          case DifficultyLevel.Advanced:
-              possibleStages = [StageOfChange.Precontemplation];
-              break;
-          default:
-              possibleStages = PATIENT_DATA.stagesOfChange as StageOfChange[];
-      }
-      stageOfChange = getRandomElement(possibleStages);
+    // If no stage is chosen, use difficulty to determine the pool of stages
+    let possibleStages: StageOfChange[];
+    switch (filters.difficulty) {
+      case DifficultyLevel.Beginner:
+        possibleStages = [StageOfChange.Preparation, StageOfChange.Action, StageOfChange.Maintenance];
+        break;
+      case DifficultyLevel.Intermediate:
+        possibleStages = [StageOfChange.Contemplation];
+        break;
+      case DifficultyLevel.Advanced:
+        possibleStages = [StageOfChange.Precontemplation];
+        break;
+      default:
+        possibleStages = PATIENT_DATA.stagesOfChange as StageOfChange[];
+    }
+    stageOfChange = getRandomElement(possibleStages);
   } else {
-      // If no filters are provided, select a random stage
-      stageOfChange = getRandomElement(PATIENT_DATA.stagesOfChange) as StageOfChange;
+    // If no filters are provided, select a random stage
+    stageOfChange = getRandomElement(PATIENT_DATA.stagesOfChange) as StageOfChange;
   }
 
   // 7. Select personality trait (prefers variant's suggested traits)
@@ -189,7 +189,7 @@ export const generatePatientProfile = (filters?: PatientProfileFilters): Patient
     age: age,
     sex: getRandomElement(PATIENT_DATA.sexes),
     stageOfChange: stageOfChange,
-    
+
     // New fields for variety
     personalityTrait: personalityTrait,
     variantId: variant.variantId,
