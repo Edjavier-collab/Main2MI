@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Star, Check, AlertCircle, X } from 'lucide-react';
 import { Button } from './Button';
 
 interface FeedbackModalProps {
@@ -52,13 +53,11 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, o
             const lastElement = focusableElements[focusableElements.length - 1];
 
             if (e.shiftKey) {
-                // Shift + Tab
                 if (document.activeElement === firstElement) {
                     e.preventDefault();
                     lastElement.focus();
                 }
             } else {
-                // Tab
                 if (document.activeElement === lastElement) {
                     e.preventDefault();
                     firstElement.focus();
@@ -74,7 +73,6 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, o
     useEffect(() => {
         if (isOpen) {
             previousActiveElement.current = document.activeElement as HTMLElement;
-            // Focus the first focusable element after a short delay to allow render
             const timer = setTimeout(() => {
                 const focusableElements = getFocusableElements();
                 if (focusableElements.length > 0) {
@@ -122,7 +120,6 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, o
         try {
             await onSubmit(rating, comment.trim());
             setSuccess(true);
-            // Auto-close after showing success
             setTimeout(() => {
                 handleClose();
             }, 1500);
@@ -144,7 +141,6 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, o
             aria-modal="true"
             aria-labelledby="feedback-modal-title"
             onClick={(e) => {
-                // Close when clicking the backdrop
                 if (e.target === e.currentTarget) {
                     handleClose();
                 }
@@ -164,7 +160,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, o
                         className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
                         aria-label="Close feedback modal"
                     >
-                        <i className="fa-solid fa-times text-lg" aria-hidden="true" />
+                        <X size={20} aria-hidden="true" />
                     </button>
                 </div>
 
@@ -173,7 +169,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, o
                     {success ? (
                         <div className="text-center py-6">
                             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--color-success-light)] flex items-center justify-center">
-                                <i className="fa-solid fa-check text-3xl text-[var(--color-success)]" aria-hidden="true" />
+                                <Check size={32} className="text-[var(--color-success)]" aria-hidden="true" />
                             </div>
                             <p className="text-lg font-semibold text-[var(--color-text-primary)]">Thank you!</p>
                             <p className="text-sm text-[var(--color-text-muted)] mt-1">Your feedback helps us improve.</p>
@@ -198,12 +194,12 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, o
                                         aria-checked={rating === star}
                                         role="radio"
                                     >
-                                        <i
-                                            className={`fa-star text-3xl ${
-                                                star <= displayRating
-                                                    ? 'fa-solid text-warning'
-                                                    : 'fa-regular text-[var(--color-neutral-300)]'
-                                            }`}
+                                        <Star
+                                            size={32}
+                                            className={`transition-colors ${star <= displayRating
+                                                    ? 'fill-warning text-warning'
+                                                    : 'fill-none text-[var(--color-neutral-300)]'
+                                                }`}
                                             aria-hidden="true"
                                         />
                                     </button>
@@ -228,7 +224,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, o
                             {/* Error message */}
                             {error && (
                                 <div className="mt-3 p-3 rounded-lg bg-[var(--color-error-light)] text-[var(--color-error)] text-sm flex items-center gap-2">
-                                    <i className="fa-solid fa-exclamation-circle flex-shrink-0" aria-hidden="true" />
+                                    <AlertCircle size={16} className="flex-shrink-0" aria-hidden="true" />
                                     <span>{error}</span>
                                 </div>
                             )}
@@ -253,4 +249,3 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, o
 };
 
 export default FeedbackModal;
-
