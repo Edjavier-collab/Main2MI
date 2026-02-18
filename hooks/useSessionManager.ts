@@ -43,7 +43,7 @@ interface UseSessionManagerOptions {
   setRemainingFreeSessions: (count: number | null) => void;
   updateStreak?: () => Promise<number>;
   addXP?: (amount: number, reason: string) => Promise<void>;
-  checkAndUnlockBadges?: (context: { streak: number; totalSessions: number }) => Promise<BadgeDefinition[]>;
+  checkAndUnlockBadges?: (context: { streak: number; totalSessions: number; skillCounts?: Record<string, number> }) => Promise<BadgeDefinition[]>;
   currentStreak?: number;
 }
 
@@ -262,9 +262,18 @@ export const useSessionManager = ({
     // Check and unlock badges using fresh streak value
     if (checkAndUnlockBadges) {
       try {
+        const skillCounts: Record<string, number> = {};
+        for (const session of updatedSessions) {
+          if (session.feedback?.skillCounts) {
+            for (const [skill, count] of Object.entries(session.feedback.skillCounts)) {
+              skillCounts[skill] = (skillCounts[skill] ?? 0) + count;
+            }
+          }
+        }
         const newBadges = await checkAndUnlockBadges({
           streak: freshStreak,
           totalSessions: updatedSessions.length,
+          skillCounts,
         });
         if (newBadges.length > 0) {
           console.log('[useSessionManager] Badges unlocked:', newBadges.map(b => b.name));
