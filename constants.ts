@@ -391,30 +391,6 @@ export const PATIENT_TOPIC_TEMPLATES: PatientTopicTemplate[] = [
             },
         ],
     },
-    {
-        topic: 'Prescription Benzodiazepine Misuse',
-        category: 'Opioids',
-        variants: [
-            {
-                variantId: 'benzo-doctor-shopping',
-                presentingProblem: "Patient is seeking a new doctor to get a refill for their alprazolam (Xanax) prescription, after their previous doctor refused.",
-                history: 'Prescribed Xanax for panic attacks five years ago. Now takes it daily to manage general anxiety and stress, often taking more than prescribed.',
-                chiefComplaint: "My last doctor cut me off. He doesn't understand how bad my anxiety is. I can't sleep, my heart races... I need my medication to just feel normal.",
-                background: "A {age}-year-old stay-at-home parent who feels overwhelmed with childcare and household responsibilities. Feels isolated and believes the medication is the only thing holding them together.",
-                ageRange: [38, 48],
-                typicalTraits: ['emotional', 'pleaser'],
-            },
-            {
-                variantId: 'benzo-executive-function',
-                presentingProblem: 'Patient is concerned about memory problems and difficulty concentrating, which may be related to long-term benzodiazepine use.',
-                history: 'Has been on clonazepam for generalized anxiety for over 8 years. Dose has gradually increased. Recently noticed significant cognitive issues affecting work performance.',
-                chiefComplaint: "I'm forgetting things, losing words mid-sentence. My work is suffering. I read that benzos can cause this but I'm terrified to stop. The anxiety would be unbearable.",
-                background: "A {age}-year-old finance executive who manages a large team. The cognitive decline is threatening their career, but anxiety has been a lifelong struggle.",
-                ageRange: [45, 55],
-                typicalTraits: ['intellectualizer', 'reserved'],
-            },
-        ],
-    },
 
     // ========== STIMULANTS ==========
     {
