@@ -56,7 +56,7 @@ export interface PatientTemplateVariant {
 
 export interface PatientTopicTemplate {
     topic: string;
-    category: 'Alcohol' | 'Nicotine' | 'Cannabis' | 'Opioids' | 'Stimulants' | 'Other Substances' | 'Behavioral' | 'Health';
+    category: 'Alcohol' | 'Nicotine' | 'Cannabis' | 'Opioids' | 'Benzodiazepines' | 'Stimulants' | 'Other Substances' | 'Behavioral' | 'Health';
     variants: PatientTemplateVariant[];
 }
 
@@ -388,6 +388,132 @@ export const PATIENT_TOPIC_TEMPLATES: PatientTopicTemplate[] = [
                 background: "A {age}-year-old retired nurse who prided themselves on their medical knowledge. Now feels dismissed by doctors and is becoming increasingly isolated.",
                 ageRange: [58, 68],
                 typicalTraits: ['intellectualizer', 'defensive'],
+            },
+        ],
+    },
+
+    // ========== BENZODIAZEPINES ==========
+    {
+        topic: 'Prescription Benzodiazepine Misuse',
+        category: 'Benzodiazepines',
+        variants: [
+            {
+                variantId: 'benzo-doctor-shopping',
+                presentingProblem: "Patient is seeking a new doctor to get a refill for their alprazolam (Xanax) prescription, after their previous doctor refused.",
+                history: 'Prescribed Xanax for panic attacks five years ago. Now takes it daily to manage general anxiety and stress, often taking more than prescribed.',
+                chiefComplaint: "My last doctor cut me off. He doesn't understand how bad my anxiety is. I can't sleep, my heart races... I need my medication to just feel normal.",
+                background: "A {age}-year-old stay-at-home parent who feels overwhelmed with childcare and household responsibilities. Feels isolated and believes the medication is the only thing holding them together.",
+                ageRange: [38, 48],
+                typicalTraits: ['emotional', 'pleaser'],
+            },
+            {
+                variantId: 'benzo-executive-function',
+                presentingProblem: 'Patient is concerned about memory problems and difficulty concentrating, which may be related to long-term benzodiazepine use.',
+                history: 'Has been on clonazepam for generalized anxiety for over 8 years. Dose has gradually increased. Recently noticed significant cognitive issues affecting work performance.',
+                chiefComplaint: "I'm forgetting things, losing words mid-sentence. My work is suffering. I read that benzos can cause this but I'm terrified to stop. The anxiety would be unbearable.",
+                background: "A {age}-year-old finance executive who manages a large team. The cognitive decline is threatening their career, but anxiety has been a lifelong struggle.",
+                ageRange: [45, 55],
+                typicalTraits: ['intellectualizer', 'reserved'],
+            },
+        ],
+    },
+    {
+        topic: 'Recreational Benzodiazepine Use',
+        category: 'Benzodiazepines',
+        variants: [
+            {
+                variantId: 'illicit-benzo-college',
+                presentingProblem: 'Patient was brought to the campus health center by a resident advisor after being found unresponsive in a dorm hallway. Toxicology confirmed alprazolam.',
+                history: 'Has been buying pressed Xanax bars from a dealer on campus for about a year. Uses them at parties and to "take the edge off" before social events. Recently started taking them alone to manage academic stress.',
+                chiefComplaint: "I don't know why everyone is making such a big deal. I just took a couple bars at a party and fell asleep. It's not like I'm addicted. Half the people in my dorm do the same thing.",
+                conflictingChiefComplaint: "I've been really anxious lately, like panic-attack level. The Xanax helps me feel normal at parties. Without it I just stand in the corner. I don't know how to be social without it.",
+                background: "A {age}-year-old college sophomore studying communications. Struggles with social anxiety and uses street-bought Xanax as a social lubricant, particularly before parties and campus events.",
+                ageRange: [19, 22],
+                typicalTraits: ['defensive', 'reserved'],
+            },
+            {
+                variantId: 'illicit-benzo-pressed-pills',
+                presentingProblem: 'Patient presents to an urgent care clinic with severe anxiety and tremors after running out of street-purchased benzodiazepines. A friend drove them in.',
+                history: 'Started buying "bars" and pressed pills from social media dealers about two years ago. Has no prescription and has never been evaluated for an anxiety disorder. Uses daily, often not knowing exactly what is in the pills.',
+                chiefComplaint: "I ran out of my bars two days ago and I feel like I'm dying. My hands won't stop shaking, my heart is pounding. I just need something to get me through. I'm not a drug addict, I just need them to function.",
+                background: "A {age}-year-old warehouse worker who buys pressed benzodiazepine pills through social media contacts. Has developed physical dependence without realizing the danger of abrupt cessation from unknown substances.",
+                ageRange: [23, 30],
+                typicalTraits: ['emotional', 'defensive'],
+            },
+        ],
+    },
+    {
+        topic: 'Benzodiazepine Taper & Withdrawal',
+        category: 'Benzodiazepines',
+        variants: [
+            {
+                variantId: 'taper-failed-attempt',
+                presentingProblem: 'Patient is seeking a new provider after a previous doctor attempted to taper their lorazepam (Ativan) too quickly, resulting in severe withdrawal symptoms including a seizure.',
+                history: 'Has been on lorazepam 2mg three times daily for six years for panic disorder. Previous provider attempted a rapid taper over two weeks. Patient experienced tremors, insomnia, and a withdrawal seizure, which traumatized them.',
+                chiefComplaint: "The last doctor tried to take me off Ativan cold turkey and I had a seizure. I ended up in the ER. I want to get off these pills eventually, but I'm terrified. I need someone who understands that you can't just rip them away.",
+                background: "A {age}-year-old school counselor who has been on benzodiazepines since a period of severe panic attacks after a car accident. The failed taper attempt has left them deeply fearful of any dose reduction.",
+                ageRange: [38, 50],
+                typicalTraits: ['emotional', 'intellectualizer'],
+            },
+            {
+                variantId: 'taper-long-term-elderly',
+                presentingProblem: "Patient's new geriatrician has recommended discontinuing diazepam (Valium) due to fall risk and cognitive concerns, but the patient has been on it for decades and is resistant.",
+                history: 'Prescribed Valium in the 1990s for generalized anxiety. Has been on 10mg daily for over 25 years. Multiple doctors have continued the prescription without question until the current geriatrician raised concerns about falls and dementia risk.',
+                chiefComplaint: "I've been taking Valium since before some of my doctors were born. It works, and I've never had a problem. Now this new doctor wants to take it away? At my age, why fix what isn't broken?",
+                conflictingChiefComplaint: "My daughter keeps reading things online about Valium and dementia and she's worried sick. I don't want to upset her, but I honestly don't think I can manage without it. The anxiety would come roaring back.",
+                background: "A {age}-year-old retired postal worker who has been taking diazepam daily for over two decades. Fell twice in the past year and is showing mild cognitive decline that may be medication-related.",
+                ageRange: [68, 78],
+                typicalTraits: ['defensive', 'reserved'],
+            },
+        ],
+    },
+    {
+        topic: 'Benzodiazepine & Alcohol Co-Use',
+        category: 'Benzodiazepines',
+        variants: [
+            {
+                variantId: 'benzo-alcohol-blackouts',
+                presentingProblem: 'Patient is here after their spouse found them unconscious on the kitchen floor. ER visit revealed a combination of clonazepam and alcohol. Spouse insists they get help.',
+                history: 'Prescribed clonazepam (Klonopin) 1mg at bedtime for insomnia. Also drinks 2-3 glasses of wine most evenings. Has had multiple blackout episodes in the past six months but attributes them to being "overtired."',
+                chiefComplaint: "My wife is overreacting. I just had some wine with dinner and took my regular Klonopin. I must have been extra tired. I don't mix them on purpose, it just... happens. The doctor prescribed the Klonopin, so it must be safe.",
+                conflictingChiefComplaint: "Honestly, I know the wine and Klonopin together aren't great. But the Klonopin alone doesn't work anymore, and neither does wine by itself. Together they actually let me sleep. I'm scared to stop either one.",
+                background: "A {age}-year-old middle manager at a manufacturing company. Experiences significant work stress and has normalized the nightly combination of wine and prescribed clonazepam as a sleep routine.",
+                ageRange: [42, 54],
+                typicalTraits: ['defensive', 'pleaser'],
+            },
+            {
+                variantId: 'benzo-alcohol-young-adult',
+                presentingProblem: 'Patient was referred by their therapist after disclosing a pattern of mixing alprazolam with heavy drinking on weekends, sometimes losing entire days.',
+                history: 'Takes alprazolam prescribed by a psychiatrist for generalized anxiety. On weekends, takes extra doses before going out and drinks heavily. Has had multiple dangerous episodes including unprotected sex, fights, and one car accident.',
+                chiefComplaint: "My therapist said I had to come talk to someone about the Xanax and drinking. I know it's dumb to mix them, but when I go out, the anxiety is so bad I need both. I just want to have a normal social life.",
+                background: "A {age}-year-old dental hygienist who manages anxiety well during the workweek with prescribed alprazolam but escalates use dramatically on weekends, combining it with binge drinking in social settings.",
+                ageRange: [24, 32],
+                typicalTraits: ['emotional', 'talkative'],
+            },
+        ],
+    },
+    {
+        topic: 'Sleep Aid Dependence (Benzodiazepine)',
+        category: 'Benzodiazepines',
+        variants: [
+            {
+                variantId: 'sleep-benzo-shift-worker',
+                presentingProblem: 'Patient is requesting continued refills of temazepam (Restoril) for insomnia related to rotating shift work. Current provider is concerned about long-term use and tolerance.',
+                history: 'Prescribed temazepam 15mg two years ago for shift-work-related insomnia. Has escalated to 30mg nightly and sometimes takes an extra dose when sleep still does not come. Cannot fall asleep without it even on nights off.',
+                chiefComplaint: "My schedule rotates between days and nights. Without temazepam I lie there for hours staring at the ceiling. I've tried melatonin, chamomile tea, all that stuff. Nothing else works. Why would you take away the one thing that helps?",
+                background: "A {age}-year-old ICU nurse who works rotating 12-hour shifts. The irregular schedule has made natural sleep nearly impossible, and temazepam has become a nightly requirement regardless of shift pattern.",
+                ageRange: [30, 42],
+                typicalTraits: ['intellectualizer', 'defensive'],
+            },
+            {
+                variantId: 'sleep-benzo-grief-insomnia',
+                presentingProblem: "Patient has been using their late spouse's leftover triazolam (Halcion) for insomnia that started after the spouse's death. Now running out and seeking a prescription.",
+                history: 'Insomnia began after the death of their spouse eight months ago. Found the spouse\'s triazolam prescription and began taking it nightly. It has been the only thing allowing any sleep. Bottle is nearly empty and patient is anxious about running out.',
+                chiefComplaint: "I haven't slept properly since my husband died. I found his sleeping pills and they're the only thing that lets me get a few hours. I know they're not prescribed for me but I'm desperate. I just need sleep to get through this.",
+                conflictingChiefComplaint: "I've been having a really hard time since my husband passed. Everything reminds me of him, especially at night. I was hoping you could help me with the insomnia. I've been taking something but it's running out.",
+                background: "A {age}-year-old recently widowed librarian who has been self-medicating grief-related insomnia with their deceased spouse's leftover benzodiazepine prescription. The grief remains largely unprocessed.",
+                ageRange: [55, 68],
+                typicalTraits: ['emotional', 'reserved'],
             },
         ],
     },
