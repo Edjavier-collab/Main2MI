@@ -30,7 +30,7 @@ const getRecentNames = (): string[] => {
   }
 };
 
-const addRecentName = (name: string): void => {
+export const addRecentName = (name: string): void => {
   try {
     const recent = getRecentNames();
     recent.push(name);
@@ -44,7 +44,7 @@ const addRecentName = (name: string): void => {
   }
 };
 
-const selectNameAvoidingRecent = (allNames: string[]): string => {
+export const selectNameAvoidingRecent = (allNames: string[]): string => {
   const recent = getRecentNames();
   const available = allNames.filter(name => !recent.includes(name));
 

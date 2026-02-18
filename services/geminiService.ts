@@ -1,5 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 import { PatientProfile, ChatMessage, StageOfChange, DifficultyLevel, PersonalityTrait } from '../types';
+import { PATIENT_DATA } from '../constants';
+import { selectNameAvoidingRecent, addRecentName } from './patientService';
 
 // Valid mood states for tracking emotional shifts
 const MOOD_STATES = [
@@ -187,6 +189,9 @@ export const generatePatientProfile = async (
 
     const suggestedTraits = difficultyTraits[difficulty];
 
+    // Select name locally to ensure variety via recent-name tracking
+    const selectedName = selectNameAvoidingRecent(PATIENT_DATA.names);
+
     const systemPrompt = `You are an expert in creating realistic patient profiles for Motivational Interviewing (MI) training simulations.
 
 Your task is to generate a unique, detailed patient profile that will be used to simulate a realistic clinical encounter. The profile should be diverse, culturally sensitive, and clinically accurate.
@@ -201,7 +206,7 @@ IMPORTANT: You must respond with ONLY valid JSON, no markdown formatting, no cod
 - **Suggested Personality Traits**: ${suggestedTraits.join(' or ')}
 
 Create a unique, realistic patient with:
-1. A diverse name (consider various ethnicities and backgrounds)
+1. Use this exact patient name: "${selectedName}". Do NOT change or modify it.
 2. Age appropriate for the presenting issue (typically 18-75)
 3. Sex (Male, Female, or Non-binary)
 4. A concise background (max 2 sentences) that explains their situation
@@ -281,6 +286,10 @@ Respond with ONLY this JSON structure (no markdown, no code blocks):
         if (profile.personalityTrait && !validTraits.includes(profile.personalityTrait)) {
             profile.personalityTrait = suggestedTraits[0];
         }
+
+        // Enforce the locally-selected name (in case Gemini ignored the instruction)
+        profile.name = selectedName;
+        addRecentName(selectedName);
 
         // Add a variant ID to track AI-generated profiles
         profile.variantId = `ai-generated-${Date.now()}`;
