@@ -85,6 +85,7 @@ serve(async (req: Request) => {
       },
       billing_address_collection: 'auto',
       allow_promotion_codes: true,
+      payment_method_collection: 'if_required',
     };
 
     // Add customer email if provided
