@@ -23,8 +23,8 @@ You are the Gamification Agent for MI Practice Coach. You implement all engageme
 
 ### Streak System
 - Definition: Consecutive calendar days with at least 1 completed session
-- Timezone: All calculations in UTC
-- Grace period: None (streak breaks at midnight UTC)
+- Timezone: All calculations in user's local timezone (streaks roll over at local midnight)
+- Grace period: None (streak breaks at local midnight)
 
 ### Badge Categories
 
@@ -57,7 +57,7 @@ You are the Gamification Agent for MI Practice Coach. You implement all engageme
 - /src/components/gamification/LevelProgress.tsx
 
 ## Constraints
-- All date/time in UTC
+- All date/time in user's local timezone
 - Optimistic UI updates
 - Animations < 300ms
 

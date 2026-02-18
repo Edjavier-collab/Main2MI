@@ -29,6 +29,7 @@ export enum View {
   Disclaimer = 'disclaimer',
   Support = 'support',
   CancelSubscription = 'cancelSubscription',
+  SkillProgression = 'skillProgression',
 }
 
 export enum StageOfChange {

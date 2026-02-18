@@ -24,6 +24,7 @@ const EmailConfirmationView = lazy(() => import('./EmailConfirmationView'));
 const CoachingSummaryView = lazy(() => import('./CoachingSummaryView'));
 const SupportView = lazy(() => import('./SupportView'));
 const ReportsView = lazy(() => import('./ReportsView'));
+const ProgressionView = lazy(() => import('./ProgressionView'));
 
 // Lazy-loaded legal pages
 const PrivacyPolicy = lazy(() => import('../legal/PrivacyPolicy'));
@@ -312,6 +313,13 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
         return <Disclaimer onBack={() => onNavigate(View.Settings)} />;
       case View.Support:
         return <SupportView onBack={() => onNavigate(View.Settings)} />;
+      case View.SkillProgression:
+        return (
+          <ProgressionView
+            sessions={sessions}
+            onBack={() => onNavigate(View.Dashboard)}
+          />
+        );
       case View.Reports:
         return (
           <ErrorBoundary

@@ -489,7 +489,7 @@ UNIQUE(user_id, badge_id)
 See `docs/project-overview.md` for full list of "chaotic vibes"
 
 **Quick Summary:**
-1. ⚠️ Timezone inconsistency (docs say UTC, code uses LOCAL)
+1. ✅ Timezone resolved (all docs + code now use LOCAL timezone)
 2. ⚠️ XP awards not using constants
 3. ⚠️ Badge unlock XP not awarded
 4. ⚠️ Streak day bonus XP not implemented
