@@ -2,7 +2,7 @@ import { useEffect, useCallback } from 'react';
 import { Session, UserTier, ChatMessage, Feedback, PatientProfile } from '../types';
 import { saveSession, getUserSessions } from '../services/databaseService';
 import { getRemainingFreeSessions, getRemainingFreeSessionsAnonymous } from '../services/subscriptionService';
-import { BadgeDefinition } from '../constants';
+import { BadgeDefinition, XP_AWARDS } from '../constants';
 
 // Storage key for sessions that have already been awarded XP (prevents duplicate awards)
 const XP_AWARDED_KEY = 'mi-coach-xp-awarded-sessions';
@@ -232,19 +232,19 @@ export const useSessionManager = ({
     if (addXP && !alreadyAwarded) {
       try {
         // Base XP for completing a session
-        let xpAmount = 10;
+        let xpAmount = XP_AWARDS.SESSION_COMPLETE;
         let xpReason = 'Session completed';
 
         // Check empathy score for bonus XP
         // Score is 1-5, so 70% = 3.5, 90% = 4.5
         const empathyScore = feedback.empathyScore ?? 0;
         if (empathyScore >= 4.5) {
-          // 90%+ score: +10 bonus (replaces +5)
-          xpAmount += 10;
+          // 90%+ score: excellent bonus (replaces good bonus)
+          xpAmount += XP_AWARDS.SCORE_90_PLUS_BONUS;
           xpReason = 'Session completed with excellent score (90%+)';
         } else if (empathyScore >= 3.5) {
-          // 70%+ score: +5 bonus
-          xpAmount += 5;
+          // 70%+ score: good bonus
+          xpAmount += XP_AWARDS.SCORE_70_PLUS_BONUS;
           xpReason = 'Session completed with good score (70%+)';
         }
 

@@ -197,7 +197,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                         <div className="bg-white rounded-xl border border-[var(--color-neutral-200)] p-6 shadow-sm mt-8">
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Badges</h3>
-                                <button className="text-xs text-[var(--color-primary)] font-medium hover:underline">View All</button>
+                                <button onClick={() => onNavigate(View.SkillProgression)} className="text-xs text-[var(--color-primary)] font-medium hover:underline">View All</button>
                             </div>
                             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                                 {unlockedCertificates.slice(0, 4).map(cert => (
