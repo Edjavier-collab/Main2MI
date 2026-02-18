@@ -24,6 +24,7 @@ interface UnlockedCertificate extends CertificateDefinition {
 interface BadgeCheckContext {
   streak: number;
   totalSessions: number;
+  skillCounts?: Record<string, number>;
 }
 
 interface UseBadgesReturn {
@@ -249,7 +250,7 @@ export const useBadges = (): UseBadgesReturn => {
    * Check conditions and unlock any new badges
    */
   const checkAndUnlockBadges = useCallback(async (context: BadgeCheckContext): Promise<BadgeDefinition[]> => {
-    const { streak, totalSessions } = context;
+    const { streak, totalSessions, skillCounts } = context;
     const unlockedIds = new Set(unlockedBadges.map(b => b.id));
     const newlyUnlocked: BadgeDefinition[] = [];
 
@@ -266,6 +267,17 @@ export const useBadges = (): UseBadgesReturn => {
     for (const badge of milestoneBadges) {
       if (!unlockedIds.has(badge.id) && totalSessions >= badge.requirement) {
         newlyUnlocked.push(badge);
+      }
+    }
+
+    // Check skill badges
+    const skillBadges = BADGES.filter(b => b.category === 'skill');
+    for (const badge of skillBadges) {
+      if (!unlockedIds.has(badge.id)) {
+        const skillTotal = skillCounts?.[badge.id] ?? 0;
+        if (skillTotal >= badge.requirement) {
+          newlyUnlocked.push(badge);
+        }
       }
     }
 
