@@ -51,6 +51,13 @@ const PATH_TO_VIEW: Record<string, View> = Object.entries(VIEW_TO_PATH).reduce(
 export const useAppRouter = ({ user, authLoading, view, setView }: UseAppRouterOptions) => {
   const previousViewRef = useRef<View | null>(null);
   const isHandlingPopStateRef = useRef(false);
+  const isMountedRef = useRef(false);
+
+  // Track mount state to guard setView calls during Fast Refresh
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, []);
 
   // Update URL when view changes
   useEffect(() => {
@@ -71,8 +78,9 @@ export const useAppRouter = ({ user, authLoading, view, setView }: UseAppRouterO
   // Handle browser back/forward buttons
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
+      if (!isMountedRef.current) return;
       isHandlingPopStateRef.current = true;
-      
+
       if (event.state?.view) {
         // Navigate to the view from history state
         setView(event.state.view);
@@ -126,8 +134,8 @@ export const useAppRouter = ({ user, authLoading, view, setView }: UseAppRouterO
   const redirectHandledRef = useRef(false);
   
   useEffect(() => {
-    if (authLoading) {
-      return; // Don't change view while loading
+    if (authLoading || !isMountedRef.current) {
+      return; // Don't change view while loading or before mount
     }
 
     // Only handle redirects when user state actually changes, not on every view change
