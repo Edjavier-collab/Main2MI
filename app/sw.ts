@@ -136,14 +136,12 @@ installSerwist({
       }),
     },
 
-    // 4. CacheFirst for fonts (Google Fonts + Font Awesome)
+    // 4. CacheFirst for Font Awesome CDN (Google Fonts handled by next/font at build time)
     {
       matcher: ({ url }) =>
-        url.hostname === 'fonts.googleapis.com' ||
-        url.hostname === 'fonts.gstatic.com' ||
         url.hostname === 'cdnjs.cloudflare.com',
       handler: new CacheFirst({
-        cacheName: 'fonts-cache',
+        cacheName: 'cdn-cache',
         plugins: [
           new ExpirationPlugin({
             maxEntries: 30,

@@ -59,7 +59,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: https://*.supabase.co https://*.stripe.com; connect-src 'self' https://*.supabase.co https://*.stripe.com https://api.stripe.com; frame-src 'self' https://js.stripe.com;"
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: https://*.supabase.co https://*.stripe.com; connect-src 'self' https://*.supabase.co https://*.stripe.com https://api.stripe.com https://fonts.googleapis.com https://fonts.gstatic.com; frame-src 'self' https://js.stripe.com;"
           }
         ],
       },

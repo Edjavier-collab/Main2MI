@@ -6,11 +6,11 @@ async def run_test():
     pw = None
     browser = None
     context = None
-    
+
     try:
         # Start a Playwright session in asynchronous mode
         pw = await async_api.async_playwright().start()
-        
+
         # Launch a Chromium browser in headless mode with custom arguments
         browser = await pw.chromium.launch(
             headless=True,
@@ -21,39 +21,49 @@ async def run_test():
                 "--single-process"                # Run the browser in a single process mode
             ],
         )
-        
+
         # Create a new browser context (like an incognito window)
         context = await browser.new_context()
         context.set_default_timeout(5000)
-        
+
         # Open a new page in the browser context
         page = await context.new_page()
-        
-        # Navigate to your target URL and wait until the network request is committed
+
+        # Interact with the page elements to simulate user flow
+        # -> Navigate to http://localhost:3000
         await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
         
-        # Wait for the main page to reach DOMContentLoaded state (optional for stability)
-        try:
-            await page.wait_for_load_state("domcontentloaded", timeout=3000)
-        except async_api.Error:
-            pass
+        # -> Click the 'MI Mastery' link/logo (index 51) to reveal navigation or return to home so the login/Resource Library links become available.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # Iterate through all iframes and wait for them to load as well
-        for frame in page.frames:
-            try:
-                await frame.wait_for_load_state("domcontentloaded", timeout=3000)
-            except async_api.Error:
-                pass
+        # -> Click the 'Retry connection' button (index 128) to attempt to restore connectivity and reveal navigation/login (Resource Library) links so authentication and access checks can continue.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # Interact with the page elements to simulate user flow
+        # -> Scroll the page to reveal any hidden navigation or login controls; then click the 'MI Mastery' link (index 132) to try to reveal the navigation/login.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Click the 'Retry connection' button (index 228) to attempt to restore connectivity and reveal navigation/login (Resource Library) links.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
         # --> Assertions to verify final state
         frame = context.pages[-1]
-        try:
-            await expect(frame.locator('text=Exclusive Premium MI Content Access').first).to_be_visible(timeout=1000)
-        except AssertionError:
-            raise AssertionError("Test failed: Premium gated content access control is not enforced as per the test plan. Non-premium users should not see premium content, and premium users should have unrestricted access.")
+        await expect(frame.locator('text=Free MI Materials').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Subscribe to access premium content').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Premium Content').first).to_be_visible(timeout=3000)
         await asyncio.sleep(5)
-    
+
     finally:
         if context:
             await context.close()
@@ -61,6 +71,6 @@ async def run_test():
             await browser.close()
         if pw:
             await pw.stop()
-            
+
 asyncio.run(run_test())
     

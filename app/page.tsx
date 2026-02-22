@@ -147,13 +147,6 @@ export default function AppPage() {
   // Use app router hook
   useAppRouter({ user, authLoading, view, setView });
 
-  // Load onboarding state - FIXED: Only run once on mount
-  useEffect(() => {
-    const onboardingComplete = localStorage.getItem('mi-coach-onboarding-complete');
-    setShowOnboarding(onboardingComplete !== 'true');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty deps - only run once on mount
-
   const handleOnboardingFinish = useCallback(() => {
     localStorage.setItem('mi-coach-onboarding-complete', 'true');
     setShowOnboarding(false);

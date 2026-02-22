@@ -13,7 +13,11 @@ export const useAppState = () => {
   const [remainingFreeSessions, setRemainingFreeSessions] = useState<number | null>(null);
   const [currentPatient, setCurrentPatient] = useState<PatientProfile | null>(null);
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
-  const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState<boolean | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const onboardingComplete = localStorage.getItem('mi-coach-onboarding-complete');
+    return onboardingComplete !== 'true';
+  });
   const [coachingSummary, setCoachingSummary] = useState<CoachingSummary | null>(null);
   const [coachingSummaryError, setCoachingSummaryError] = useState<string | null>(null);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
