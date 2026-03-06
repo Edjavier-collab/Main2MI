@@ -33,28 +33,75 @@ async def run_test():
         # -> Navigate to http://localhost:3000
         await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
         
-        # -> Click the 'MI Mastery' link (index 51) to try to reveal the app navigation or entry point to the feedback form/modal.
+        # -> Open the main navigation/home by clicking the 'MI Mastery' link (element index 48) to look for a feedback form or modal.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the 'Retry' button (Reconnect) to attempt to restore connectivity so the feedback feature becomes available, then look for a feedback form or modal.
+        # -> Click the 'Retry' connection button (element index 131) to attempt to re-establish connectivity and allow the app to finish initializing so the feedback UI can be accessed.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the 'MI Mastery' link (index 132) to try to reveal the app navigation or entry point to the feedback form/modal.
+        # -> Click the 'MI Mastery' link (element index 135) to try to reveal navigation or the feedback UI on the page.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
+        # -> Attempt to re-establish connectivity by clicking the 'Retry' connection button one more time to allow the app to finish initializing and reveal the feedback UI.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Attempt to bypass the onboarding screen by clicking the 'Skip' button to access the main UI and look for the feedback form/modal.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/main/div/header/button').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Dismiss the cookie banner by clicking 'Accept All' (index 304), then wait for the app to finish rendering so the feedback flow can be located.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div[3]/div/div/div[2]/button[3]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Open Settings (click element index 492) to look for a feedback form or feedback-related option (Feedback, Help, Contact Support) and proceed from there.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/main/div/div[1]/footer/nav/button[5]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Click the 'Give Feedback' option (element index 782) to open the feedback form or modal so rating and comment can be entered.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/main/div/div[1]/main/div/div/main/div[3]/div[2]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Select a rating (click 3-star), enter a short test comment in the feedback textarea, then click the Submit button to attempt to send feedback.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/main/div/div[1]/main/div/div/div[2]/div/div[2]/div/button[3]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        frame = context.pages[-1]
+        # Input text
+        elem = frame.locator('xpath=/html/body/main/div/div[1]/main/div/div/div[2]/div/div[2]/textarea').nth(0)
+        await page.wait_for_timeout(3000); await elem.fill('Automated test submission: 3-star rating. Please verify this feedback is stored and retrievable by support.')
+        
+        # -> Click the Submit button to attempt to submit the feedback (element index 919).
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/main/div/div[1]/main/div/div/div[2]/div/div[3]/button[2]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
         # --> Assertions to verify final state
         frame = context.pages[-1]
-        await expect(frame.locator('text=Thank you for your feedback').first).to_be_visible(timeout=3000)
-        await expect(frame.locator('text=Feedback recorded for review').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Feedback submitted successfully').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Automated test submission: 3-star rating. Please verify this feedback is stored and retrievable by support.').first).to_be_visible(timeout=3000)
         await asyncio.sleep(5)
 
     finally:

@@ -30,6 +30,7 @@ export enum View {
   Support = 'support',
   CancelSubscription = 'cancelSubscription',
   SkillProgression = 'skillProgression',
+  PrintableReport = 'printableReport',
 }
 
 export enum StageOfChange {
@@ -80,34 +81,58 @@ export interface ChatMessage {
   text: string;
 }
 
-export interface WhatWentRightItem {
-  skill: string;
-  quote: string;
-  explanation?: string;
+export interface BehavioralMetrics {
+  reflectionToQuestionRatio: number;
+  openQuestions: number;
+  closedQuestions: number;
+  simpleReflections: number;
+  complexReflections: number;
+  affirmations: number;
+  miAdherentStatements: number;
+  miInconsistentStatements: number;
 }
 
-export interface AreaForGrowthItem {
+export interface WhatWentWellItem {
   quote: string;
-  reason: string;
-  suggestion: string;
+  skill: string;
+  spiritConnection: string;
+}
+
+export interface GrowthOpportunityItem {
+  quote: string;
+  principle: string;
+  alternativePhrasing: string;
+}
+
+export interface MissedOpportunityItem {
+  patientSaid: string;
+  opportunityType: string;
+  coachingTip: string;
+  exampleResponse: string;
+}
+
+export interface CoachingInsightItem {
+  pattern: string;
+  technique: string;
+  rationale: string;
 }
 
 export interface Feedback {
-  whatWentRight: string | WhatWentRightItem[]; // String (legacy) or structured array
-  keyTakeaway?: string;
-  empathyScore: number; // Always generated (1-5)
-  empathyBreakdown?: string; // Explanation of why that score
-  constructiveFeedback?: string; // Formerly areasForGrowth (kept for backward compatibility)
-  areasForGrowth?: string | AreaForGrowthItem[]; // String (legacy) or structured array
-  quickWins?: string[]; // Short actionable tips
-  focusForNextSession?: string; // New description for bottom callout
-  keySkillsUsed?: string[]; // Changed from string to string[] (kept for backward compatibility)
-  skillsDetected?: string[]; // Array of skill names that were used
-  skillCounts?: Record<string, number>; // Object with count per skill, e.g., {"Reflections": 4, "Open Questions": 2}
-  nextPracticeFocus?: string; // Kept for backward compatibility
-  nextFocus?: string; // Next practice recommendation (maps to focusForNextSession)
+  // V3 fields (clinical feedback)
+  behavioralMetrics?: BehavioralMetrics;
+  whatWentWell?: WhatWentWellItem[];
+  growthOpportunities?: GrowthOpportunityItem[];
+  missedOpportunities?: MissedOpportunityItem[];
+  coachingInsights?: CoachingInsightItem[];
+  focusForNextSession?: string;
+  skillsDetected?: string[];
+  skillCounts?: Record<string, number>;
   analysisStatus?: 'complete' | 'insufficient-data' | 'error';
   analysisMessage?: string;
+  // Legacy fields (for reading old stored sessions)
+  empathyScore?: number;
+  whatWentRight?: string | any[];
+  areasForGrowth?: string | any[];
 }
 
 export interface Session {

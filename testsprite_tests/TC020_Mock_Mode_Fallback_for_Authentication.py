@@ -33,34 +33,28 @@ async def run_test():
         # -> Navigate to http://localhost:3000
         await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
         
-        # -> Click the header link 'MI Mastery' (interactive element index 51) to see if it reveals the authentication UI, dev settings, or a retry flow that allows performing signup/login attempts.
+        # -> Click the 'MI Mastery' link (index 57) to see if navigation reveals login/signup controls or retry functionality.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the Reload button (index 74) to retry loading the app so the authentication UI can be reached or to confirm the service outage persists.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div[1]/div[1]/div[2]/div/button').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Click the header link 'MI Mastery' (interactive element index 50) to see if it reveals the authentication UI, developer settings, or a retry flow that enables signup/login or exposes mock-mode indicators.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Click the 'Retry' connection button (interactive element index 131) to attempt reconnecting so the authentication UI or mock-mode indicators may appear.
+        # -> Click the 'Retry connection' button (index 135) to trigger reconnection or a mock-mode fallback, then inspect the UI for signup/login controls or any mock-mode notification.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
+        # -> Click the anchor element at index 139 (MI Mastery link) to reveal any developer/mock-mode fallback or navigation to authentication controls so signup/login can be attempted.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
         # --> Assertions to verify final state
         frame = context.pages[-1]
-        await expect(frame.locator('text=Login Successful (Mock Mode)').first).to_be_visible(timeout=3000)
-        await expect(frame.locator('text=Supabase unavailable - running in mock mode').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Authentication Successful').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Running in mock mode').first).to_be_visible(timeout=3000)
         await asyncio.sleep(5)
 
     finally:

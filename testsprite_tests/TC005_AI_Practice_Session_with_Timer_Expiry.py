@@ -33,10 +33,22 @@ async def run_test():
         # -> Navigate to http://localhost:3000
         await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
         
+        # -> Click the 'MI Mastery' link (element index 48) to reveal navigation or a way to start a practice session.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Click the 'Retry connection' button (element index 131) to restore connectivity and reveal the practice session start controls so a session can be started.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
         # --> Assertions to verify final state
         frame = context.pages[-1]
         await expect(frame.locator('text=Session Ended').first).to_be_visible(timeout=3000)
-        await expect(frame.locator('text=AI Feedback Report').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=AI Feedback Report Generated').first).to_be_visible(timeout=3000)
         await asyncio.sleep(5)
 
     finally:

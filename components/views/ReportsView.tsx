@@ -2,30 +2,20 @@
 
 import React from 'react';
 import { Session, UserTier, View } from '../../types';
-import { useReportData } from '../../hooks/useReportData';
+import { useSkillProgression, MI_SKILLS } from '../../hooks/useSkillProgression';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
-import ExecutiveSummary from '../reports/ExecutiveSummary';
-import DetailedInsights from '../reports/DetailedInsights';
-import ActionPlan from '../reports/ActionPlan';
+import SkillProgressBar from '../ui/SkillProgressBar';
 
 interface ReportsViewProps {
   sessions: Session[];
   userTier: UserTier;
-  isPremiumVerified: boolean; // Server-verified premium status
+  isPremiumVerified: boolean;
   onBack: () => void;
   onUpgrade: () => void;
   onNavigate: (view: View) => void;
 }
 
-/**
- * Reports View
- * 
- * Displays MI competency reports with:
- * - Executive Summary (FREE) - always visible
- * - Detailed skill breakdown (PREMIUM) - locked for free users
- * - Trend analysis (PREMIUM) - coming soon
- */
 const ReportsView: React.FC<ReportsViewProps> = ({
   sessions,
   userTier,
@@ -34,21 +24,107 @@ const ReportsView: React.FC<ReportsViewProps> = ({
   onUpgrade,
   onNavigate,
 }) => {
-  // Premium status: Use server-verified status, but fallback to userTier if verification hasn't completed
-  // This ensures premium users can access features even if verification is pending or Edge Function is unavailable
-  // Note: userTier comes from Supabase database, so it's reasonably trustworthy as a fallback
   const isPremium = isPremiumVerified || userTier === UserTier.Premium;
+  const { skillTotals, mostUsedSkill, leastUsedSkill } = useSkillProgression(sessions);
 
-  // SECURITY: Use server-verified premium status for gating premium features
-  // But allow fallback to userTier for data computation to prevent race conditions
-  // The UI still gates based on isPremiumVerified for security, but data loads based on sessions
-  const reportData = useReportData(sessions, isPremium);
+  // Compute stats
+  const totalSessions = sessions.length;
+  const totalMinutes = totalSessions * 15;
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  const practiceTimeLabel = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+
+  // Count unique skills used across all sessions
+  const uniqueSkillsUsed = MI_SKILLS.filter(skill => skillTotals[skill] > 0).length;
+
+  // Max count for normalizing progress bars
+  const maxSkillCount = Math.max(...Object.values(skillTotals), 1);
+
+  // Compute skill trends (increasing/stable/decreasing) from last 3 sessions vs prior
+  const getSkillTrend = (skill: string): 'increasing' | 'stable' | 'decreasing' => {
+    if (sessions.length < 3) return 'stable';
+    const sorted = [...sessions].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+    const mid = Math.floor(sorted.length / 2);
+    const early = sorted.slice(0, mid);
+    const late = sorted.slice(mid);
+    const earlyAvg = early.reduce((s, sess) => s + (sess.feedback?.skillCounts?.[skill] ?? 0), 0) / (early.length || 1);
+    const lateAvg = late.reduce((s, sess) => s + (sess.feedback?.skillCounts?.[skill] ?? 0), 0) / (late.length || 1);
+    const diff = lateAvg - earlyAvg;
+    if (diff > 0.3) return 'increasing';
+    if (diff < -0.3) return 'decreasing';
+    return 'stable';
+  };
+
+  // Sorted skills by total count (descending)
+  const sortedSkills = [...MI_SKILLS].sort((a, b) => skillTotals[b] - skillTotals[a]);
+
+  // Top strengths (top 3 with count > 0) and areas to develop (bottom 2)
+  const strengths = sortedSkills.filter(s => skillTotals[s] > 0).slice(0, 3);
+  const areasToDevlop = sortedSkills.filter(s => skillTotals[s] >= 0).slice(-2);
+
+  // Recent sessions (3 most recent)
+  const recentSessions = [...sessions]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 3);
+
+  // Empty state
+  if (totalSessions === 0) {
+    return (
+      <div className="min-h-screen bg-transparent pb-24">
+        <div className="p-4 sm:p-6 max-w-2xl mx-auto">
+          <header className="mb-8">
+            <div className="flex items-center mb-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onBack}
+                icon={<i className="fa-solid fa-arrow-left" />}
+                aria-label="Go back"
+                className="mr-3 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+              />
+              <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">
+                Practice Development
+              </h1>
+            </div>
+            <p className="text-sm text-[var(--color-text-secondary)] ml-11">
+              Track your MI skill progression
+            </p>
+          </header>
+
+          <Card variant="accent" padding="lg" className="text-center">
+            <div className="mb-6">
+              <div className="mx-auto w-20 h-20 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center mb-4">
+                <i className="fa-solid fa-chart-line text-4xl text-[var(--color-primary)]" aria-hidden="true" />
+              </div>
+            </div>
+            <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">
+              No Practice Data Yet
+            </h2>
+            <p className="text-[var(--color-text-secondary)] mb-6">
+              Complete sessions to track your development and see your MI skill progression.
+            </p>
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              onClick={() => onNavigate(View.ScenarioSelection)}
+              icon={<i className="fa-solid fa-play" aria-hidden="true" />}
+            >
+              Start Practice
+            </Button>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-transparent pb-24">
-      <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-8">
+      <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-6">
         {/* Header */}
-        <header className="mb-8">
+        <header className="mb-2">
           <div className="flex items-center mb-2">
             <Button
               variant="ghost"
@@ -59,182 +135,163 @@ const ReportsView: React.FC<ReportsViewProps> = ({
               className="mr-3 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             />
             <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">
-              MI Progress Report
+              Practice Development
             </h1>
           </div>
           <p className="text-sm text-[var(--color-text-secondary)] ml-11">
-            Based on {reportData.sessionCount} session{reportData.sessionCount !== 1 ? 's' : ''} • {reportData.periodStart ? new Date(reportData.periodStart).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'N/A'} - {reportData.periodEnd ? new Date(reportData.periodEnd).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Present'}
+            Track your MI skill progression
           </p>
         </header>
 
-        {/* Executive Summary Card - Always visible (FREE) */}
-        {reportData.isLoading ? (
-          <Card variant="elevated" padding="lg" className="mb-6">
-            <div className="animate-pulse space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-[var(--color-neutral-200)] rounded-full"></div>
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-[var(--color-neutral-200)] rounded w-3/4"></div>
-                  <div className="h-3 bg-[var(--color-neutral-200)] rounded w-1/2"></div>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-4 mt-6">
-                <div className="space-y-2">
-                  <div className="h-8 bg-[var(--color-neutral-200)] rounded"></div>
-                  <div className="h-3 bg-[var(--color-neutral-200)] rounded w-2/3 mx-auto"></div>
-                </div>
-                <div className="space-y-2">
-                  <div className="h-8 bg-[var(--color-neutral-200)] rounded"></div>
-                  <div className="h-3 bg-[var(--color-neutral-200)] rounded w-2/3 mx-auto"></div>
-                </div>
-                <div className="space-y-2">
-                  <div className="h-8 bg-[var(--color-neutral-200)] rounded"></div>
-                  <div className="h-3 bg-[var(--color-neutral-200)] rounded w-2/3 mx-auto"></div>
-                </div>
-              </div>
+        {/* Stats Row */}
+        <div className="grid grid-cols-3 gap-3">
+          <Card variant="default" padding="md" className="text-center">
+            <div className="w-10 h-10 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center mx-auto mb-2">
+              <i className="fa-solid fa-calendar-check text-[var(--color-primary)]" aria-hidden="true" />
             </div>
+            <p className="text-2xl font-bold text-[var(--color-text-primary)]">{totalSessions}</p>
+            <p className="text-xs text-[var(--color-text-muted)]">Sessions</p>
           </Card>
-        ) : (
-          <Card variant="elevated" padding="lg" className="mb-6">
-            <ExecutiveSummary
-              data={reportData}
-              isLoading={reportData.isLoading}
-            />
-          </Card>
-        )}
 
-        {/* Premium Skill Breakdown */}
-        {isPremium && reportData.skillScores.length > 0 && (
-          <div className="mb-8">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)] mb-4">
-              Skill Breakdown
-            </h3>
-            <DetailedInsights
-              skillScores={reportData.skillScores}
-              isLoading={reportData.isLoading}
-            />
+          <Card variant="default" padding="md" className="text-center">
+            <div className="w-10 h-10 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center mx-auto mb-2">
+              <i className="fa-solid fa-clock text-[var(--color-primary)]" aria-hidden="true" />
+            </div>
+            <p className="text-2xl font-bold text-[var(--color-text-primary)]">{practiceTimeLabel}</p>
+            <p className="text-xs text-[var(--color-text-muted)]">Practice Time</p>
+          </Card>
+
+          <Card variant="default" padding="md" className="text-center">
+            <div className="w-10 h-10 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center mx-auto mb-2">
+              <i className="fa-solid fa-chart-bar text-[var(--color-primary)]" aria-hidden="true" />
+            </div>
+            <p className="text-2xl font-bold text-[var(--color-text-primary)]">{uniqueSkillsUsed}</p>
+            <p className="text-xs text-[var(--color-text-muted)]">Skills Used</p>
+          </Card>
+        </div>
+
+        {/* Skills Practiced */}
+        <Card variant="elevated" padding="lg">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)] mb-5">
+            Skills Practiced
+          </h2>
+
+          <div className="space-y-4">
+            {sortedSkills.map(skill => (
+              <SkillProgressBar
+                key={skill}
+                skillName={skill}
+                totalCount={skillTotals[skill]}
+                averagePerSession={totalSessions > 0 ? skillTotals[skill] / totalSessions : 0}
+                trend={getSkillTrend(skill)}
+                maxCount={maxSkillCount}
+              />
+            ))}
           </div>
-        )}
 
-        {/* Premium Features Preview / Locked Section */}
-        {!isPremium && reportData.sessionCount > 0 && (
-          <Card
-            variant="default"
-            padding="lg"
-            className="mb-8 relative overflow-hidden"
-          >
-            {/* Blur overlay */}
-            <div
-              className="absolute inset-0 backdrop-blur-sm z-10 flex flex-col items-center justify-center"
-              style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
-            >
-              <div
-                className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
-                style={{ backgroundColor: 'var(--color-primary-lighter)' }}
-              >
-                <i
-                  className="fa-solid fa-lock text-lg"
-                  style={{ color: 'var(--color-primary-dark)' }}
-                  aria-hidden="true"
-                />
-              </div>
-              <h3
-                className="text-lg font-bold mb-1"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
-                Detailed Analytics
-              </h3>
-              <p
-                className="text-sm text-center mb-4 max-w-xs"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                Unlock skill breakdown, trend charts, and personalized recommendations
-              </p>
-              <Button
-                variant="primary"
-                size="md"
-                onClick={onUpgrade}
-              >
-                Upgrade to Premium
-              </Button>
+          {/* Strengths & Areas to Develop */}
+          {(strengths.length > 0 || areasToDevlop.length > 0) && (
+            <div className="mt-6 pt-5 border-t border-[var(--color-neutral-100)] flex flex-wrap gap-2">
+              {strengths.map(skill => (
+                <span
+                  key={skill}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-[rgba(34,197,94,0.1)] text-[var(--color-success-dark)]"
+                >
+                  <i className="fa-solid fa-check text-[10px]" aria-hidden="true" />
+                  {skill}
+                </span>
+              ))}
+              {areasToDevlop.filter(s => !strengths.includes(s)).map(skill => (
+                <span
+                  key={skill}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-[rgba(245,158,11,0.1)] text-[var(--color-warning-dark)]"
+                >
+                  <i className="fa-solid fa-arrow-up text-[10px]" aria-hidden="true" />
+                  {skill}
+                </span>
+              ))}
             </div>
+          )}
+        </Card>
 
-            {/* Blurred preview content */}
-            <div className="opacity-50">
-              <h3 className="text-xs font-bold uppercase tracking-wide text-[var(--color-text-muted)] mb-4">
-                Skill Breakdown
-              </h3>
-              <div className="space-y-4">
-                {['Reflective Listening', 'Open Questions', 'Affirmations', 'Summarizing'].map((skill) => (
-                  <div key={skill} className="flex items-center gap-3">
-                    <div className="flex-1 space-y-1">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium text-[var(--color-text-primary)]">{skill}</span>
-                        <span className="text-sm text-[var(--color-text-muted)]">--/100</span>
-                      </div>
-                      <div className="h-2 bg-[var(--color-neutral-200)] rounded-full w-full" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Card>
-        )}
-
-
-        {/* Premium Action Plan - personalized next steps */}
-        {isPremium && reportData.skillScores.length > 0 && (
-          <Card
-            variant="default"
-            padding="lg"
-            className="mb-8"
-            style={{ backgroundColor: '#FAFAFA' }}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)]">
-                Your Action Plan
-              </h3>
-              <span
-                className="text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded border border-[var(--color-primary-200)] text-[var(--color-primary-700)] bg-white"
-              >
-                This Week
-              </span>
-            </div>
-            <ActionPlan
-              skillScores={reportData.skillScores}
-              sessionCount={reportData.sessionCount}
-              periodStart={reportData.periodStart}
-              periodEnd={reportData.periodEnd}
-              onStartPractice={() => onNavigate(View.ScenarioSelection)}
-              isLoading={reportData.isLoading}
-            />
-          </Card>
-        )}
-
-        {/* Empty state CTA */}
-        {reportData.sessionCount === 0 && (
-          <Card variant="accent" padding="lg" className="text-center">
-            <div className="mb-6">
-              <div className="mx-auto w-20 h-20 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center mb-4">
-                <i className="fa-solid fa-chart-line text-4xl text-[var(--color-primary)]" aria-hidden="true"></i>
-              </div>
-            </div>
-            <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">
-              No Reports Yet
+        {/* Practice Log */}
+        <Card variant="elevated" padding="lg">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)]">
+              Recent Practice
             </h2>
-            <p className="text-[var(--color-text-secondary)] mb-6">
-              Complete a few practice sessions to see your skill analytics and progress over time.
-            </p>
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              onClick={() => onNavigate(View.ScenarioSelection)}
-              icon={<i className="fa-solid fa-play" aria-hidden="true" />}
+            <button
+              onClick={() => onNavigate(View.Calendar)}
+              className="text-xs font-semibold text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] transition-colors"
             >
-              Start Your First Session
-            </Button>
-          </Card>
+              View All
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {recentSessions.map(session => (
+              <button
+                key={session.id}
+                onClick={() => onNavigate(View.Calendar)}
+                className="w-full text-left p-4 rounded-xl bg-[var(--color-neutral-50)] hover:bg-[var(--color-neutral-100)] transition-colors"
+              >
+                <div className="flex items-start justify-between mb-1">
+                  <span className="text-sm font-semibold text-[var(--color-text-primary)]">
+                    {session.patient?.topic || 'Practice Session'}
+                  </span>
+                  <span className="text-xs text-[var(--color-text-muted)] ml-2 shrink-0">
+                    {new Date(session.date).toLocaleDateString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </span>
+                </div>
+                {session.patient?.stageOfChange && (
+                  <p className="text-xs text-[var(--color-text-secondary)] mb-1">
+                    Stage: {session.patient.stageOfChange}
+                  </p>
+                )}
+                {session.feedback?.focusForNextSession && (
+                  <p className="text-xs text-[var(--color-text-muted)] italic line-clamp-2">
+                    &ldquo;{session.feedback.focusForNextSession}&rdquo;
+                  </p>
+                )}
+              </button>
+            ))}
+          </div>
+        </Card>
+
+        {/* Print Report */}
+        {isPremium ? (
+          <button
+            onClick={() => onNavigate(View.PrintableReport)}
+            className="w-full p-5 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] transition-colors text-white text-left"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                <i className="fa-solid fa-print text-lg" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="font-semibold">Print Report</p>
+                <p className="text-xs opacity-80">Present to supervisors for documentation</p>
+              </div>
+            </div>
+          </button>
+        ) : (
+          <button
+            onClick={onUpgrade}
+            className="w-full p-5 rounded-xl bg-[var(--color-neutral-100)] hover:bg-[var(--color-neutral-200)] transition-colors text-left relative overflow-hidden"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center shrink-0">
+                <i className="fa-solid fa-lock text-[var(--color-primary)]" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="font-semibold text-[var(--color-text-primary)]">Print Report</p>
+                <p className="text-xs text-[var(--color-text-muted)]">Upgrade to Premium to generate supervisor reports</p>
+              </div>
+            </div>
+          </button>
         )}
       </div>
     </div>

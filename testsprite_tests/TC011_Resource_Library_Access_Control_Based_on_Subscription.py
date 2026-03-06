@@ -33,28 +33,28 @@ async def run_test():
         # -> Navigate to http://localhost:3000
         await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
         
-        # -> Click the 'MI Mastery' link/logo (index 51) to reveal navigation or return to home so the login/Resource Library links become available.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Click the 'Retry connection' button (index 128) to attempt to restore connectivity and reveal navigation/login (Resource Library) links so authentication and access checks can continue.
+        # -> Click the 'Retry' button to attempt restoring connectivity so the login and Resource Library UI can load.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Scroll the page to reveal any hidden navigation or login controls; then click the 'MI Mastery' link (index 132) to try to reveal the navigation/login.
+        # -> Click the 'MI Mastery' link (element [45]) to attempt to load the main UI so the login form or Resource Library can appear.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the 'Retry connection' button (index 228) to attempt to restore connectivity and reveal navigation/login (Resource Library) links.
+        # -> Click the 'Retry' button (element [140]) to attempt restoring connectivity so the login and Resource Library UI can load.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Click the 'MI Mastery' link (element [144]) to try to load the main UI so the login form or Resource Library can appear.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
         # --> Assertions to verify final state

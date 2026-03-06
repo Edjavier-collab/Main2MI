@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef, Suspense, lazy } from 'react';
+import React, { useCallback, Suspense, lazy } from 'react';
 import { UserTier, View, PatientProfile, Session, Feedback, ChatMessage, CoachingSummary } from '@/types';
 import { generatePatientProfile as generatePatientProfileFromTemplate } from '@/services/patientService';
 import { canStartSession } from '@/services/subscriptionService';
@@ -16,20 +16,13 @@ import { ViewRenderer } from '@/components/views/ViewRenderer';
 // Lazy-loaded components
 const Onboarding = lazy(() => import('@/components/views/Onboarding'));
 
-// Gamification components
-import BadgeUnlockToast from '@/components/gamification/BadgeUnlockToast';
-
 // Custom hooks
 import { useAppState } from '@/hooks/useAppState';
 import { useTierManager } from '@/hooks/useTierManager';
 import { useSessionManager } from '@/hooks/useSessionManager';
-import { useStreak } from '@/hooks/useStreak';
-import { useXP } from '@/hooks/useXP';
-import { useBadges } from '@/hooks/useBadges';
 import { useAuthCallback } from '@/hooks/useAuthCallback';
 import { useStripeCallback } from '@/hooks/useStripeCallback';
 import { useAppRouter } from '@/hooks/useAppRouter';
-import { useOnlineSync } from '@/hooks/useOnlineSync';
 
 export default function AppPage() {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -68,56 +61,6 @@ export default function AppPage() {
   // Use tier manager hook with server-side premium verification
   const { userTier, setUserTier, refreshTier, isPremiumVerified, isVerifying: isTierVerifying, verifyPremiumStatus } = useTierManager();
 
-  // Use streak hook for gamification
-  const { currentStreak, updateStreak, processQueue: processStreakQueue } = useStreak();
-
-  // Use XP hook for gamification
-  const { addXP, processQueue: processXPQueue } = useXP();
-
-  // Use badges hook for gamification
-  const { checkAndUnlockBadges, newlyUnlockedBadges, markBadgeAsSeen } = useBadges();
-
-  // Use online sync hook to process queued operations when connectivity is restored
-  useOnlineSync({
-    processStreakQueue,
-    processXPQueue,
-    isAuthenticated: !!user,
-  });
-
-  // Track which badge to show in toast (one at a time)
-  const [badgeToastQueue, setBadgeToastQueue] = useState<string[]>([]);
-
-  // When new badges are unlocked, add them to the toast queue - FIXED: Use ref to prevent loops
-  const previousBadgesRef = useRef<string[]>([]);
-
-  useEffect(() => {
-    const currentBadgeIds = newlyUnlockedBadges.map(b => b.id);
-    const previousBadgeIds = previousBadgesRef.current;
-
-    // Only process if badges actually changed
-    if (currentBadgeIds.length > 0 && JSON.stringify(currentBadgeIds) !== JSON.stringify(previousBadgeIds)) {
-      setBadgeToastQueue(prev => {
-        // Add only badges not already in queue
-        const existingIds = new Set(prev);
-        const toAdd = currentBadgeIds.filter(id => !existingIds.has(id));
-        return [...prev, ...toAdd];
-      });
-      previousBadgesRef.current = currentBadgeIds;
-    }
-  }, [newlyUnlockedBadges]);
-
-  // Handle dismissing a badge toast
-  const handleBadgeToastClose = useCallback(async () => {
-    if (badgeToastQueue.length > 0) {
-      const dismissedBadgeId = badgeToastQueue[0];
-      await markBadgeAsSeen(dismissedBadgeId);
-      setBadgeToastQueue(prev => prev.slice(1));
-    }
-  }, [badgeToastQueue, markBadgeAsSeen]);
-
-  // Get the current badge to show
-  const currentBadgeToShow = newlyUnlockedBadges.find(b => b.id === badgeToastQueue[0]);
-
   // Use session manager hook
   const { saveNewSession } = useSessionManager({
     user,
@@ -126,10 +69,6 @@ export default function AppPage() {
     setSessions,
     setSessionsLoading,
     setRemainingFreeSessions,
-    updateStreak,
-    addXP,
-    checkAndUnlockBadges,
-    currentStreak,
   });
 
   // Use auth callback hook
@@ -486,13 +425,6 @@ export default function AppPage() {
       )}
       {showReviewPrompt && (
         <ReviewPrompt onClose={handleReviewPromptClose} />
-      )}
-      {/* Badge unlock celebration toast */}
-      {currentBadgeToShow && (
-        <BadgeUnlockToast
-          badge={currentBadgeToShow}
-          onClose={handleBadgeToastClose}
-        />
       )}
       {/* Aria live region for async feedback */}
       <div id="aria-live-region" aria-live="polite" aria-atomic="true" className="sr-only"></div>

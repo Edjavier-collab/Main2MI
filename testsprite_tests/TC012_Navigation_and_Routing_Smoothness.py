@@ -33,22 +33,28 @@ async def run_test():
         # -> Navigate to http://localhost:3000
         await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
         
-        # -> Attempt to interact with the page header/logo (MI Mastery) to see if it triggers loading/reveals navigation or retry controls, then re-check for bottom navigation buttons.
+        # -> Click the 'MI Mastery' link (element index 48) to attempt to refresh/navigate away from the initializing/offline screen so the bottom navigation can become accessible.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the 'Retry' connection button to attempt to recover from offline state and reveal the bottom navigation bar, then re-check for the five navigation buttons.
+        # -> Click the 'Retry connection' button (element index 131) to attempt to re-establish connection and load the main app so bottom navigation becomes accessible; then re-evaluate.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
+        # -> Wait briefly to allow the SPA to finish rendering, then click the 'MI Mastery' link (index 135) to attempt to recover the app and reveal the bottom navigation bar so navigation buttons can be tested.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
         # --> Assertions to verify final state
         frame = context.pages[-1]
         await expect(frame.locator('text=Practice').first).to_be_visible(timeout=3000)
-        assert '/dashboard' in frame.url
+        assert '/practice' in frame.url
         await asyncio.sleep(5)
 
     finally:

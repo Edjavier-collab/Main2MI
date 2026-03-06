@@ -24,7 +24,7 @@ const EmailConfirmationView = lazy(() => import('./EmailConfirmationView'));
 const CoachingSummaryView = lazy(() => import('./CoachingSummaryView'));
 const SupportView = lazy(() => import('./SupportView'));
 const ReportsView = lazy(() => import('./ReportsView'));
-const ProgressionView = lazy(() => import('./ProgressionView'));
+const PrintableReportView = lazy(() => import('./PrintableReportView'));
 
 // Lazy-loaded legal pages
 const PrivacyPolicy = lazy(() => import('../legal/PrivacyPolicy'));
@@ -313,13 +313,6 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
         return <Disclaimer onBack={() => onNavigate(View.Settings)} />;
       case View.Support:
         return <SupportView onBack={() => onNavigate(View.Settings)} />;
-      case View.SkillProgression:
-        return (
-          <ProgressionView
-            sessions={sessions}
-            onBack={() => onNavigate(View.Dashboard)}
-          />
-        );
       case View.Reports:
         return (
           <ErrorBoundary
@@ -354,6 +347,14 @@ export const ViewRenderer: React.FC<ViewRendererProps> = ({
               onNavigate={onNavigate}
             />
           </ErrorBoundary>
+        );
+      case View.PrintableReport:
+        return (
+          <PrintableReportView
+            sessions={sessions}
+            user={user}
+            onBack={() => onNavigate(View.Reports)}
+          />
         );
       case View.Dashboard:
       default:

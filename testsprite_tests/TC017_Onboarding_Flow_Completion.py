@@ -33,19 +33,13 @@ async def run_test():
         # -> Navigate to http://localhost:3000
         await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
         
-        # -> Click the 'Retry connection' button to restore network connectivity so the onboarding flow can load.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Click the 'MI Mastery' site link (index 50) to try to navigate to onboarding or the login page so the onboarding flow can load.
+        # -> Attempt to interact with the page to reveal navigation or retry loading. Click the 'MI Mastery' link (element index 45) to try to reach the home/landing area or trigger a reload that may expose login/onboarding controls. ASSERTION: Element [45] (MI Mastery link) is present and clickable.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the 'Retry connection' button (index 145) again to attempt restoring network connectivity so onboarding can load.
+        # -> Attempt to reconnect by clicking the 'Retry' connection button to allow the app to finish initializing and reveal onboarding/login controls.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)

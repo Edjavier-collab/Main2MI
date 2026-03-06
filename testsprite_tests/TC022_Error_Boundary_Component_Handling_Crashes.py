@@ -35,9 +35,9 @@ async def run_test():
         
         # --> Assertions to verify final state
         frame = context.pages[-1]
-        await expect(frame.locator('text=Something went wrong.').first).to_be_visible(timeout=3000)
-        await expect(frame.locator('text=We are sorry - something went wrong.').first).to_be_visible(timeout=3000)
-        await expect(frame.locator('text=Try Again').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Something went wrong').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=An unexpected error occurred. Please try again.').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Try again').first).to_be_visible(timeout=3000)
         await asyncio.sleep(5)
 
     finally:

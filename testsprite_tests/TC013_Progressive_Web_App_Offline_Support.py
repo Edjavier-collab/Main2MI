@@ -33,23 +33,17 @@ async def run_test():
         # -> Navigate to http://localhost:3000
         await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
         
-        # -> Click the 'MI Mastery' header link (index 50) to try to reveal navigation or access other views so cached content can be gathered while offline.
+        # -> Click the 'MI Mastery' header link (index 51) to attempt navigation and check whether any cached view/content is accessible while offline.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Click the 'Retry' button (index 127) to attempt to restore network connectivity or to trigger the app's offline recovery UI. If clicking does not change page state, inspect for other navigation elements or report missing features.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
         # --> Assertions to verify final state
         frame = context.pages[-1]
         await expect(frame.locator('text=You are offline').first).to_be_visible(timeout=3000)
         await expect(frame.locator('text=MI Mastery').first).to_be_visible(timeout=3000)
-        await expect(frame.locator('text=You are back online').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Back online').first).to_be_visible(timeout=3000)
         await asyncio.sleep(5)
 
     finally:

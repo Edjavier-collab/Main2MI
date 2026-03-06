@@ -17,11 +17,11 @@
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- The app displays an offline banner ('You're offline. Some features may be unavailable.') and is not presenting signup/login UI.
-- Retry connection button was clicked twice but did not restore connectivity or reveal authentication features.
-- No signup or login links, or authentication input fields (email/password), are present on the page to proceed with registration.
-- The app appears stuck on an initializing/offline state, preventing access to pages needed to complete the signup and login flows.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/5fe377b6-71ee-44a3-a318-1950bb0c3260
+- Signup or login controls were not found on the page; only an offline/initializing screen is displayed.
+- The page shows an offline banner ('You're offline. Some features may be unavailable.') and a prominent 'Initializing...' message which prevents access to signup/login flows.
+- Attempts to recover connectivity (Retry) and waiting did not change the page state; the app remained offline/initializing.
+- Unable to complete signup, email confirmation, or login because the application did not expose the required UI.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/ed1f0a88-a875-4606-9395-19d44fb6dd07
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -31,12 +31,12 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- ASSERTION: Login form not present on page; the page displays an offline/initializing screen with text 'Initializing...'.
-- ASSERTION: Retry button did not restore connection or reveal the login UI after being clicked.
-- ASSERTION: No email/username input field found on the page.
-- ASSERTION: No password input field found on the page.
-- ASSERTION: No Login/Sign In button present on the page and navigation elements (app title) did not lead to a login screen.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/c2f158c8-998b-45d4-a982-1590f2a96fad
+- Login form not found on page.
+- No email/username or password input fields present on the page.
+- Login button not found on the page.
+- Application is stuck on an 'Initializing...' screen with an offline banner visible, preventing further interaction.
+- No navigation elements lead to a login page, so the login flow cannot be executed.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/849e7b19-c83b-476e-a2cd-898c26b2f98e
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -46,11 +46,11 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- Authentication UI (login page or 'Forgot Password' link) not found on the application root page after retrying and scrolling.
-- Offline banner 'You're offline. Some features may be unavailable.' remained visible and prevented access to authentication flows.
-- Clicking the 'Retry connection' button did not restore connectivity or load the authentication UI.
-- No navigational element (link or button) was available on the page to reach a Forgot Password view.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/df3b3e95-df5f-45db-bd09-b2582090dd7b
+- Application displays an offline banner stating 'You're offline. Some features may be unavailable,' preventing interaction with authentication controls.
+- 'Initializing...' indicator is visible and application content is not interactive, so the Forgot Password view cannot be reached.
+- No login, authentication, or 'Forgot Password' controls are present on the page (only the header link and initializing content), so the password reset flow cannot be initiated.
+- After multiple waits and a header click, the application remained in the initializing/offline state and did not render the necessary UI for testing the password reset flow.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/2df5d81b-c6de-4170-b5b0-5602564e1d7a
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -60,11 +60,12 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- Application remained on the 'Initializing...' screen preventing access to login or Practice features.
-- Offline banner 'You're offline. Some features may be unavailable.' persisted and blocked functionality needed to proceed.
-- Retry connection button did not restore connectivity after two attempts.
-- Navigation elements required to reach Practice (login form, Practice view, scenario list) were not present or accessible.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/5f6dc88a-3025-4027-833a-86e0c7f51960
+- Application shows an offline banner and remains on the 'Initializing...' splash, preventing access to UI controls required for testing.
+- No login, signup, or practice controls are present on the page, so authentication and practice flows cannot be initiated.
+- Retry connection button is not available or did not restore connectivity, so the app could not be loaded into a usable state.
+- Practice session flows (scenario selection, chat/voice interaction, session completion) could not be exercised because the app UI is unreachable.
+- AI-generated feedback and coaching summary could not be verified because practice sessions could not be started.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/9e183ea7-b256-4855-9581-aa299a38ae97
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -74,10 +75,11 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- Start practice session control not found on page (no 'Start', 'New Session', or similar interactive element visible).
-- Application shows an offline banner ('You're offline. Some features may be unavailable.') which prevents starting a session.
-- Page remains stuck on 'Initializing...' and practice controls did not load, so session cannot be started or allowed to expire.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/6c7d995d-7733-4699-92c0-e0ab09e53937
+- Start/practice session controls not present on page; no Start button, scenario selection, or conversation UI found.
+- Application displays 'Initializing...' with an offline banner ('You\'re offline. Some features may be unavailable.'), preventing access to practice controls.
+- Only a navigation link (MI Mastery) is interactive; no interactive controls exist to start a session.
+- Unable to allow the session timer to reach zero because a session cannot be started from the current page.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/4d9a544a-5baa-4d93-bc3e-0d9115d2f947
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -87,10 +89,11 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- Application stuck on 'Initializing...' screen and displays 'You're offline. Some features may be unavailable.' banner, preventing access to login or subscription pages.
-- Retry connection button did not restore connectivity after two attempts.
-- Login controls and subscription/paywall UI were not reachable, so Stripe checkout could not be initiated or completed.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/efc728db-3238-4eb7-844c-4dbc36ef415c
+- Offline banner "You're offline. Some features may be unavailable." is displayed, preventing access to network-dependent login and subscription flows.
+- The page shows a persistent "Initializing..." state that blocks access to the login and subscription UI.
+- Login input fields and subscription/paywall controls are not present on the page.
+- Clicking the 'Retry' connection control did not restore connectivity or remove the initializing state.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/0dc9d37d-61b9-423b-baf2-0a342bd828eb
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -100,11 +103,11 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- Application displays "You're offline" banner and remains on an "Initializing..." screen, preventing further interaction.
-- Login form or authentication controls are not present, so a premium subscriber cannot be signed in.
-- Subscription management / cancellation UI is not accessible from the current page.
-- Unable to submit a cancellation request or verify that premium access is revoked due to application unavailability.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/d000a939-4a48-4201-bb80-8475a2787cdb
+- Subscription management UI not reachable due to persistent offline/initializing banner.
+- Login input fields (email/username/password) are not present on the page, preventing authentication as a premium subscriber.
+- Clicking the 'Retry' connection button did not restore online connectivity after multiple attempts; the app remains in an 'Initializing...' state.
+- No navigation elements to access billing or subscription settings are available beyond a 'MI Mastery' link and the 'Retry' button.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/8700dfd7-af71-44a3-ab13-c2679e69fd57
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -114,12 +117,12 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- ASSERTION: 'Initializing...' message remains visible and dashboard content did not render.
-- ASSERTION: Offline banner 'You're offline. Some features may be unavailable.' remains visible.
-- ASSERTION: Clicking the Retry button did not recover the application or change the page state.
-- ASSERTION: Session statistics (XP, badges, streaks) are not present on the page.
-- ASSERTION: Practice history list and quick action quick-action buttons are not present or accessible.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/a2dd8622-42d5-4ef8-8a82-14aec48003a4
+- Dashboard did not load: page is stuck on an "Initializing..." screen and shows an offline banner instead of the dashboard widgets (session statistics, practice history, quick action buttons).
+- Retry connection button did not restore connectivity after two clicks; the offline banner remained visible.
+- SPA remained in a loading/initializing state after interacting with 'MI Mastery', 'Skip', accepting cookies, and waiting; dashboard widgets are not present in the DOM.
+- Interactive elements required to verify session statistics, practice history, and quick action buttons are not available on the page, preventing verification.
+- No further retry/wait attempts remain under the test constraints, so the verification cannot proceed.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/06a27e93-f861-4bee-b03c-aceb3a455237
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -129,11 +132,11 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- 'You\'re offline. Some features may be unavailable.' banner is visible, preventing access to online features required for practice sessions.
-- Page shows 'Initializing...' and indicates the application is not fully ready, blocking navigation to practice flows.
-- Retry connection button is present but clicking the app entry ('MI Mastery') did not change the page state or enable practice session functionality.
-- No UI elements for starting practice sessions (e.g., 'Start Practice', 'New Session', scenario selection) are available on the current page.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/c1331fcf-5e4c-4762-b1ce-d27142d703b3
+- ASSERTION: Application remained in 'Initializing...' state with an 'You're offline' banner visible; practice features could not be accessed.
+- ASSERTION: Practice session entry points (Start Practice, Sessions, Dashboard) are not present on the page.
+- ASSERTION: Unable to perform any practice sessions; XP gains, badge unlocks, streak updates, and level progress could not be validated.
+- ASSERTION: Repeated UI interactions (clicking the MI Mastery/header/logo) did not resolve the offline/initializing state.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/4870b3e7-7095-42fd-b6f1-597b6c790b4b
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -143,12 +146,10 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- App remained in an offline/initializing state; login fields and navigation elements to access Coaching Reports did not appear.
-- 'Retry' button was clicked twice but did not restore connectivity or advance the app past the initializing state.
-- Clicking the 'MI Mastery' link did not navigate to an authenticated or report-accessible view.
-- Coaching Reports view could not be reached, so executive summary, insights, trend analysis, and action plans could not be verified.
-- Premium vs non-premium access behavior could not be validated because authentication and reports are inaccessible.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/8f45b3d4-f016-4be5-bef9-5ad0904b109e
+- Login failed - application remained on 'Initializing...' screen after valid credentials were submitted and returned to the unauthenticated login state.
+- Coaching Reports content could not be verified because the authenticated user UI did not load (no user avatar, account menu, or report data visible) after multiple login attempts.
+- Persistent 'You're offline' banner and loading state prevented the application from completing initialization and blocked access to premium features.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/8eb8c8c4-b868-41e6-86b8-6262f84868bc
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -158,11 +159,12 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- Application remains on 'Initializing...' screen and offline banner, preventing interaction with the app.
-- Retry connection button was clicked twice but did not restore connectivity or progress past the initializing state.
-- Navigation links and login controls (Resource Library, login) are not available, preventing authentication and access checks.
-- No alternative interactive elements are present to navigate around the offline/initializing blocking state.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/99d4c5fa-d215-430a-8e94-6aa6c93f0459
+- App remained in offline/initializing state after clicking 'Retry' (button present) twice.
+- Login form not found on page; authentication input fields and login button are not present.
+- Resource Library and subscription controls are not present on the page; navigation to content is unavailable.
+- Only interactive elements available are 'Retry' and 'MI Mastery', which do not expose the required UI for testing authentication or gated content access.
+- Multiple retry/navigation attempts were made (2 retries, 2 MI Mastery clicks) and did not restore connectivity or load the application UI.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/7acfcf73-eac8-4aa0-8cef-3481d9096023
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -172,11 +174,12 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- Bottom navigation bar not found on the page; interactive elements do not include Practice, Dashboard, Reports, Library, or Settings, preventing navigation verification.
-- Application is stuck in 'Initializing...' state and displays an offline banner 'You're offline. Some features may be unavailable.', indicating the app did not fully load.
-- Clicking the 'Retry' connection button and waiting (5s x2) did not recover the app or render the navigation bar.
-- Unable to perform browser back/forward routing checks because target navigation elements never appeared.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/c479aa39-c7fe-418e-a84a-72e757602a12
+- Bottom navigation (Practice, Dashboard, Reports, Library, Settings) not found on page; cannot verify routing.
+- Application remains on the "Initializing..." screen and main views did not render.
+- Offline banner "You're offline. Some features may be unavailable." is visible and connectivity could not be restored.
+- Clicking recovery controls ('MI Mastery' link and 'Retry' button) did not change the application state after multiple attempts.
+- No additional interactive navigation elements are available to reach the target views.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/2d802910-cc55-4703-ae89-51335bf955a1
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -186,11 +189,12 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- Offline indicator is visible but the app remained stuck on 'Initializing...' and did not load any content while offline.
-- Clicking the 'Retry' button did not change the app state or remove the offline banner.
-- Navigation to other views could not be performed while offline; header click did not reveal or load other pages for caching.
-- There is no evidence that previously cached pages are being served; the app shows no fallback content or cached views when offline.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/5ee3f1ed-e062-430f-a3f9-e6213d038e0b
+- ASSERTION: Cached content not served while offline — the app remained stuck in the 'Initializing...' state and no application views or cached pages were rendered.
+- ASSERTION: Only two interactive elements were available (header link and an SVG); no navigation elements or cached views were accessible to continue testing offline behavior.
+- ASSERTION: The offline banner shows a 'Retry' label visually but there is no interactive Retry control exposed in the page's interactive elements, preventing retry attempts.
+- ASSERTION: The app did not degrade gracefully to available cached content; the UI stayed in an initializing/offline state, indicating offline caching or fallback pages are not accessible under current conditions.
+
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/ce735acc-9e51-4fd3-b007-3092e5a9e2f1
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -200,11 +204,11 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- Feedback form not found on page; no visible link or button to open feedback.
-- 'You're offline. Some features may be unavailable.' banner is displayed, preventing access to interactive features.
-- 'Initializing...' message is displayed and application remains in an initializing state.
-- Retry connection action did not restore connectivity and no feedback UI became available.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/a60b4126-c4df-461e-8a83-bd8f5ae43ae6
+- Offline banner 'You're offline. Some features may be unavailable.' is visible, preventing network-backed feedback submission.
+- No success confirmation message was displayed after clicking Submit; the feedback modal remained open with the comment still present.
+- Feedback persistence could not be verified because there is no UI evidence that the feedback was saved or retrievable by support.
+- Submit action did not produce retrievable evidence (no confirmation or feedback entry), so successful recording cannot be confirmed.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/ac5889a2-4cca-484f-842d-97ef93842db8
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -214,12 +218,11 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- Application is offline: 'You're offline' banner is displayed and the page shows 'Initializing...', preventing access to runtime features.
-- No UI controls or admin pages found on the loaded page to simulate or forward Stripe webhook events to the edge function.
-- No visible webhook endpoint, documentation, or tooling accessible from the UI to trigger Stripe webhook simulation.
-- Backend/edge webhook endpoint could not be reached or exercised from the current page, so subscription status updates cannot be verified.
-- Unable to confirm that webhook events are processed correctly and update the database because the application is not fully running or lacks accessible testing interfaces.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/96c21fbf-5d8e-4e14-9c44-fae75b71321b
+- Application root is offline: 'You're offline' banner visible and the app is stuck at 'Initializing...', preventing access to any pages needed for testing.
+- No UI elements or navigation links for webhooks, billing, subscription management, or edge function administration were found on the landing page.
+- No accessible endpoint or interface is available from the app to simulate delivery of Stripe webhook events to edge functions.
+- Backend/database access or any UI to verify subscription status updates is not available from the current page, so subscription update verification cannot be performed.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/69b9260d-22ba-4a7d-a6bd-5cf32e90d442
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -229,10 +232,11 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- Application remained in offline/initializing state after two retry attempts; interactive login and scenario selection UI was not available.
-- Retry button did not restore connectivity and the offline banner persisted, preventing access to required flows.
-- Unable to reach login or scenario selection pages; cannot verify premium gating, filtering, or selection behavior.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/ca799069-c638-4e35-8e22-f430a9dff6fa
+- Login form not found on page; cannot perform authentication.
+- Offline banner 'You're offline. Some features may be unavailable.' is displayed, preventing full app initialization.
+- Scenario selection / Library content is not accessible; page shows 'Loading...' instead of scenarios or filters.
+- 'Retry' action did not restore connectivity and the SPA remained offline after retry.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/b327d224-be9a-45de-843e-69a22231eb43
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -242,11 +246,11 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- Onboarding flow not reachable: application remains on an initialization screen showing 'Initializing...' and 'Preparing your personalized practice experience...', preventing access to onboarding screens.
-- Persistent offline banner 'You're offline. Some features may be unavailable.' is visible and blocking the onboarding flow.
-- Retry connection control either did not restore connectivity or is not present/functional after two attempts; onboarding cannot be loaded.
-- No login, sign-up, or onboarding interactive elements are present on the page to proceed with new user onboarding.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/0cfb2403-0121-4b8e-aa5f-2c2ac37134ec
+- Onboarding or login screens not present on the application's initial page.
+- Application remained in an 'Initializing...'/'offline' state and blocked access to onboarding.
+- Clicking 'Retry' did not resolve the initializing/offline state.
+- No navigation elements (links/buttons) were available to reach onboarding or authentication flows.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/0f253eb1-5e91-4a5b-963e-3c0517321ec8
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -256,11 +260,12 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- Offline banner displayed on the landing page prevented navigation to Settings/Support and in-app pages.
-- Retry button did not restore connectivity after multiple attempts; the application remained in an 'Initializing...' state.
-- Navigation menu or Settings/Support links were not accessible while the app was offline, so legal pages could not be reached.
-- Legal pages (Privacy Policy, Terms of Service, Cookie Policy, Subscription Terms, Disclaimer) could not be accessed because the application failed to fully load.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/850b3573-0bdf-4f2a-a489-aa0a5629974a
+- App is stuck in an offline/initializing state; the UI shows 'You\'re offline. Some features may be unavailable.' and 'Initializing...' messages.
+- Retry button is not available as an interactive element for recovery (no usable retry control found on the page).
+- MI Mastery link clicks (performed twice) did not open Support or Settings and did not provide navigation to legal pages.
+- Legal pages (Privacy Policy, Terms of Service, Cookie Policy, Subscription Terms, Disclaimer) could not be accessed because navigation is unavailable from the current app state.
+- Waiting for the SPA to load (5 seconds) did not change the page state or reveal navigation elements required to complete the task.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/fd50a7fd-8e75-4857-a6f4-5a9984042895
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -270,11 +275,12 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- Application is offline: 'You're offline' banner displayed and features may be unavailable
-- Initialization screen ('Initializing...') persists, preventing rendering of main UI components
-- Required UI components (buttons, cards, modals, spinners) are not present or accessible on the page
-- Only 2 interactive elements found (logo link and initializing svg), insufficient to perform accessibility and responsiveness tests
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/9728e013-e7a9-4204-b7fc-22987129a22e
+- Offline banner persists and network-dependent features did not initialize, preventing access to main UI components.
+- The initializing spinner remained visible and the main interface (buttons, cards, modals) did not render.
+- Only minimal interactive elements were detected (site link and logo SVG); controls required for testing were not available.
+- Keyboard navigation and ARIA/accessibility checks could not be performed because the required interactive components were not present.
+- The retry/reconnect control was not available as an interactive target after the initial attempt, preventing further reconnection attempts.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/3ffbcfc9-04fe-411b-abdd-d35054876d1b
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -284,12 +290,11 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- Authentication UI (signup/login) not present on page; only an 'Initializing...' message and an offline banner are visible.
-- Clicking the Retry/Reload controls did not restore or reveal the authentication UI; app remains in offline/initializing state.
-- A browser-level error 'ERR_EMPTY_RESPONSE' was observed earlier, indicating the local development server returned no data.
-- No developer toggle or mock-mode indicator is present on the UI to allow fallback authentication in development.
-- Unable to perform signup/login attempts because the authentication UI is not reachable.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/e1a67514-11ce-4ac1-82a5-5d30d623a79b
+- Mock-mode fallback not present when Supabase authentication is unavailable; no signup, login, or developer auth controls appeared.
+- Application remained on the 'Initializing...' screen with a persistent offline banner after using the 'Retry' control; UI did not transition to a mock authentication flow.
+- Only 'Retry' and 'MI Mastery' anchor were available on the page; no controls to enable developer/mock authentication were found.
+- Clicking available controls (Retry and MI Mastery) did not reveal authentication UI or any mock-mode notification.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/e1fe63fe-303b-48d8-8301-57899e35f3aa
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -299,11 +304,10 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- Offline banner 'You're offline. Some features may be unavailable.' is visible on the page
-- App displays 'Initializing...' and 'Preparing your personalized practice experience...', indicating the app is still initializing
-- Clicking the 'Retry' button did not restore online features; the page remains offline/initializing
-- Practice session controls (scenario selection, Start/Play, voice input) are not present or accessible on the page
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/5015cf90-9ac3-4fa8-aac9-d35a3b94a707
+- Initialization did not complete: the app remained on the 'Initializing...' screen after two wait attempts.
+- 'Start Practice' button or equivalent session-starting control not found on the page.
+- 'You're offline. Some features may be unavailable.' banner is displayed and may be preventing interactive features from loading.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/305ec5cb-1611-47ea-8e91-b35d0ee89733
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -313,12 +317,10 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- No UI control or test harness found on the page to introduce a runtime error into a child component (no 'simulate error', 'throw', 'crash', or developer/test menu visible).
-- The app is currently showing an 'Initializing...' screen, preventing navigation to application areas where a child component could be manipulated or replaced for testing.
-- There is no visible mechanism in the UI to modify component code or state (no sandbox, debug toggle, or test panel) to force an error at runtime.
-- Because an error could not be triggered, the Error Boundary behavior (catching errors and showing fallback UI) could not be observed or verified.
-- The test cannot be completed from the current UI state; external access to the app source or a test hook is required to introduce a runtime exception for verification.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/10f8f6fb-d781-474e-97bc-94bde5d972c3
+- No UI control or developer/test route found to introduce a runtime error in a child component for exercising the error boundary.
+- Application remains in an 'Initializing...' state and shows an offline indicator, preventing further interactive testing steps.
+- No visible fallback or error-testing interface is available in the current UI to validate that the error boundary catches errors and displays fallback UI.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/35813956-ece7-40b2-9a92-0972d307c299
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -328,11 +330,12 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- Application remained on the 'Initializing...' / offline screen with the banner 'You're offline. Some features may be unavailable.', preventing access to practice session UI.
-- No 'Start practice' button or other session controls are present on the visible page (only a home link and decorative elements).
-- Clicking the 'MI Mastery' navigation link did not change the application state or reveal practice/session controls.
-- Clicking the 'Retry' connection button did not reconnect the application or remove the offline/initializing state.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/ed207c8e-2f13-44df-b077-f1dc309aa683
+- App shows an offline banner and remains stuck on a Loading/Initializing screen, preventing any backend (Supabase) access required for verification.
+- The 'Retry connection' control was used twice with no change; the offline state persisted after all retry attempts.
+- Attempt to start a practice session could not complete because the application stayed in the initializing/loading state; no session data or AI feedback was produced or persisted.
+- Reports, Settings, and Dashboard content necessary to confirm saved sessions and coaching feedback were not accessible while offline.
+- Verification of session data saving to Supabase and cross-device synchronization cannot be completed because the application remains offline/uninitialized.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/6c1bfc62-6d9f-47bd-8197-05dd0df20925
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -342,11 +345,11 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- Login page not found; login form fields and sign-in controls are not present on the page, preventing testing of network failure during login.
-- Subscription/payment UI (Stripe checkout or billing management) is not reachable from the current UI, preventing payment failure simulation.
-- AI coaching report retrieval UI is not accessible; reports or feedback pages are not present, preventing retrieval failure simulation.
-- Offline banner 'You're offline. Some features may be unavailable.' is visible and the Retry action did not restore connectivity; the app remains in an initializing/offline state.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/44a975b7-c706-4268-b756-c8e4fada4b0e
+- Login form not found on page - no email/username or password input fields are present.
+- Subscription/payment UI not found - no upgrade, billing, or Stripe payment controls are visible.
+- AI coaching/report retrieval UI not accessible - no reports, coaching summary, or feedback retrieval controls are present.
+- Application is in an offline/initializing state with banner 'You're offline. Some features may be unavailable.' blocking access to interactive flows.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/d6615930-c3bd-4ae9-b3fc-f5f0bd3fc4bd
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
@@ -356,13 +359,13 @@ ASSERTIONS:
 - **Test Error:** TEST FAILURE
 
 ASSERTIONS:
-- Offline banner present and 'Retry' did not restore connectivity, preventing network requests required to verify HTTPS usage and inspect request/response traffic.
-- Authentication UI (signup/login/password reset) is not reachable because the app is stuck on the 'Initializing...' splash screen.
-- Network calls cannot be observed due to offline state, so HTTPS usage in requests/responses cannot be verified.
-- Token storage (httpOnly cookies or secure storage) cannot be validated because backend/network access and storage indicators are not available; local/session storage inspection is disallowed by test rules.
-- No visible UI or logs expose passwords or tokens, but inability to reach the authentication flows prevents confirming secure handling of credentials and tokens.
+- Authentication UI not found on page (no signup/login/password reset elements present)
+- App displays 'You're offline' and 'Initializing...' which prevents access to authentication flows
+- No network activity or endpoints were available to verify that authentication requests use HTTPS
+- No access to client-side storage or cookie views to verify secure/httpOnly token storage
+- UI and application logs could not be inspected for exposed passwords/tokens because the app did not load the relevant views
 
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/0bd68422-0a53-4f1e-90e8-c2db9c3272ab/00012a8c-9a2f-482d-ad4b-0eb69e528c3a
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8392a131-a8eb-4604-9505-49d0c010b968/d01547b0-58ba-4a56-a55d-c13d78115a1c
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---

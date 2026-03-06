@@ -219,14 +219,18 @@ serve(async (req: Request) => {
       return errorResponse('AI service not configured', 500, req);
     }
 
-    // Prepare session summaries
+    // Prepare session summaries (handles both v3 and legacy feedback formats)
     const sessionSummaries = sessions.map((session: any) => ({
       date: formatDateToMMDDYYYY(session.date),
       patientTopic: session.patient?.topic || 'Unknown',
       stageOfChange: session.patient?.stageOfChange || 'Unknown',
-      whatWentRight: session.feedback?.whatWentRight || 'Not specified',
+      // V3 fields
+      whatWentWell: session.feedback?.whatWentWell || [],
+      growthOpportunities: session.feedback?.growthOpportunities || [],
+      behavioralMetrics: session.feedback?.behavioralMetrics || null,
+      // Legacy fallbacks for older sessions
+      whatWentRight: session.feedback?.whatWentRight || session.feedback?.whatWentWell || 'Not specified',
       constructiveFeedback: session.feedback?.constructiveFeedback || session.feedback?.areasForGrowth || 'Not specified.',
-      empathyScore: session.feedback?.empathyScore || 0,
       keySkillsUsed: session.feedback?.keySkillsUsed || session.feedback?.skillsDetected || [],
       skillCounts: session.feedback?.skillCounts || {},
     }));
@@ -249,7 +253,6 @@ serve(async (req: Request) => {
     - strengthsAndTrends: 
       * Analyze recurring strengths and patterns across all ${sessionSummaries.length} session${sessionSummaries.length === 1 ? '' : 's'} from "whatWentRight" fields.
       * Analyze the "keySkillsUsed" across sessions—are they using more complex skills over time (e.g., moving from only Open Questions to more Reflections)? Look for skill progression patterns.
-      * Comment on the consistency and trends in "empathyScore" across sessions—are scores improving, stable, or varying? Note any upward trends.
       * Reference specific examples from the sessions when highlighting strengths.
       * Use markdown for bullet points (e.g., "* Point one").
       * Begin by acknowledging the number of sessions analyzed (e.g., "Across your ${sessionSummaries.length} session${sessionSummaries.length === 1 ? '' : 's'}, you've demonstrated...").

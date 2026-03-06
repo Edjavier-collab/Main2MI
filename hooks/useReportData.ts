@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Session } from '../types';
+import { Session, BehavioralMetrics } from '../types';
 
 /**
  * The 6 core MI competencies we track
@@ -64,10 +64,39 @@ const mapToCompetency = (skillName: string): CompetencyName | null => {
 };
 
 /**
- * Convert empathy score (1-5) to percentage (0-100)
+ * Convert empathy score (1-5) to percentage (0-100) — legacy fallback
  */
 const empathyToPercent = (score: number): number => {
   return Math.round(((score - 1) / 4) * 100);
+};
+
+/**
+ * Compute composite MI score (0-100) from behavioral metrics
+ */
+const metricsToPercent = (m: BehavioralMetrics): number => {
+  const ratioScore = Math.min(m.reflectionToQuestionRatio / 2.0, 1.0) * 100;
+  const totalReflections = m.simpleReflections + m.complexReflections;
+  const complexScore = totalReflections > 0
+    ? Math.min((m.complexReflections / totalReflections) / 0.5, 1.0) * 100
+    : 0;
+  const totalMI = m.miAdherentStatements + m.miInconsistentStatements;
+  const adherentScore = totalMI > 0 ? (m.miAdherentStatements / totalMI) * 100 : 100;
+  const totalQ = m.openQuestions + m.closedQuestions;
+  const openScore = totalQ > 0 ? Math.min((m.openQuestions / totalQ) / 0.7, 1.0) * 100 : 0;
+  return Math.round(ratioScore * 0.4 + complexScore * 0.25 + adherentScore * 0.25 + openScore * 0.1);
+};
+
+/**
+ * Get session score (0-100), preferring behavioral metrics, falling back to empathyScore
+ */
+const getSessionPercent = (session: Session): number | null => {
+  if (session.feedback?.behavioralMetrics) {
+    return metricsToPercent(session.feedback.behavioralMetrics);
+  }
+  if (session.feedback?.empathyScore && session.feedback.empathyScore > 0) {
+    return empathyToPercent(session.feedback.empathyScore);
+  }
+  return null;
 };
 
 /**
@@ -167,7 +196,7 @@ const calculateDailyScores = (sessions: Session[]): DailyScorePoint[] => {
       continue;
     }
 
-    const empathyScore = session.feedback?.empathyScore;
+    const scorePercent = getSessionPercent(session);
 
     if (!byDate[dateKey]) {
       byDate[dateKey] = { scores: [], count: 0 };
@@ -175,8 +204,8 @@ const calculateDailyScores = (sessions: Session[]): DailyScorePoint[] => {
 
     byDate[dateKey].count += 1;
 
-    if (typeof empathyScore === 'number' && empathyScore > 0) {
-      byDate[dateKey].scores.push(empathyToPercent(empathyScore));
+    if (scorePercent !== null) {
+      byDate[dateKey].scores.push(scorePercent);
     }
   }
 
@@ -272,26 +301,22 @@ export const useReportData = (sessions: Session[], isPremiumVerified = false): U
     const recentSessions = sortedSessions.slice(0, midpoint);
     const olderSessions = sortedSessions.slice(midpoint);
 
-    // Calculate overall score from empathy scores
+    // Calculate overall score from behavioral metrics (with empathyScore fallback)
     const validScores = sortedSessions
-      .map(s => s.feedback?.empathyScore)
-      .filter((score): score is number => typeof score === 'number' && score > 0);
+      .map(getSessionPercent)
+      .filter((score): score is number => score !== null);
 
     const overallScore = validScores.length > 0
-      ? Math.round(
-          validScores.reduce((sum, score) => sum + empathyToPercent(score), 0) / validScores.length
-        )
+      ? Math.round(validScores.reduce((sum, score) => sum + score, 0) / validScores.length)
       : 0;
 
     // Calculate previous score (from older half)
     const olderScores = olderSessions
-      .map(s => s.feedback?.empathyScore)
-      .filter((score): score is number => typeof score === 'number' && score > 0);
+      .map(getSessionPercent)
+      .filter((score): score is number => score !== null);
 
     const previousScore = olderScores.length > 0
-      ? Math.round(
-          olderScores.reduce((sum, score) => sum + empathyToPercent(score), 0) / olderScores.length
-        )
+      ? Math.round(olderScores.reduce((sum, score) => sum + score, 0) / olderScores.length)
       : overallScore;
 
     // Determine overall trend

@@ -33,13 +33,7 @@ async def run_test():
         # -> Navigate to http://localhost:3000
         await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
         
-        # -> Click the 'Retry' button (index 46) to attempt restoring connection and reveal the login UI so the test can input incorrect credentials.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Click the 'MI Mastery' app title link (index 50) to try to reach or reveal the login page/UI.
+        # -> Attempt to reach the login page by clicking the 'MI Mastery' link (element [48]) to reveal or reload the UI so the login form can be accessed.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/header/div/a').nth(0)

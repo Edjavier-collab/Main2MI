@@ -33,23 +33,11 @@ async def run_test():
         # -> Navigate to http://localhost:3000
         await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
         
-        # -> Click the 'MI Mastery' link (element index 51) to reveal navigation or authentication UI so the authentication flows can be tested.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Click the 'Retry connection' button (element index 128) to attempt to restore network connectivity so authentication flows and secure transmission/storage checks can be performed.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
         # --> Assertions to verify final state
         frame = context.pages[-1]
-        await expect(frame.locator('text=All network requests use HTTPS and no sensitive data exposed').first).to_be_visible(timeout=3000)
-        await expect(frame.locator('text=Authentication tokens stored securely (httpOnly cookies)').first).to_be_visible(timeout=3000)
-        await expect(frame.locator('text=Passwords and tokens are not visible in UI or logs').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=All network requests use HTTPS').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Authentication tokens stored securely (httpOnly/secure)').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=No passwords or tokens are displayed in UI or logs').first).to_be_visible(timeout=3000)
         await asyncio.sleep(5)
 
     finally:

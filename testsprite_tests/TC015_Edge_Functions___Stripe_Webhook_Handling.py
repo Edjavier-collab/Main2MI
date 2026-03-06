@@ -35,7 +35,7 @@ async def run_test():
         
         # --> Assertions to verify final state
         frame = context.pages[-1]
-        await expect(frame.locator('text=Subscription status updated to Active').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Subscription Active').first).to_be_visible(timeout=3000)
         await expect(frame.locator('text=Webhook processed successfully').first).to_be_visible(timeout=3000)
         await asyncio.sleep(5)
 

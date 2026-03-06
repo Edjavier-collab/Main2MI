@@ -2,37 +2,6 @@ import { useEffect, useCallback } from 'react';
 import { Session, UserTier, ChatMessage, Feedback, PatientProfile } from '../types';
 import { saveSession, getUserSessions } from '../services/databaseService';
 import { getRemainingFreeSessions, getRemainingFreeSessionsAnonymous } from '../services/subscriptionService';
-import { BadgeDefinition, XP_AWARDS } from '../constants';
-
-// Storage key for sessions that have already been awarded XP (prevents duplicate awards)
-const XP_AWARDED_KEY = 'mi-coach-xp-awarded-sessions';
-
-/**
- * Get the set of session IDs that have already been awarded XP
- */
-const getAwardedSessions = (): Set<string> => {
-  try {
-    const stored = localStorage.getItem(XP_AWARDED_KEY);
-    return stored ? new Set(JSON.parse(stored)) : new Set();
-  } catch {
-    return new Set();
-  }
-};
-
-/**
- * Mark a session as having been awarded XP
- */
-const markSessionAwarded = (sessionId: string): void => {
-  try {
-    const awarded = getAwardedSessions();
-    awarded.add(sessionId);
-    // Keep only the last 100 session IDs to avoid unbounded growth
-    const awardedArray = [...awarded].slice(-100);
-    localStorage.setItem(XP_AWARDED_KEY, JSON.stringify(awardedArray));
-  } catch {
-    // Ignore storage errors
-  }
-};
 
 interface UseSessionManagerOptions {
   user: { id: string } | null;
@@ -41,10 +10,6 @@ interface UseSessionManagerOptions {
   setSessions: (sessions: Session[]) => void;
   setSessionsLoading: (loading: boolean) => void;
   setRemainingFreeSessions: (count: number | null) => void;
-  updateStreak?: () => Promise<number>;
-  addXP?: (amount: number, reason: string) => Promise<void>;
-  checkAndUnlockBadges?: (context: { streak: number; totalSessions: number; skillCounts?: Record<string, number> }) => Promise<BadgeDefinition[]>;
-  currentStreak?: number;
 }
 
 /**
@@ -58,10 +23,6 @@ export const useSessionManager = ({
   setSessions,
   setSessionsLoading,
   setRemainingFreeSessions,
-  updateStreak,
-  addXP,
-  checkAndUnlockBadges,
-  currentStreak,
 }: UseSessionManagerOptions) => {
   // Load sessions from Supabase when user is authenticated, or from localStorage for anonymous users
   useEffect(() => {
@@ -215,77 +176,8 @@ export const useSessionManager = ({
       }
     }
 
-    // Update streak after successful session save and capture fresh value
-    let freshStreak = currentStreak ?? 0;
-    if (updateStreak) {
-      try {
-        freshStreak = await updateStreak();
-        console.log('[useSessionManager] Streak updated successfully:', freshStreak);
-      } catch (error) {
-        console.error('[useSessionManager] Failed to update streak:', error);
-        // Non-critical - don't fail the session save
-      }
-    }
-
-    // Award XP for completing the session (only if not already awarded for this session)
-    const alreadyAwarded = getAwardedSessions().has(newSession.id);
-    if (addXP && !alreadyAwarded) {
-      try {
-        // Base XP for completing a session
-        let xpAmount = XP_AWARDS.SESSION_COMPLETE;
-        let xpReason = 'Session completed';
-
-        // Check empathy score for bonus XP
-        // Score is 1-5, so 70% = 3.5, 90% = 4.5
-        const empathyScore = feedback.empathyScore ?? 0;
-        if (empathyScore >= 4.5) {
-          // 90%+ score: excellent bonus (replaces good bonus)
-          xpAmount += XP_AWARDS.SCORE_90_PLUS_BONUS;
-          xpReason = 'Session completed with excellent score (90%+)';
-        } else if (empathyScore >= 3.5) {
-          // 70%+ score: good bonus
-          xpAmount += XP_AWARDS.SCORE_70_PLUS_BONUS;
-          xpReason = 'Session completed with good score (70%+)';
-        }
-
-        await addXP(xpAmount, xpReason);
-        markSessionAwarded(newSession.id);
-        console.log('[useSessionManager] XP awarded:', xpAmount, xpReason);
-      } catch (error) {
-        console.error('[useSessionManager] Failed to award XP:', error);
-        // Non-critical - don't fail the session save
-      }
-    } else if (alreadyAwarded) {
-      console.log('[useSessionManager] XP already awarded for session:', newSession.id);
-    }
-
-    // Check and unlock badges using fresh streak value
-    if (checkAndUnlockBadges) {
-      try {
-        const skillCounts: Record<string, number> = {};
-        for (const session of updatedSessions) {
-          if (session.feedback?.skillCounts) {
-            for (const [skill, count] of Object.entries(session.feedback.skillCounts)) {
-              skillCounts[skill] = (skillCounts[skill] ?? 0) + count;
-            }
-          }
-        }
-        const newBadges = await checkAndUnlockBadges({
-          streak: freshStreak,
-          totalSessions: updatedSessions.length,
-          skillCounts,
-        });
-        if (newBadges.length > 0) {
-          console.log('[useSessionManager] Badges unlocked:', newBadges.map(b => b.name));
-        }
-      } catch (error) {
-        console.error('[useSessionManager] Failed to check badges:', error);
-        // Non-critical - don't fail the session save
-      }
-    }
-
     return newSession;
-  }, [user, setSessions, setRemainingFreeSessions, updateStreak, addXP, checkAndUnlockBadges, currentStreak]);
+  }, [user, setSessions, setRemainingFreeSessions]);
 
   return {
     saveNewSession,

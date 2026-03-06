@@ -33,22 +33,10 @@ async def run_test():
         # -> Navigate to http://localhost:3000
         await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
         
-        # -> Click the 'Retry' connection button to attempt restoring online features so practice sessions and voice recognition become available.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Click the 'MI Mastery' link (index 50) to try to refresh or navigate the app so practice session controls become available. If the page remains in 'Initializing'/offline state after this, report that the practice and voice features are unavailable and finish the test.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
         # --> Assertions to verify final state
         frame = context.pages[-1]
         await expect(frame.locator('text=I want to quit smoking').first).to_be_visible(timeout=3000)
-        await expect(frame.locator('text=Patient: I understand. Tell me more about why you want to quit.').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Why do you want to quit smoking?').first).to_be_visible(timeout=3000)
         await asyncio.sleep(5)
 
     finally:

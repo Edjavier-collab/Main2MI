@@ -763,13 +763,23 @@ const PracticeView: React.FC<PracticeViewProps> = ({ patient, userTier, onFinish
                                 <Button
                                     onClick={() => {
                                         const fallbackFeedback: Feedback = {
-                                            empathyScore: 0,
-                                            empathyBreakdown: 'Feedback generation failed.',
-                                            whatWentRight: 'Practice session completed.',
-                                            areasForGrowth: 'Feedback unavailable.',
+                                            behavioralMetrics: {
+                                                reflectionToQuestionRatio: 0,
+                                                openQuestions: 0,
+                                                closedQuestions: 0,
+                                                simpleReflections: 0,
+                                                complexReflections: 0,
+                                                affirmations: 0,
+                                                miAdherentStatements: 0,
+                                                miInconsistentStatements: 0,
+                                            },
+                                            whatWentWell: [],
+                                            growthOpportunities: [],
+                                            missedOpportunities: [],
+                                            coachingInsights: [],
                                             skillsDetected: [],
                                             skillCounts: {},
-                                            nextFocus: 'Continue practicing.',
+                                            focusForNextSession: 'Continue practicing.',
                                             analysisStatus: 'error',
                                             analysisMessage: feedbackError,
                                         };

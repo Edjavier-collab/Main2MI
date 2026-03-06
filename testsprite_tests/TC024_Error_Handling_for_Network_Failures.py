@@ -33,17 +33,17 @@ async def run_test():
         # -> Navigate to http://localhost:3000
         await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
         
-        # -> Click the 'Retry connection' button to attempt reconnecting so the login and other flows become accessible, then proceed to simulate the requested network-failure scenarios.
+        # -> Attempt to interact with the visible header link (MI Mastery) to see if navigation or a retry flow exposes login/subscription/report screens; if interaction does not reveal the needed flows, report that the app is offline/unreachable and mark the task done.
         frame = context.pages[-1]
         # Click element
-        elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
+        elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
         # --> Assertions to verify final state
         frame = context.pages[-1]
-        await expect(frame.locator('text=Network error. Please check your internet connection and try again.').first).to_be_visible(timeout=3000)
-        await expect(frame.locator('text=Payment failed. Please try another payment method or contact support.').first).to_be_visible(timeout=3000)
-        await expect(frame.locator('text=Unable to load AI coaching report. Tap to retry.').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Login failed: Network error. Please check your connection and try again.').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Payment failed: Unable to process your card. Please try another payment method.').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Unable to retrieve AI coaching report. Tap to retry.').first).to_be_visible(timeout=3000)
         await asyncio.sleep(5)
 
     finally:

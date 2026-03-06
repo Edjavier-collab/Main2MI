@@ -33,7 +33,25 @@ async def run_test():
         # -> Navigate to http://localhost:3000
         await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
         
-        # -> Attempt to enter the app by clicking the 'MI Mastery' link (index 51). If the app remains offline/initializing after that click, report the issue and mark the task done.
+        # -> Attempt to reload / access the app by clicking the 'MI Mastery' logo (index 55) to trigger a navigation or refresh, then wait for the page to finish initializing and look for practice session entry points (Start Practice, Sessions, Dashboard).
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Click the 'MI Mastery' link (index 138) to attempt to refresh/navigation, then wait for the app to finish initializing and expose practice session controls.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Click the MI Mastery link (index 225) to attempt to refresh/navigate and then wait 3 seconds for initialization to complete. After waiting, check for practice session entry points (Start Practice, Sessions, Dashboard) and proceed if available.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Click the visible retry / MI Mastery link (index 315) to attempt to recover from offline/initializing state, then wait and check for practice session entry points (Start Practice, Sessions, Dashboard). If the app remains offline/initializing after this attempt, report the feature as inaccessible and mark the task done as the feature cannot be exercised.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
@@ -44,7 +62,7 @@ async def run_test():
         await expect(frame.locator('text=XP Gained').first).to_be_visible(timeout=3000)
         await expect(frame.locator('text=Badge Unlocked!').first).to_be_visible(timeout=3000)
         await expect(frame.locator('text=Streak: 3 days').first).to_be_visible(timeout=3000)
-        await expect(frame.locator('xpath=//div[contains(@class,"level-progress") or contains(@class,"progress-bar")]').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Level Up!').first).to_be_visible(timeout=3000)
         await asyncio.sleep(5)
 
     finally:

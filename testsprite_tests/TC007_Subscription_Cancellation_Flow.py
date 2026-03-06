@@ -33,10 +33,33 @@ async def run_test():
         # -> Navigate to http://localhost:3000
         await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
         
+        # -> Click the 'Retry' connection button (interactive element index 41) to attempt to restore online connectivity so the subscription management UI becomes available.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Click the 'MI Mastery' link (index 45) to attempt to reveal navigation or sign-in controls so the login step can proceed. ASSERTION: No login/email/password input fields are currently visible on the page.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Click the 'Retry' button (index 140) to attempt to restore online connectivity, wait for the app to initialize, then click the 'MI Mastery' link (index 144) to reveal navigation or sign-in controls.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
         # --> Assertions to verify final state
         frame = context.pages[-1]
-        await expect(frame.locator('text=Cancellation Confirmed').first).to_be_visible(timeout=3000)
-        await expect(frame.locator('text=Cancellation scheduled. Premium access will remain active until').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Your subscription has been cancelled').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Your premium access has ended').first).to_be_visible(timeout=3000)
         await asyncio.sleep(5)
 
     finally:

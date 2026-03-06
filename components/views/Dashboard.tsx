@@ -1,19 +1,10 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Session, UserTier, View } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
-import { useStreak } from '../../hooks/useStreak';
-import { useXP } from '../../hooks/useXP';
-import { useBadges } from '../../hooks/useBadges';
 import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
-import BadgeDisplay from '../gamification/BadgeDisplay';
 import GlobalMIScore from '../ui/GlobalMIScore';
-import { MasteryGoalCard } from '../ui/MasteryGoalCard';
-import { MasteryTierBadge } from '../ui/MasteryTierBadge';
-import { generateMasteryGoal } from '../../services/masteryGoalService';
-import { getMasteryTier } from '../../utils/northStarLogic';
 
 interface DashboardProps {
     onStartPractice: () => void;
@@ -44,36 +35,6 @@ const Dashboard: React.FC<DashboardProps> = ({
         const sessionDate = new Date(s.date);
         return sessionDate.getMonth() === now.getMonth() && sessionDate.getFullYear() === now.getFullYear();
     }).length;
-
-    // Calculate average feedback score (empathy score if available)
-    const sessionsWithScore = sessions.filter(s => s.feedback?.empathyScore !== undefined);
-    const avgScore = sessionsWithScore.length > 0
-        ? Math.round(sessionsWithScore.reduce((sum, s) => sum + (s.feedback.empathyScore || 0), 0) / sessionsWithScore.length)
-        : null;
-
-    // Get streak from the useStreak hook (persisted in Supabase)
-    const { currentStreak: streak } = useStreak();
-
-    // Get XP and level from the useXP hook
-    const { currentXP, currentLevel, levelName, xpToNextLevel, xpProgress, isLoading: xpLoading } = useXP();
-
-    // Level icons for Growth Garden theme
-    const levelIcons = ['🌱', '🌿', '🌳', '🏆'];
-    const levelIcon = levelIcons[currentLevel - 1] || '🌱';
-
-    // Get badges and certificates
-    const { unlockedBadges, unlockedCertificates } = useBadges();
-
-    // BMAD Integration: Generate Mastery Goal using North Star Logic
-    const masteryGoalData = useMemo(() => {
-        if (xpLoading || currentLevel < 1) return null;
-
-        // Get mastery tier from North Star Logic
-        const masteryTier = getMasteryTier(currentLevel);
-
-        // Generate goal based on tier, level, and session history
-        return generateMasteryGoal(currentLevel, sessions);
-    }, [currentLevel, sessions, xpLoading]);
 
     const displayRemaining = remainingFreeSessions !== null
         ? remainingFreeSessions
@@ -163,18 +124,18 @@ const Dashboard: React.FC<DashboardProps> = ({
 
                     {/* Quick Stats Column */}
                     <div className="flex flex-col gap-4">
-                        {/* Streak Card */}
+                        {/* Total Sessions */}
                         <div className="bg-white rounded-xl border border-[var(--color-neutral-200)] p-6 shadow-sm flex-1 flex flex-col justify-center items-center text-center">
-                            <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center mb-3">
-                                <i className="fa-solid fa-fire text-orange-500 text-xl"></i>
+                            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-3">
+                                <i className="fa-solid fa-clipboard-list text-[var(--color-primary)] text-xl"></i>
                             </div>
                             <h3 className="text-3xl font-bold text-[var(--color-text-primary)] mb-1">
-                                {streak}
+                                {sessions.length}
                             </h3>
-                            <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">Day Streak</p>
+                            <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">Total Sessions</p>
                         </div>
 
-                        {/* Sessions Count */}
+                        {/* Sessions This Month */}
                         <div className="bg-white rounded-xl border border-[var(--color-neutral-200)] p-6 shadow-sm flex-1 flex flex-col justify-center items-center text-center">
                             <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-3">
                                 <i className="fa-solid fa-calendar-check text-[var(--color-primary)] text-xl"></i>
@@ -182,103 +143,50 @@ const Dashboard: React.FC<DashboardProps> = ({
                             <h3 className="text-3xl font-bold text-[var(--color-text-primary)] mb-1">
                                 {sessionsThisMonth}
                             </h3>
-                            <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">Sessions (Mo)</p>
+                            <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">This Month</p>
                         </div>
                     </div>
                 </div>
 
-                {/* 2. HYBRID MASTERY CARD + Global Score */}
+                {/* 2. MI Score + View Progress */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Left: Global MI Score */}
                     <div className="lg:col-span-1">
                         <GlobalMIScore sessions={sessions} />
-
-                        {/* Badges Preview (Mini) */}
-                        <div className="bg-white rounded-xl border border-[var(--color-neutral-200)] p-6 shadow-sm mt-8">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Badges</h3>
-                                <button onClick={() => onNavigate(View.SkillProgression)} className="text-xs text-[var(--color-primary)] font-medium hover:underline">View All</button>
-                            </div>
-                            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                                {unlockedCertificates.slice(0, 4).map(cert => (
-                                    <div key={cert.id} className="w-10 h-10 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center text-lg text-[var(--color-primary)]" title={cert.name}>
-                                        <i className={cert.icon}></i>
-                                    </div>
-                                ))}
-                                {unlockedCertificates.length === 0 && (
-                                    <p className="text-xs text-[var(--color-text-muted)]">No badges yet. Start practicing!</p>
-                                )}
-                            </div>
-                        </div>
                     </div>
 
-                    {/* Right: Hybrid Mastery & Progress Card */}
+                    {/* Right: View Progress Card */}
                     <div className="lg:col-span-2">
-                        <div className="bg-white rounded-xl border border-[var(--color-neutral-200)] p-8 shadow-sm h-full relative overflow-hidden">
+                        <button
+                            onClick={() => onNavigate(View.Reports)}
+                            className="w-full bg-white rounded-xl border border-[var(--color-neutral-200)] p-8 shadow-sm h-full relative overflow-hidden text-left hover:shadow-md transition-shadow group"
+                        >
                             <div className="absolute top-0 right-0 p-6 opacity-5">
-                                <i className="fa-solid fa-trophy text-9xl"></i>
+                                <i className="fa-solid fa-chart-line text-9xl"></i>
                             </div>
-
                             <div className="relative z-10">
-                                {/* Header: Level Info */}
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-16 h-16 rounded-2xl bg-[var(--color-primary-lighter)] flex items-center justify-center text-3xl shadow-sm">
-                                        {levelIcon}
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className="w-14 h-14 rounded-2xl bg-[var(--color-primary-lighter)] flex items-center justify-center shadow-sm">
+                                        <i className="fa-solid fa-chart-bar text-2xl text-[var(--color-primary)]"></i>
                                     </div>
                                     <div>
-                                        <div className="text-xs font-bold text-[var(--color-primary-dark)] uppercase tracking-wider mb-1">
-                                            Current Status
-                                        </div>
-                                        <h3 className="text-2xl font-bold text-[var(--color-text-primary)]">
-                                            {levelName}
+                                        <h3 className="text-xl font-bold text-[var(--color-text-primary)]">
+                                            Skill Development
                                         </h3>
                                         <p className="text-sm text-[var(--color-text-muted)]">
-                                            Level {currentLevel} • {xpLoading ? '...' : `${currentXP.toLocaleString()} XP`}
+                                            {sessions.length} session{sessions.length !== 1 ? 's' : ''} completed
                                         </p>
                                     </div>
                                 </div>
-
-                                {/* Divider */}
-                                <div className="h-px bg-[var(--color-neutral-100)] w-full mb-6"></div>
-
-                                {/* Mastery Goal Content */}
-                                {masteryGoalData ? (
-                                    <div className="mb-8">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <span className="px-2.5 py-1 rounded-md bg-[var(--color-accent-light)] text-[var(--color-accent-dark)] text-xs font-bold">
-                                                FOCUS AREA
-                                            </span>
-                                            {masteryGoalData.focusArea && (
-                                                <span className="text-sm font-semibold text-[var(--color-text-primary)]">
-                                                    {masteryGoalData.focusArea}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <p className="text-lg text-[var(--color-text-secondary)] leading-relaxed italic border-l-4 border-[var(--color-primary-light)] pl-4 py-1">
-                                            "{masteryGoalData.goal.replace(/\*\*/g, '')}"
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div className="mb-8 p-4 rounded-lg bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)] text-sm italic">
-                                        Complete more sessions to unlock your personalized Mastery Goal.
-                                    </div>
-                                )}
-
-                                {/* XP Progress Bar */}
-                                <div>
-                                    <div className="flex justify-between text-xs font-medium text-[var(--color-text-muted)] mb-2">
-                                        <span>Progress to next level</span>
-                                        <span>{currentLevel < 4 ? `${xpToNextLevel} XP remaining` : 'Max Level'}</span>
-                                    </div>
-                                    <div className="w-full h-2 rounded-full bg-[var(--color-neutral-100)] overflow-hidden">
-                                        <div
-                                            className="h-full bg-[var(--color-primary)] rounded-full transition-all duration-1000 ease-out"
-                                            style={{ width: `${xpProgress}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
+                                <p className="text-[var(--color-text-secondary)] text-sm leading-relaxed mb-4">
+                                    View your MI skill progression, practice history, and generate supervisor reports.
+                                </p>
+                                <span className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--color-primary)] group-hover:text-[var(--color-primary-dark)]">
+                                    View Progress
+                                    <i className="fa-solid fa-arrow-right text-xs opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all"></i>
+                                </span>
                             </div>
-                        </div>
+                        </button>
                     </div>
                 </div>
 

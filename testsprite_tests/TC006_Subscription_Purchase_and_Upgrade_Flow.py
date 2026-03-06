@@ -33,25 +33,13 @@ async def run_test():
         # -> Navigate to http://localhost:3000
         await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
         
-        # -> Log in / open app navigation by clicking the 'MI Mastery' link (index 51) to access login or subscription pages.
+        # -> Click the header "MI Mastery" link (index 58) to try to reveal navigation or login controls; if nothing changes, report the issue and finish the task.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the 'Retry' connection button to attempt restoring online connectivity so subscription and Stripe checkout flows can be accessed. After that, locate and open the login/sign-in control to log in as example@gmail.com / password123.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Click the 'MI Mastery' link (index 132) to open the app navigation or reveal login/sign-in controls so the test can proceed to authenticate as example@gmail.com / password123.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Click the 'Retry' connection button again (index 228) to attempt restoring online connectivity so the login and subscription flows can be accessed. This is the final allowed retry (1 remaining).
+        # -> Click the 'Retry' connection button (index 134) to attempt to restore connectivity and allow the app to finish initializing so the login/subscription flows become accessible.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
@@ -59,8 +47,8 @@ async def run_test():
         
         # --> Assertions to verify final state
         frame = context.pages[-1]
-        await expect(frame.locator('text=Subscription: Premium').first).to_be_visible(timeout=3000)
-        await expect(frame.locator('text=Tier: Pro').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Premium Member').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Subscription Tier: Pro').first).to_be_visible(timeout=3000)
         await asyncio.sleep(5)
 
     finally:

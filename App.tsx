@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
+import React, { useEffect, useCallback, Suspense, lazy } from 'react';
 import { UserTier, View, PatientProfile, Session, Feedback, ChatMessage, PatientProfileFilters, CoachingSummary } from './types';
 import { generatePatientProfile } from './services/patientService';
 import { getUserProfile } from './services/databaseService';
@@ -19,20 +19,13 @@ import { ViewRenderer } from './components/views/ViewRenderer';
 // Lazy-loaded components
 const Onboarding = lazy(() => import('./components/views/Onboarding'));
 
-// Gamification components
-import BadgeUnlockToast from './components/gamification/BadgeUnlockToast';
-
 // Custom hooks
 import { useAppState } from './hooks/useAppState';
 import { useTierManager } from './hooks/useTierManager';
 import { useSessionManager } from './hooks/useSessionManager';
-import { useStreak } from './hooks/useStreak';
-import { useXP } from './hooks/useXP';
-import { useBadges } from './hooks/useBadges';
 import { useAuthCallback } from './hooks/useAuthCallback';
 import { useStripeCallback } from './hooks/useStripeCallback';
 import { useAppRouter } from './hooks/useAppRouter';
-import { useOnlineSync } from './hooks/useOnlineSync';
 
 const AppContent: React.FC = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -71,50 +64,6 @@ const AppContent: React.FC = () => {
   // Use tier manager hook with server-side premium verification
   const { userTier, setUserTier, refreshTier, isPremiumVerified, isVerifying: isTierVerifying, verifyPremiumStatus } = useTierManager();
 
-  // Use streak hook for gamification
-  const { currentStreak, updateStreak, processQueue: processStreakQueue } = useStreak();
-
-  // Use XP hook for gamification
-  const { addXP, processQueue: processXPQueue } = useXP();
-
-  // Use badges hook for gamification
-  const { checkAndUnlockBadges, newlyUnlockedBadges, markBadgeAsSeen } = useBadges();
-
-  // Use online sync hook to process queued operations when connectivity is restored
-  useOnlineSync({
-    processStreakQueue,
-    processXPQueue,
-    isAuthenticated: !!user,
-  });
-
-  // Track which badge to show in toast (one at a time)
-  const [badgeToastQueue, setBadgeToastQueue] = useState<string[]>([]);
-
-  // When new badges are unlocked, add them to the toast queue
-  useEffect(() => {
-    if (newlyUnlockedBadges.length > 0) {
-      const newBadgeIds = newlyUnlockedBadges.map(b => b.id);
-      setBadgeToastQueue(prev => {
-        // Add only badges not already in queue
-        const existingIds = new Set(prev);
-        const toAdd = newBadgeIds.filter(id => !existingIds.has(id));
-        return [...prev, ...toAdd];
-      });
-    }
-  }, [newlyUnlockedBadges]);
-
-  // Handle dismissing a badge toast
-  const handleBadgeToastClose = useCallback(async () => {
-    if (badgeToastQueue.length > 0) {
-      const dismissedBadgeId = badgeToastQueue[0];
-      await markBadgeAsSeen(dismissedBadgeId);
-      setBadgeToastQueue(prev => prev.slice(1));
-    }
-  }, [badgeToastQueue, markBadgeAsSeen]);
-
-  // Get the current badge to show
-  const currentBadgeToShow = newlyUnlockedBadges.find(b => b.id === badgeToastQueue[0]);
-
   // Use session manager hook
   const { saveNewSession } = useSessionManager({
     user,
@@ -123,10 +72,6 @@ const AppContent: React.FC = () => {
     setSessions,
     setSessionsLoading,
     setRemainingFreeSessions,
-    updateStreak,
-    addXP,
-    checkAndUnlockBadges,
-    currentStreak,
   });
 
   // Use auth callback hook
@@ -524,13 +469,6 @@ const AppContent: React.FC = () => {
       )}
       {showReviewPrompt && (
         <ReviewPrompt onClose={handleReviewPromptClose} />
-      )}
-      {/* Badge unlock celebration toast */}
-      {currentBadgeToShow && (
-        <BadgeUnlockToast
-          badge={currentBadgeToShow}
-          onClose={handleBadgeToastClose}
-        />
       )}
       <CookieConsent />
       {/* Aria live region for async feedback */}

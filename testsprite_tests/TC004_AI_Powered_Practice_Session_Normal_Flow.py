@@ -33,25 +33,13 @@ async def run_test():
         # -> Navigate to http://localhost:3000
         await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
         
-        # -> Click the 'MI Mastery' anchor (index 51) to try to reveal navigation or login controls.
+        # -> Click the 'MI Mastery' link (index 3) to attempt to refresh/load the app or navigate to a page that exposes login/authentication controls.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the 'Retry' connection button to attempt to restore connectivity and reveal the login/practice UI so the test can continue.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Click the 'MI Mastery' anchor again to try to reveal navigation or login controls (second attempt). If that does not change the page state, prepare to report the inability to access Practice features and finish the test.
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/header/div/a').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
-        
-        # -> Click the 'Retry' connection button (index 227) one more time to attempt restoring connectivity and reveal the login/Practice UI.
+        # -> Click the 'Retry' connection button to attempt to reconnect and load the app so login/authentication and practice controls become available (click element index 131).
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
@@ -59,7 +47,7 @@ async def run_test():
         
         # --> Assertions to verify final state
         frame = context.pages[-1]
-        await expect(frame.locator('text=AI-generated Feedback & Coaching Summary').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Coaching Summary').first).to_be_visible(timeout=3000)
         await asyncio.sleep(5)
 
     finally:

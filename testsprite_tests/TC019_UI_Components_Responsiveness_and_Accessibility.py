@@ -33,10 +33,16 @@ async def run_test():
         # -> Navigate to http://localhost:3000
         await page.goto("http://localhost:3000", wait_until="commit", timeout=10000)
         
+        # -> Click the 'Retry connection' button to attempt reconnecting/dismissing the offline banner so the app can finish initialization; then wait for the page to update.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=/html/body/div[2]/div/div/button').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
         # --> Assertions to verify final state
         frame = context.pages[-1]
-        await expect(frame.locator('text=Layout adjusts responsively').first).to_be_visible(timeout=3000)
-        await expect(frame.locator('xpath=//*[@aria-label]').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Responsive Layout Verified').first).to_be_visible(timeout=3000)
+        await expect(frame.locator('text=Accessibility Passed').first).to_be_visible(timeout=3000)
         await asyncio.sleep(5)
 
     finally:

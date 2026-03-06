@@ -117,7 +117,7 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
                 <h2 className="text-[22px] font-bold text-[var(--color-text-primary)] mb-1">
                     {patient.name}
                 </h2>
-                <p className="text-[14px] text-[var(--color-text-muted)] mb-6">
+                <p className="text-[14px] font-medium text-[var(--color-primary-dark)] mb-6">
                     {patient.age} years old, {patient.sex}
                 </p>
 
@@ -125,7 +125,7 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
                 <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-4">
                     {/* Stage of Change */}
                     <div className="flex flex-col items-center">
-                        <span className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5 opacity-70">
+                        <span className="text-[10px] font-bold text-[var(--color-primary-dark)] uppercase tracking-wider mb-1.5">
                             Stage
                         </span>
                         <div className="px-3.5 py-2 rounded-md border border-[#D4D4D4] bg-white text-[13px] font-medium text-[#555]">
@@ -135,7 +135,7 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
 
                     {/* Presenting Issue */}
                     <div className="flex flex-col items-center">
-                        <span className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5 opacity-70">
+                        <span className="text-[10px] font-bold text-[var(--color-primary-dark)] uppercase tracking-wider mb-1.5">
                             Issue
                         </span>
                         <div className="px-3.5 py-2 rounded-md border border-[#D4D4D4] bg-white text-[13px] font-medium text-[#555]">
@@ -146,7 +146,7 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
                     {/* Personality Style (Optional) */}
                     {patient.personalityTrait && (
                         <div className="flex flex-col items-center">
-                            <span className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5 opacity-70">
+                            <span className="text-[10px] font-bold text-[var(--color-primary-dark)] uppercase tracking-wider mb-1.5">
                                 Style
                             </span>
                             <div className="px-3.5 py-2 rounded-md border border-[#D4D4D4] bg-white text-[13px] font-medium text-[#555]">
@@ -164,7 +164,7 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
 
                 {/* 1. Reason for Visit */}
                 <section>
-                    <h3 className="text-[12px] font-bold text-[var(--color-text-muted)] uppercase tracking-[0.05em] mb-3">
+                    <h3 className="text-[12px] font-bold text-[var(--color-primary-dark)] uppercase tracking-[0.05em] mb-3">
                         Reason for Visit
                     </h3>
                     <div
@@ -182,14 +182,14 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
                 {/* 2. Clinical Context (Premium) */}
                 {!isFreeTier && (
                     <section>
-                        <h3 className="text-[12px] font-bold text-[var(--color-text-muted)] uppercase tracking-[0.05em] mb-3">
+                        <h3 className="text-[12px] font-bold text-[var(--color-primary-dark)] uppercase tracking-[0.05em] mb-3">
                             Clinical Context
                         </h3>
                         <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-6">
                             <div className="space-y-4">
                                 {/* Usage */}
                                 <div>
-                                    <h4 className="text-[11px] font-bold text-[#999] uppercase tracking-wider mb-1.5">
+                                    <h4 className="text-[11px] font-bold text-[var(--color-primary-dark)] uppercase tracking-wider mb-1.5">
                                         Usage Pattern
                                     </h4>
                                     <p className="text-[15px] text-[var(--color-text-primary)] leading-relaxed">
@@ -200,7 +200,7 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
 
                                 {/* Health Impact */}
                                 <div>
-                                    <h4 className="text-[11px] font-bold text-[#999] uppercase tracking-wider mb-1.5">
+                                    <h4 className="text-[11px] font-bold text-[var(--color-primary-dark)] uppercase tracking-wider mb-1.5">
                                         Health Impact
                                     </h4>
                                     <p className="text-[15px] text-[var(--color-text-primary)] leading-relaxed">
@@ -211,7 +211,7 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
 
                                 {/* Background */}
                                 <div>
-                                    <h4 className="text-[11px] font-bold text-[#999] uppercase tracking-wider mb-1.5">
+                                    <h4 className="text-[11px] font-bold text-[var(--color-primary-dark)] uppercase tracking-wider mb-1.5">
                                         Background
                                     </h4>
                                     <p className="text-[15px] text-[var(--color-text-primary)] leading-relaxed">
@@ -226,7 +226,7 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
                 {/* Brief History for Free Tier */}
                 {isFreeTier && (
                     <section>
-                        <h3 className="text-[12px] font-bold text-[var(--color-text-muted)] uppercase tracking-[0.05em] mb-3">
+                        <h3 className="text-[12px] font-bold text-[var(--color-primary-dark)] uppercase tracking-[0.05em] mb-3">
                             Clinical Context
                         </h3>
                         <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-6">
@@ -239,7 +239,7 @@ const PatientProfileCard: React.FC<PatientProfileCardProps> = ({ patient, userTi
 
                 {/* 3. Session Objectives */}
                 <section>
-                    <h3 className="text-[12px] font-bold text-[var(--color-text-muted)] uppercase tracking-[0.05em] mb-3">
+                    <h3 className="text-[12px] font-bold text-[var(--color-primary-dark)] uppercase tracking-[0.05em] mb-3">
                         Session Objectives
                     </h3>
                     <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden flex">
