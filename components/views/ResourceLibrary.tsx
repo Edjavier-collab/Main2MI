@@ -47,6 +47,7 @@ const resourcesData = [
             { id: 28, title: 'MI in Brief Interventions (SBIRT)', description: 'Effective MI in short clinical encounters', readTime: '4 min', premiumOnly: true },
             { id: 29, title: 'Working with Anger and Defensiveness', description: 'De-escalation techniques using MI principles', readTime: '5 min', premiumOnly: true },
             { id: 30, title: 'Cultural Adaptations of MI', description: 'Tailoring MI for diverse populations', readTime: '4 min', premiumOnly: true },
+            { id: 31, title: 'Supporting Self-Efficacy', description: 'Building the patient\'s confidence in their ability to change', readTime: '4 min', premiumOnly: true },
         ]
     }
 ];
@@ -242,7 +243,20 @@ const RESOURCE_CONTENT: { [key: number]: any } = {
                     "Double-Sided Reflection: 'On the one hand, you enjoy smoking, and on the other, you're worried about your cough.'",
                     "Shifting Focus: Move the conversation away from the roadblock. 'I hear that you're not ready to talk about quitting. Can we talk about what makes this habit important to you?'"
                 ]
-            }
+            },
+            { type: "subheading", text: "Example: Rolling with Resistance" },
+            { type: "paragraph", text: "Notice how the clinician avoids arguing and instead reflects, affirms autonomy, and gently redirects." },
+            {
+                type: "dialogue", lines: [
+                    { speaker: "Patient", text: "I don't see why I need to be here. My wife made me come. I don't have a problem." },
+                    { speaker: "Clinician", text: "You didn't choose to be here, and it sounds frustrating to feel pushed into something you didn't ask for." },
+                    { speaker: "Patient", text: "Exactly. She thinks a couple of beers after work is a big deal. Everybody does it." },
+                    { speaker: "Clinician", text: "From your perspective, this is pretty normal and you're not sure what all the concern is about." },
+                    { speaker: "Patient", text: "Right. I mean... I guess sometimes it's more than a couple. But that doesn't mean I have a problem." },
+                    { speaker: "Clinician", text: "You're noticing it's sometimes more than you planned, and at the same time you're not ready to put a label on it. That makes sense — nobody can decide that for you." },
+                ]
+            },
+            { type: "paragraph", text: "By not pushing back, the clinician created space for the patient to acknowledge the behavior on their own terms. The patient moved from 'I don't have a problem' to 'sometimes it's more than a couple' — without being told they were wrong." },
         ]
     },
     22: {
@@ -339,6 +353,36 @@ const RESOURCE_CONTENT: { [key: number]: any } = {
                     "Values: Frame the discrepancy between behavior and values that are culturally relevant to the patient."
                 ]
             }
+        ]
+    },
+    31: {
+        title: "Supporting Self-Efficacy",
+        content: [
+            { type: "heading", text: "Believing Change Is Possible" },
+            { type: "paragraph", text: "Self-efficacy — a person's belief in their ability to succeed — is one of the strongest predictors of behavior change. Even a patient who wants to change may not try if they don't believe they can. Your role is to strengthen that belief by highlighting past successes, personal strengths, and small wins." },
+            { type: "subheading", text: "Techniques for Building Self-Efficacy" },
+            {
+                type: "list", items: [
+                    "Highlight past successes: 'You mentioned you quit for three months last year. What helped you during that time?'",
+                    "Affirm strengths: 'The fact that you keep coming back to this conversation tells me something about your determination.'",
+                    "Ask the patient to identify their own resources: 'What strengths do you have that could help you with this?'",
+                    "Normalize setbacks: 'Most people don't succeed on the first try. Each attempt teaches you something new about what works for you.'",
+                    "Use confidence rulers: 'On a scale of 0 to 10, how confident are you that you could make this change? ... What would it take to move from a 4 to a 6?'"
+                ]
+            },
+            { type: "subheading", text: "Example: Building Confidence After a Setback" },
+            { type: "paragraph", text: "Notice how the clinician shifts the patient's focus from failure to learning and capability." },
+            {
+                type: "dialogue", lines: [
+                    { speaker: "Patient", text: "I tried to stop using last month, but I only made it five days. I can't do this. I've tried so many times." },
+                    { speaker: "Clinician", text: "Five days is not nothing — that took real effort. What was working for you during those five days?" },
+                    { speaker: "Patient", text: "I don't know... I was staying busy, going to the gym instead. But then I had a bad day at work and just caved." },
+                    { speaker: "Clinician", text: "So you actually had a strategy that was working — staying active and replacing the habit. That tells me you already know some of what works for you." },
+                    { speaker: "Patient", text: "I guess. But one bad day and it all fell apart." },
+                    { speaker: "Clinician", text: "It sounds like the stress was the trigger, not a lack of willpower. You've shown you can go five days — the next step might be figuring out a plan for those tough moments. What ideas do you have for handling a stressful day differently?" },
+                ]
+            },
+            { type: "paragraph", text: "The clinician reframed 'failure' as evidence of capability. By asking the patient what worked and what they would do differently, the clinician drew out the patient's own resources rather than prescribing solutions." },
         ]
     },
 };

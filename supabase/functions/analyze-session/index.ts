@@ -381,33 +381,84 @@ Count these observable behaviors from the transcript:
 - Open questions vs closed questions
 - Simple reflections vs complex reflections (complex = adds meaning, captures ambivalence, or makes a guess about unstated emotion)
 - Affirmations (genuine acknowledgments of patient strengths/efforts)
-- MI-adherent statements (supporting autonomy, eliciting change talk, rolling with resistance)
+- MI-adherent statements (any statement that supports autonomy, elicits change talk, rolls with resistance, supports self-efficacy, or develops discrepancy — see MI SKILL DEFINITIONS below)
 - MI-inconsistent statements (unsolicited advice, confrontation, warning, directing without permission)
 Calculate reflection-to-question ratio (total reflections ÷ total questions).
 
-2. WHAT WENT WELL (2-3 examples)
+2. MI SKILL DEFINITIONS — Use these to identify and count skills for skillsDetected and skillCounts:
+
+BASIC OARS SKILLS:
+
+a) OPEN QUESTIONS
+What it looks like: Questions that invite elaboration and cannot be answered with yes/no.
+Examples: "What brings you in today?", "How do you feel about your current situation?"
+NOT open questions: "Do you drink?", "Have you tried quitting?"
+
+b) AFFIRMATIONS
+What it looks like: Genuine acknowledgments of patient strengths, efforts, or values — not generic praise.
+Examples: "It takes real courage to come in and talk about this.", "The fact that you've been thinking about this shows how much you care."
+NOT affirmations: "Good job!", "That's great!" (generic praise)
+
+c) REFLECTIONS
+What it looks like: Restating or rephrasing what the patient said. Simple = repeat/rephrase. Complex = adds deeper meaning, captures ambivalence, or guesses at unstated emotion.
+Simple: Patient: "I've been drinking more." → Clinician: "You've noticed your drinking has increased."
+Complex: Patient: "I know I should quit but I can't." → Clinician: "Part of you wants to quit, and another part isn't sure you're ready."
+
+d) SUMMARIES
+What it looks like: Collecting and linking together multiple things the patient has said across several exchanges. Often signaled by "Let me see if I have this right...", "So what I'm hearing is..."
+Example: "So let me pull together what you've shared — you mentioned the drinking increased after the job loss, your wife has been worried, and you've been thinking about what this means for your health."
+Key indicator: References 2+ distinct points the patient made earlier.
+
+ADVANCED MI SKILLS:
+
+e) DEVELOPING DISCREPANCY
+What it looks like: Helping the patient see the gap between current behavior and their stated goals/values — without arguing. The clinician juxtaposes two things the patient said.
+Example: "You mentioned wanting to be around for your kids' graduations, and you also mentioned smoking a pack a day. How do those fit together for you?"
+Key indicator: References something the patient values AND a conflicting behavior, then invites reflection.
+
+f) ELICITING CHANGE TALK
+What it looks like: Questions or reflections designed to draw out the patient's OWN arguments for change (DARN-CAT: Desire, Ability, Reasons, Need, Commitment, Activation, Taking steps).
+Examples: "What would you like to see different?" (Desire), "What makes you think you could make this change?" (Ability), "What are the best reasons for changing?" (Reasons), "How important is this to you?" (Need), "What are you willing to try this week?" (Commitment)
+Key indicator: The clinician's statement is designed to get the PATIENT to articulate why or how they would change.
+
+g) ROLLING WITH RESISTANCE
+What it looks like: When the patient pushes back, argues, or minimizes, the clinician does NOT argue back. Instead they reflect, reframe, emphasize autonomy, or shift focus.
+Examples: "It sounds like you're not ready to think about quitting right now, and that's completely your choice.", "You're right — nobody can make you change.", "I hear you — this feels like it's being forced on you."
+Key indicator: Patient expresses resistance and the clinician responds without arguing, correcting, or persuading.
+
+h) SUPPORTING SELF-EFFICACY
+What it looks like: Expressing confidence in the patient's ability to change, highlighting past successes or strengths.
+Examples: "You quit for six months last year — that tells me you CAN do this.", "You've handled harder things than this before.", "What strengths do you have that could help?"
+Key indicator: Clinician reinforces the patient's capability or references past successes.
+
+SKILL COUNTING RULES:
+- Actively scan the ENTIRE transcript for ALL 8 skills, not just basic OARS.
+- A single statement can demonstrate multiple skills (e.g., an open question that also elicits change talk) — count it under EACH applicable skill.
+- Do NOT only count advanced skills under "MI-adherent statements" — count them as separate skills in skillCounts too.
+
+3. WHAT WENT WELL (2-3 examples)
 For each strength, provide:
 - The exact quote from the clinician
 - Which MI skill it demonstrates
 - How it connects to MI spirit (autonomy, collaboration, evocation, or compassion)
 
-3. GROWTH OPPORTUNITIES (1-2 examples)
+4. GROWTH OPPORTUNITIES (1-2 examples)
 For each opportunity, provide:
 - The exact quote from the clinician that could be stronger
 - Which MI principle it relates to
 - A concrete alternative phrasing they could practice
 
-4. FOCUS FOR NEXT SESSION
+5. FOCUS FOR NEXT SESSION
 One specific, measurable recommendation the clinician can practice in their next session.
 
-5. MISSED OPPORTUNITIES (1-3 examples)
+6. MISSED OPPORTUNITIES (1-3 examples)
 Moments where the patient opened a door that the clinician didn't walk through. For each:
 - patientSaid: The exact patient quote that contained an opportunity
 - opportunityType: What type of opportunity it was (e.g., "Change talk", "Emotional disclosure", "Values expression", "Ambivalence")
 - coachingTip: A brief explanation of what the clinician could have done (1-2 sentences, conversational tone)
 - exampleResponse: An exact response the clinician could have used
 
-6. COACHING INSIGHTS (1-2 patterns)
+7. COACHING INSIGHTS (1-2 patterns)
 Higher-level observations about the clinician's overall approach. For each:
 - pattern: What pattern you noticed across the session (e.g., "You tend to ask questions in clusters without reflecting between them")
 - technique: A specific MI technique that would help (e.g., "OARS sequence", "Elicit-Provide-Elicit")
@@ -437,10 +488,10 @@ TONE:
 - End with encouragement that feels earned, not generic
 
 ADDITIONAL REQUIREMENTS:
-- skillsDetected: An array of ALL MI skills you detected in the transcript (from: Open Questions, Affirmations, Reflections, Summaries, Developing Discrepancy, Eliciting Change Talk, Rolling with Resistance, Supporting Self-Efficacy)
-- skillCounts: A JSON string representation of an object counting how many times each skill was used. Count all instances in the transcript. Format as a JSON string: "{\\"Reflections\\": 4, \\"Open Questions\\": 2, \\"Affirmations\\": 1}"
+- skillsDetected: An array of ALL MI skills you detected. Use the MI SKILL DEFINITIONS above. Include every skill that appears at least once. Values: Open Questions, Affirmations, Reflections, Summaries, Developing Discrepancy, Eliciting Change Talk, Rolling with Resistance, Supporting Self-Efficacy.
+- skillCounts: A JSON string counting each skill. Scan the entire transcript using the definitions above. Format: "{\\"Reflections\\": 4, \\"Open Questions\\": 2, \\"Summaries\\": 1, \\"Eliciting Change Talk\\": 2}"
 
-IMPORTANT: Count every instance of each skill in the transcript. For example, if the clinician used 4 reflections, 2 open questions, and 1 affirmation, skillCounts should be: {"Reflections": 4, "Open Questions": 2, "Affirmations": 1}`;
+IMPORTANT: Do NOT skip advanced skills. Actively look for Summaries, Developing Discrepancy, Eliciting Change Talk, Rolling with Resistance, and Supporting Self-Efficacy using the definitions and examples provided in Section 2 above. These are commonly present but easy to overlook if you only focus on basic OARS counting.`;
 
     // Define feedback schema for structured output
     const feedbackSchema = {
