@@ -1,0 +1,12 @@
+{
+  "eval_id": 1,
+  "eval_name": "full-migration-to-subdomain",
+  "prompt": "Migrate the application from 'mimastery.com' to 'app.mimastery.com'. Focus on updating layout.tsx for metadata, next.config.js for image optimization, and stripeService.ts for success/cancel URLs. Ensure all hardcoded 'mimastery.com' strings are replaced with 'process.env.NEXT_PUBLIC_SITE_URL' and generate the 'scripts/check-leaks.sh' script.",
+  "assertions": [
+    { "text": "layout.tsx contains metadataBase configured with NEXT_PUBLIC_SITE_URL" },
+    { "text": "next.config.mjs contains remotePatterns for the new subdomain" },
+    { "text": "stripeService.ts uses process.env.NEXT_PUBLIC_SITE_URL for URLs" },
+    { "text": "scripts/check-leaks.sh is created and contains the correct grep command" },
+    { "text": "No hardcoded 'mimastery.com' remains in the primary target files" }
+  ]
+}

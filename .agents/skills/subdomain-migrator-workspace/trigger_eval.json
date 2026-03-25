@@ -1,0 +1,22 @@
+[
+  {"query": "Can you help me move mimastery.com to app.mimastery.com?", "should_trigger": true},
+  {"query": "Update the hardcoded domain strings to use the new subdomain.", "should_trigger": true},
+  {"query": "My app is moving to a subdomain, update Next.js config and Stripe URLs.", "should_trigger": true},
+  {"query": "I need to migrate my site from a root domain to a sub domain.", "should_trigger": true},
+  {"query": "Please refactor all the old domain links to use process.env.NEXT_PUBLIC_SITE_URL.", "should_trigger": true},
+  {"query": "We are shifting the application to app.domain.com, make sure the metadataBase is updated.", "should_trigger": true},
+  {"query": "Generate a script to check for leaked old domain strings after our migration.", "should_trigger": true},
+  {"query": "The Stripe checkout success URL is still pointing to the old root domain, fix it.", "should_trigger": true},
+  {"query": "Update the CORS headers in our Supabase functions for the new subdomain.", "should_trigger": true},
+  {"query": "I want to change the site domain from example.com to sub.example.com.", "should_trigger": true},
+  {"query": "How do I setup a custom domain in Vercel?", "should_trigger": false},
+  {"query": "Create a new Next.js app router project.", "should_trigger": false},
+  {"query": "Fix the CORS error in my Supabase function.", "should_trigger": false},
+  {"query": "Update the Stripe API key in the environment variables.", "should_trigger": false},
+  {"query": "Write a script to migrate my database to a new server.", "should_trigger": false},
+  {"query": "What is the best way to handle subdomains in a monorepo?", "should_trigger": false},
+  {"query": "Generate a sitemap for my Next.js site.", "should_trigger": false},
+  {"query": "How do I redirect www to non-www in Next.js?", "should_trigger": false},
+  {"query": "Add a new route for the user profile page.", "should_trigger": false},
+  {"query": "Configure image optimization in next.config.js for AWS S3.", "should_trigger": false}
+]

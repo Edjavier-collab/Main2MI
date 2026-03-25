@@ -1,0 +1,10 @@
+{
+  "eval_id": 2,
+  "eval_name": "generate-leak-check-only",
+  "prompt": "I only want to check for any remaining 'mimastery.com' strings. Create a bash script at 'scripts/check-leaks.sh' that finds these strings while excluding node_modules, .next, and other irrelevant directories. Do not update any other files.",
+  "assertions": [
+    { "text": "scripts/check-leaks.sh is created" },
+    { "text": "The script contains grep -r 'mimastery.com'" },
+    { "text": "The script excludes node_modules and .next" }
+  ]
+}

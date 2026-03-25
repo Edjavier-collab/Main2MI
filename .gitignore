@@ -22,3 +22,9 @@ Thumbs.db
 mi-practice-coach/
 EOF 
 EOF 
+
+
+# Ignore TestSprite files
+.testsprite/
+testsprite_tests/
+supabase/functions/testsprite_tests/

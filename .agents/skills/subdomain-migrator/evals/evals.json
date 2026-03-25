@@ -1,0 +1,23 @@
+{
+  "skill_name": "subdomain-migrator",
+  "evals": [
+    {
+      "id": 1,
+      "name": "full-migration-to-subdomain",
+      "prompt": "Migrate the application from 'mimastery.com' to 'app.mimastery.com'. Focus on updating layout.tsx for metadata, next.config.js for image optimization, and stripeService.ts for success/cancel URLs. Ensure all hardcoded 'mimastery.com' strings are replaced with 'process.env.NEXT_PUBLIC_SITE_URL' and generate the 'scripts/check-leaks.sh' script.",
+      "expected_output": "Updated layout.tsx, next.config.js, stripeService.ts, and a new scripts/check-leaks.sh file. No hardcoded 'mimastery.com' should remain.",
+      "files": [
+        "app/layout.tsx",
+        "next.config.mjs",
+        "services/stripeService.ts"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "generate-leak-check-only",
+      "prompt": "I only want to check for any remaining 'mimastery.com' strings. Create a bash script at 'scripts/check-leaks.sh' that finds these strings while excluding node_modules, .next, and other irrelevant directories. Do not update any other files.",
+      "expected_output": "A scripts/check-leaks.sh file created with the correct grep command.",
+      "files": []
+    }
+  ]
+}
