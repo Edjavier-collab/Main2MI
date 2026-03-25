@@ -40,6 +40,10 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'mimastery.com',
+      },
+      {
+        protocol: 'https',
         hostname: '*.supabase.co',
       },
       {

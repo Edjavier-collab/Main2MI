@@ -23,13 +23,13 @@ const mulish = Mulish({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://app.mimastery.com'),
   title: 'MI Mastery',
   description: 'Motivational Interviewing training with AI-powered patient simulations',
   openGraph: {
     title: 'MI Mastery',
     description: 'Motivational Interviewing training with AI-powered patient simulations',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://app.mimastery.com',
     siteName: 'MI Mastery',
     locale: 'en_US',
     type: 'website',

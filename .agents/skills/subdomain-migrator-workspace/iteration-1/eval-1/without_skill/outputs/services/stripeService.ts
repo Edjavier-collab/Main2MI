@@ -145,7 +145,7 @@ export const createCheckoutSession = async (
     plan: 'monthly' | 'annual',
     email?: string
 ): Promise<{ sessionId: string; url: string }> => {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://app.mimastery.com');
     const body: Record<string, unknown> = { 
         userId, 
         plan,

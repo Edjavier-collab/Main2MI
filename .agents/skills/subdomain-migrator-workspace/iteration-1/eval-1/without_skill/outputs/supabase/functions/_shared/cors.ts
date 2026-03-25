@@ -1,7 +1,7 @@
 // Allowed origins for CORS
 const ALLOWED_ORIGINS = [
-  process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000', // Custom domain
-  (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace('https://', 'https://www.'), // Custom domain with www
+  process.env.NEXT_PUBLIC_SITE_URL || 'https://app.mimastery.com', // Custom domain
+  (process.env.NEXT_PUBLIC_SITE_URL || 'https://app.mimastery.com').replace('https://', 'https://www.'), // Custom domain with www
   'https://mi-practice-coach.vercel.app', // Legacy Vercel URL
   'https://main2-mi.vercel.app', // Current Vercel deployment
   'http://localhost:5173', // Local dev

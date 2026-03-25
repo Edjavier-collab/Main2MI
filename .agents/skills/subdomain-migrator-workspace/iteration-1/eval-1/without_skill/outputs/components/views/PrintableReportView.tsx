@@ -212,7 +212,7 @@ const PrintableReportView: React.FC<PrintableReportViewProps> = ({
               {/* QR Code */}
               <div className="bg-white rounded-lg p-2 print-color">
                 <QRCodeSVG
-                  value={`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/verify/${reportData.reportId}`}
+                  value={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://app.mimastery.com'}/verify/${reportData.reportId}`}
                   size={72}
                   level="L"
                 />
@@ -357,7 +357,7 @@ const PrintableReportView: React.FC<PrintableReportViewProps> = ({
             <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
               <div className="flex items-center gap-4">
                 <span className="font-mono font-semibold">{reportData.reportId}</span>
-                <span>{(process.env.NEXT_PUBLIC_SITE_URL || 'localhost:3000').replace('https://', '').replace(/\/$/, '')}/verify</span>
+                <span>{(process.env.NEXT_PUBLIC_SITE_URL || 'app.mimastery.com').replace('https://', '').replace(/\/$/, '')}/verify</span>
               </div>
               <span>Generated on {generatedDate}</span>
             </div>
